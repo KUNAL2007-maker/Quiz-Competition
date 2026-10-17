@@ -3,12 +3,12 @@ services:
     name: aegis-cipher-quiz-competition
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3000
+      - key: NODE_VERSION
+        value: 22.14.0
       - key: PYTHON_PORT
         value: 5001
