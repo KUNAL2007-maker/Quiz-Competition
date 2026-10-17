@@ -4,8 +4,8 @@ import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import http from 'http';
 
-const PORT = 3000;
-const PYTHON_PORT = 5001;
+const PORT = Number(process.env.PORT) || 3000;
+const PYTHON_PORT = Number(process.env.PYTHON_PORT) || 5001;
 
 let pythonProcess: ChildProcess | null = null;
 
