@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #07090D;
+    --bg-secondary: #0C1017;
+    --bg-elevated: #111722;
+    --border-subtle: #252D38;
+    --accent-primary: #B6FF3B;
+    --accent-secondary: #36F58A;
+    --accent-alert: #FF365B;
+    --text-primary: #F0F3F7;
+    --text-secondary: #929DAC;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #07090D;
+    color: #F0F3F7;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Outfit', sans-serif;
+    text-wrap: balance;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Subtle tactical grid and radial atmosphere */
+.cyber-grid-bg {
+  background-color: #07090D;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(182, 255, 59, 0.045) 0%, transparent 60%),
+    radial-gradient(circle at 85% 20%, rgba(54, 245, 138, 0.03) 0%, transparent 45%),
+    linear-gradient(to right, rgba(37, 45, 56, 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 45, 56, 0.25) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+}
+
+.cyber-scanline {
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0) 50%,
+    rgba(182, 255, 59, 0.015) 50%,
+    rgba(182, 255, 59, 0.015)
+  );
+  background-size: 100% 4px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.reduce-motion *,
+.reduce-motion ::before,
+.reduce-motion ::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+.high-contrast {
+  --border-subtle: #4A5568;
+  --text-secondary: #CBD5E0;
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #07090D;
+}
+::-webkit-scrollbar-thumb {
+  background: #252D38;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3A4656;
+}

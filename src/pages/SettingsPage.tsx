@@ -1,0 +1,280 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Sliders,
+  Bell,
+  Volume2,
+  Eye,
+  Shield,
+  UserCheck,
+  RotateCcw,
+  Terminal,
+} from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
+
+interface ToggleRowProps {
+  id: string;
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}
+
+const ToggleRow: React.FC<ToggleRowProps> = ({
+  id,
+  label,
+  description,
+  checked,
+  onChange,
+}) => {
+  return (
+    <div className="flex items-center justify-between gap-4 py-3.5 border-b border-[#252D38] last:border-b-0">
+      <div>
+        <label htmlFor={id} className="text-sm font-medium text-[#F0F3F7] cursor-pointer">
+          {label}
+        </label>
+        <p className="mt-0.5 text-xs text-[#929DAC]">{description}</p>
+      </div>
+
+      <button
+        id={id}
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#B6FF3B] ${
+          checked
+            ? 'border-[#B6FF3B] bg-[#B6FF3B]/20'
+            : 'border-[#252D38] bg-[#07090D]'
+        }`}
+      >
+        <span
+          className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
+            checked ? 'translate-x-5 bg-[#B6FF3B]' : 'translate-x-1 bg-[#929DAC]'
+          }`}
+        />
+      </button>
+    </div>
+  );
+};
+
+export const SettingsPage: React.FC = () => {
+  const navigate = useNavigate();
+  const {
+    settings,
+    updateSettings,
+    resetSettings,
+    resetQuizSession,
+    addToast,
+  } = useAppContext();
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#252D38] pb-6">
+        <div>
+          <p className="font-mono text-xs tracking-wider text-[#B6FF3B]">
+            INTERFACE CONFIGURATION
+          </p>
+          <h1 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-[#F0F3F7]">
+            Settings & Preferences
+          </h1>
+          <p className="mt-2 text-sm text-[#929DAC] max-w-2xl">
+            Configure local appearance, audio cues, accessibility options, and interface preferences. Settings are applied in local browser state.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={resetSettings}
+          className="inline-flex items-center gap-2 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] hover:text-[#B6FF3B] transition-colors whitespace-nowrap shrink-0 self-start md:self-auto cursor-pointer"
+        >
+          <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>Reset Defaults</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 1. Profile Preferences */}
+        <section className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6">
+          <div className="mb-4 flex items-center gap-2.5 border-b border-[#252D38] pb-3">
+            <UserCheck className="h-4 w-4 text-[#B6FF3B]" aria-hidden="true" />
+            <h2 className="font-display text-base font-semibold text-[#F0F3F7]">
+              Profile Preferences
+            </h2>
+          </div>
+          <p className="text-xs text-[#929DAC] leading-relaxed">
+            Manage your local operator display name, callsign handle, biography, and emblem selection in the dedicated operator identity dossier.
+          </p>
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => navigate('/profile')}
+              className="rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-2 text-xs font-medium text-[#B6FF3B] hover:border-[#B6FF3B] cursor-pointer"
+            >
+              Open Operator Profile Editor
+            </button>
+          </div>
+        </section>
+
+        {/* 2. Appearance */}
+        <section className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6">
+          <div className="mb-4 flex items-center gap-2.5 border-b border-[#252D38] pb-3">
+            <Sliders className="h-4 w-4 text-[#B6FF3B]" aria-hidden="true" />
+            <h2 className="font-display text-base font-semibold text-[#F0F3F7]">
+              Appearance & Surface Atmosphere
+            </h2>
+          </div>
+
+          <ToggleRow
+            id="toggle-grid-overlay"
+            label="Tactical Grid Background"
+            description="Render subtle structural grid lines across the workspace canvas."
+            checked={settings.appearance.gridOverlay}
+            onChange={(val) => updateSettings('appearance', { gridOverlay: val })}
+          />
+          <ToggleRow
+            id="toggle-scanline-overlay"
+            label="Subtle Scanline Texture"
+            description="Apply low-opacity horizontal terminal scanlines over the background."
+            checked={settings.appearance.scanlineOverlay}
+            onChange={(val) => updateSettings('appearance', { scanlineOverlay: val })}
+          />
+          <ToggleRow
+            id="toggle-compact-density"
+            label="Compact Workspace Spacing"
+            description="Reduce outer viewport padding for higher information density."
+            checked={settings.appearance.compactDensity}
+            onChange={(val) => updateSettings('appearance', { compactDensity: val })}
+          />
+        </section>
+
+        {/* 3. Notification & Sound Preferences */}
+        <section className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6">
+          <div className="mb-4 flex items-center gap-2.5 border-b border-[#252D38] pb-3">
+            <Bell className="h-4 w-4 text-[#B6FF3B]" aria-hidden="true" />
+            <h2 className="font-display text-base font-semibold text-[#F0F3F7]">
+              Notifications & Sound Effects
+            </h2>
+          </div>
+
+          <ToggleRow
+            id="toggle-comp-alerts"
+            label="Competition Start Alerts"
+            description="Show local interface alerts when a competition countdown reaches zero."
+            checked={settings.notifications.competitionStartAlerts}
+            onChange={(val) =>
+              updateSettings('notifications', { competitionStartAlerts: val })
+            }
+          />
+          <ToggleRow
+            id="toggle-leaderboard-alerts"
+            label="Leaderboard Update Notices"
+            description="Notify when ranking movements occur in connected sessions."
+            checked={settings.notifications.leaderboardUpdates}
+            onChange={(val) =>
+              updateSettings('notifications', { leaderboardUpdates: val })
+            }
+          />
+          <ToggleRow
+            id="toggle-sound-effects"
+            label="Interface Sound Effects"
+            description="Play restrained audio synthesis cues on countdown expiration (disabled by default)."
+            checked={settings.audio.soundEffectsEnabled}
+            onChange={(val) => updateSettings('audio', { soundEffectsEnabled: val })}
+          />
+        </section>
+
+        {/* 4. Accessibility & Reduced Motion */}
+        <section className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6">
+          <div className="mb-4 flex items-center gap-2.5 border-b border-[#252D38] pb-3">
+            <Eye className="h-4 w-4 text-[#B6FF3B]" aria-hidden="true" />
+            <h2 className="font-display text-base font-semibold text-[#F0F3F7]">
+              Accessibility & Motion
+            </h2>
+          </div>
+
+          <ToggleRow
+            id="toggle-reduced-motion"
+            label="Reduced Motion Mode"
+            description="Minimize interface transitions and animated progress indicators."
+            checked={settings.accessibility.reducedMotion}
+            onChange={(val) =>
+              updateSettings('accessibility', { reducedMotion: val })
+            }
+          />
+          <ToggleRow
+            id="toggle-high-contrast"
+            label="Enhanced Border Contrast"
+            description="Increase structural border luminance for sharper panel separation."
+            checked={settings.accessibility.highContrastBorders}
+            onChange={(val) =>
+              updateSettings('accessibility', { highContrastBorders: val })
+            }
+          />
+        </section>
+
+        {/* 5. Privacy Preferences (Local Frontend Contract) */}
+        <section className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6">
+          <div className="mb-4 flex items-center gap-2.5 border-b border-[#252D38] pb-3">
+            <Shield className="h-4 w-4 text-[#B6FF3B]" aria-hidden="true" />
+            <h2 className="font-display text-base font-semibold text-[#F0F3F7]">
+              Privacy Preferences (Client UI State)
+            </h2>
+          </div>
+
+          <ToggleRow
+            id="toggle-public-profile"
+            label="Public Operator Dossier"
+            description="Local preference for profile visibility once a backend account service is linked."
+            checked={settings.privacy.publicOperatorProfile}
+            onChange={(val) =>
+              updateSettings('privacy', { publicOperatorProfile: val })
+            }
+          />
+          <ToggleRow
+            id="toggle-display-handle"
+            label="Show Callsign on Leaderboard"
+            description="Local preference for displaying your operator callsign in public standings."
+            checked={settings.privacy.displayLeaderboardHandle}
+            onChange={(val) =>
+              updateSettings('privacy', { displayLeaderboardHandle: val })
+            }
+          />
+        </section>
+
+        {/* 6. Session & Account UI (Honest Local Session Notice) */}
+        <section className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6 flex flex-col justify-between">
+          <div>
+            <div className="mb-4 flex items-center gap-2.5 border-b border-[#252D38] pb-3">
+              <Terminal className="h-4 w-4 text-[#B6FF3B]" aria-hidden="true" />
+              <h2 className="font-display text-base font-semibold text-[#F0F3F7]">
+                Session & Account Environment
+              </h2>
+            </div>
+
+            <p className="text-xs text-[#929DAC] leading-relaxed">
+              Authentication and server-side account persistence are not connected in this frontend-only build. Password management, server-side privacy enforcement, and remote account deletion require backend integration.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-[#252D38] pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                resetQuizSession();
+                addToast(
+                  'Local Assessment Cache Cleared',
+                  'Stored session answers and timers have been reset.'
+                );
+              }}
+              className="rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#FF365B] hover:text-[#FF365B] transition-colors cursor-pointer"
+            >
+              Clear Local Assessment Session
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+};
