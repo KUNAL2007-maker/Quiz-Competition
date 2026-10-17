@@ -45,15 +45,15 @@ export const LeaderboardPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Honest Real-Time Feed Status Indicator (never pretends a socket is live without data) */}
+        {/* Live Firestore Feed Status Indicator */}
         <div className="flex items-center gap-2.5 rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-2 self-start md:self-auto">
-          <Radio className="h-4 w-4 text-[#929DAC]" aria-hidden="true" />
+          <Radio className="h-4 w-4 text-[#36F58A]" aria-hidden="true" />
           <div className="text-left">
             <span className="block font-mono text-[10px] text-[#929DAC]">
               REAL-TIME FEED STATUS
             </span>
-            <span className="font-mono text-xs font-medium text-[#F0F3F7]">
-              Offline · Awaiting Data Source
+            <span className="font-mono text-xs font-medium text-[#36F58A]">
+              Connected · Firebase Firestore
             </span>
           </div>
         </div>

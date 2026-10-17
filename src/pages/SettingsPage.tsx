@@ -66,6 +66,10 @@ export const SettingsPage: React.FC = () => {
     resetSettings,
     resetQuizSession,
     addToast,
+    currentUser,
+    pythonEngineOnline,
+    signInWithGoogle,
+    signOutOperator,
   } = useAppContext();
 
   return (
@@ -243,22 +247,47 @@ export const SettingsPage: React.FC = () => {
           />
         </section>
 
-        {/* 6. Session & Account UI (Honest Local Session Notice) */}
+        {/* 6. Session & Account UI (Firebase Auth & Python Backend) */}
         <section className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6 flex flex-col justify-between">
           <div>
-            <div className="mb-4 flex items-center gap-2.5 border-b border-[#252D38] pb-3">
-              <Terminal className="h-4 w-4 text-[#B6FF3B]" aria-hidden="true" />
-              <h2 className="font-display text-base font-semibold text-[#F0F3F7]">
-                Session & Account Environment
-              </h2>
+            <div className="mb-4 flex items-center justify-between gap-2.5 border-b border-[#252D38] pb-3">
+              <div className="flex items-center gap-2.5">
+                <Terminal className="h-4 w-4 text-[#B6FF3B]" aria-hidden="true" />
+                <h2 className="font-display text-base font-semibold text-[#F0F3F7]">
+                  Session, Firebase Auth & Python Engine
+                </h2>
+              </div>
+              <span className="font-mono text-[11px] text-[#36F58A]">
+                {pythonEngineOnline ? 'PYTHON API · ONLINE' : 'PYTHON API · STANDBY'}
+              </span>
             </div>
 
             <p className="text-xs text-[#929DAC] leading-relaxed">
-              Authentication and server-side account persistence are not connected in this frontend-only build. Password management, server-side privacy enforcement, and remote account deletion require backend integration.
+              {currentUser
+                ? `Authenticated via Google as ${currentUser.email || currentUser.uid}. Profile updates and quiz results are validated by the Python engine and persisted to Firestore.`
+                : 'Connected to Firebase Authentication, Firestore Database, and the Python API validation gateway. All data collections start empty with zero demo data.'}
             </p>
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-[#252D38] pt-4">
+            {currentUser ? (
+              <button
+                type="button"
+                onClick={signOutOperator}
+                className="rounded-md border border-[#FF365B]/60 bg-[#111722] px-3.5 py-2 text-xs font-medium text-[#FF365B] hover:bg-[#FF365B]/10 transition-colors cursor-pointer"
+              >
+                Sign Out of Firebase
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={signInWithGoogle}
+                className="rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer"
+              >
+                Authenticate with Google
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => {

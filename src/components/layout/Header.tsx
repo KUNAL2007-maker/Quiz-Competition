@@ -35,6 +35,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
     setGlobalSearchQuery,
     profile,
     competitions,
+    currentUser,
+    signInWithGoogle,
+    signOutOperator,
   } = useAppContext();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -267,6 +270,32 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                   <Sliders className="h-3.5 w-3.5 text-[#929DAC]" />
                   <span>Terminal Settings</span>
                 </button>
+              </div>
+
+              <div className="border-t border-[#252D38] pt-1 mt-1">
+                {currentUser ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      signOutOperator();
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-xs text-[#FF365B] hover:bg-[#0C1017] cursor-pointer"
+                  >
+                    <span>Sign Out ({currentUser.email || 'Operator'})</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      signInWithGoogle();
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-xs font-semibold text-[#B6FF3B] hover:bg-[#0C1017] cursor-pointer"
+                  >
+                    <span>Authenticate with Google</span>
+                  </button>
+                )}
               </div>
             </div>
           )}

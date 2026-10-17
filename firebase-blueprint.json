@@ -1,0 +1,232 @@
+{
+  "entities": {
+    "Competition": {
+      "title": "Competition",
+      "description": "A scheduled or active cybersecurity tournament.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Title of the competition",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "description": "Operational briefing and overview",
+          "maxLength": 1000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["upcoming", "live", "completed"]
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 64
+        },
+        "durationMinutes": {
+          "type": "number"
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["Field Operator", "Senior Analyst", "Zero-Day Specialist", "Classified"]
+        },
+        "accessType": {
+          "type": "string",
+          "enum": ["Open Clearance", "Invite Only", "Key Required"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["title", "status", "createdAt"]
+    },
+    "QuizQuestion": {
+      "title": "QuizQuestion",
+      "description": "An individual cybersecurity assessment question belonging to a competition.",
+      "type": "object",
+      "properties": {
+        "competitionId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "index": {
+          "type": "number"
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "points": {
+          "type": "number"
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 2000
+        },
+        "codeSnippet": {
+          "type": "string",
+          "maxLength": 4000
+        }
+      },
+      "required": ["competitionId", "index", "prompt"]
+    },
+    "OperatorProfile": {
+      "title": "OperatorProfile",
+      "description": "Public operator identity dossier without PII.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 48
+        },
+        "username": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 24,
+          "pattern": "^[a-zA-Z0-9_.\\-]+$"
+        },
+        "biography": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "avatarPreset": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["ownerId", "displayName", "username", "createdAt", "updatedAt"]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Verified competition ranking entry.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "competitionId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 48
+        },
+        "username": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 24,
+          "pattern": "^[a-zA-Z0-9_.\\-]+$"
+        },
+        "score": {
+          "type": "number"
+        },
+        "completionStatus": {
+          "type": "string",
+          "enum": ["Completed", "In Progress", "Verified"]
+        },
+        "accuracyPercent": {
+          "type": "number"
+        },
+        "completionTimeSeconds": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["ownerId", "competitionId", "displayName", "score", "completionStatus", "createdAt"]
+    },
+    "CompetitionResult": {
+      "title": "CompetitionResult",
+      "description": "Private operator competition assessment outcome.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "competitionId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "competitionName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "finalScore": {
+          "type": "number"
+        },
+        "maxScore": {
+          "type": "number"
+        },
+        "accuracyPercent": {
+          "type": "number"
+        },
+        "timeTakenSeconds": {
+          "type": "number"
+        },
+        "correctCount": {
+          "type": "number"
+        },
+        "incorrectCount": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["ownerId", "competitionId", "competitionName", "finalScore", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/competitions/{competitionId}": {
+      "schema": { "$ref": "#/entities/Competition" },
+      "description": "Tournament competition directory."
+    },
+    "/competitions/{competitionId}/questions/{questionId}": {
+      "schema": { "$ref": "#/entities/QuizQuestion" },
+      "description": "Questions belonging to a specific competition."
+    },
+    "/profiles/{userId}": {
+      "schema": { "$ref": "#/entities/OperatorProfile" },
+      "description": "Operator identity profiles (isolated from PII)."
+    },
+    "/leaderboard/{entryId}": {
+      "schema": { "$ref": "#/entities/LeaderboardEntry" },
+      "description": "Public tournament ranking entries."
+    },
+    "/results/{resultId}": {
+      "schema": { "$ref": "#/entities/CompetitionResult" },
+      "description": "Operator assessment results scoped to ownerId."
+    }
+  }
+}
