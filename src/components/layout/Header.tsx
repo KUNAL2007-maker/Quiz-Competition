@@ -178,7 +178,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           </button>
 
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 rounded-lg border border-[#252D38] bg-[#111722] p-4 shadow-2xl">
+            <div className="absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-[#252D38] bg-[#111722] p-4 shadow-2xl">
               <div className="flex items-center justify-between border-b border-[#252D38] pb-2.5">
                 <span className="font-display text-xs font-semibold text-[#F0F3F7]">
                   Dispatches & Alerts
@@ -226,7 +226,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           </button>
 
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-60 rounded-lg border border-[#252D38] bg-[#111722] p-2 shadow-2xl">
+            <div className="absolute right-0 mt-2 w-56 sm:w-60 max-w-[calc(100vw-2rem)] rounded-lg border border-[#252D38] bg-[#111722] p-2 shadow-2xl">
               <div className="border-b border-[#252D38] px-3 py-2.5">
                 <p className="text-xs font-semibold text-[#F0F3F7] truncate">
                   {profile.displayName || 'Unassigned Operator'}

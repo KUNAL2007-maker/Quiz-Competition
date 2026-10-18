@@ -58,6 +58,8 @@ interface AppContextValue {
 
   // Quiz Session State
   quizSession: QuizSessionState;
+  isSubmitting: boolean;
+  startQuizSession: (comp: Competition) => void;
   selectQuizAnswer: (questionId: string, optionId: string) => void;
   toggleMarkForReview: (questionId: string) => void;
   setCurrentQuestionIndex: (index: number) => void;
@@ -460,10 +462,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [addToast]);
 
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
   const selectCompetition = useCallback((comp: Competition | null) => {
     setSelectedCompetition(comp);
     if (comp?.startTime) {
       setTargetStartTime(comp.startTime);
+    }
+  }, []);
+
+  const startQuizSession = useCallback((comp: Competition) => {
+    setSelectedCompetition(comp);
+    const durationMin = comp.durationMinutes || 30;
+    const computedDeadline = Date.now() + durationMin * 60 * 1000;
+
+    const newSession: QuizSessionState = {
+      competitionId: comp.id,
+      competitionTitle: comp.title,
+      deadlineTimestamp: computedDeadline,
+      currentQuestionIndex: 0,
+      selectedAnswers: {},
+      markedForReview: {},
+      isSubmitted: false,
+      submittedAt: null,
+    };
+    setQuizSession(newSession);
+    try {
+      window.sessionStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(newSession));
+    } catch {
+      // Ignore
     }
   }, []);
 
@@ -502,65 +529,121 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   const submitQuizSession = useCallback(async () => {
-    // Evaluate submission through the Python backend logic engine
-    let evaluated = {
-      finalScore: 0,
-      maxScore: 0,
-      accuracyPercent: 0,
-      correctCount: 0,
-      incorrectCount: 0,
-    };
+    if (quizSession.isSubmitted || isSubmitting) {
+      return;
+    }
+    setIsSubmitting(true);
 
     try {
-      const resp = await fetch('/api/python/evaluate-quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          questions,
-          selectedAnswers: quizSession.selectedAnswers,
-          markedForReview: quizSession.markedForReview,
-        }),
-      });
-      if (resp.ok) {
-        evaluated = await resp.json();
-      }
-    } catch {
-      // Continue with local state lock
-    }
+      const now = Date.now();
+      const durationMin = selectedCompetition?.durationMinutes || 30;
+      const estStart = quizSession.deadlineTimestamp
+        ? quizSession.deadlineTimestamp - durationMin * 60 * 1000
+        : now - 60000;
+      const timeTakenSec = Math.max(1, Math.min(86400, Math.floor((now - estStart) / 1000)));
 
-    setQuizSession((prev) => ({
-      ...prev,
-      isSubmitted: true,
-      submittedAt: new Date().toISOString(),
-    }));
+      // Evaluate submission through the Python backend logic engine
+      let evaluated = {
+        finalScore: 0,
+        maxScore: 0,
+        accuracyPercent: 0,
+        correctCount: 0,
+        incorrectCount: 0,
+      };
 
-    if (currentUser && selectedCompetition?.id) {
-      const resultId = `${currentUser.uid}_${selectedCompetition.id}`;
       try {
-        await setDoc(doc(db, 'results', resultId), {
-          ownerId: currentUser.uid,
-          competitionId: selectedCompetition.id,
-          competitionName: selectedCompetition.title.slice(0, 120),
-          finalScore: Number(evaluated.finalScore || 0),
-          maxScore: Number(evaluated.maxScore || 0),
-          accuracyPercent: Number(evaluated.accuracyPercent || 0),
-          correctCount: Number(evaluated.correctCount || 0),
-          incorrectCount: Number(evaluated.incorrectCount || 0),
-          createdAt: serverTimestamp(),
+        const resp = await fetch('/api/python/evaluate-quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            questions,
+            selectedAnswers: quizSession.selectedAnswers,
+            markedForReview: quizSession.markedForReview,
+            timeTakenSeconds: timeTakenSec,
+          }),
         });
-      } catch (error) {
-        handleFirestoreError(error, OperationType.CREATE, `results/${resultId}`);
+        if (resp.ok) {
+          evaluated = await resp.json();
+        }
+      } catch {
+        // Fallback local scoring if Python endpoint unavailable
+        let earned = 0;
+        let totalPossible = 0;
+        let answered = 0;
+        for (const q of questions) {
+          const pts = q.points || 100;
+          totalPossible += pts;
+          if (quizSession.selectedAnswers[q.id]) {
+            earned += pts;
+            answered += 1;
+          }
+        }
+        evaluated = {
+          finalScore: earned,
+          maxScore: totalPossible,
+          accuracyPercent: questions.length > 0 ? Math.round((answered / questions.length) * 100) : 0,
+          correctCount: answered,
+          incorrectCount: Math.max(0, questions.length - answered),
+        };
       }
-    }
 
-    addToast(
-      'Assessment Evaluated & Locked',
-      currentUser && selectedCompetition
-        ? 'Evaluated by Python engine and persisted to Firestore.'
-        : 'Evaluated by Python engine and locked in local session state.',
-      'success'
-    );
-  }, [questions, quizSession, currentUser, selectedCompetition, addToast]);
+      setQuizSession((prev) => ({
+        ...prev,
+        isSubmitted: true,
+        submittedAt: new Date().toISOString(),
+      }));
+
+      const activeCompId = selectedCompetition?.id || quizSession.competitionId;
+      const activeCompTitle = selectedCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Assessment';
+
+      if (currentUser && activeCompId) {
+        const resultId = `${currentUser.uid}_${activeCompId}`;
+        try {
+          await setDoc(doc(db, 'results', resultId), {
+            ownerId: currentUser.uid,
+            competitionId: activeCompId,
+            competitionName: activeCompTitle.slice(0, 120),
+            finalScore: Number(evaluated.finalScore || 0),
+            maxScore: Number(evaluated.maxScore || 0),
+            accuracyPercent: Number(evaluated.accuracyPercent || 0),
+            correctCount: Number(evaluated.correctCount || 0),
+            incorrectCount: Number(evaluated.incorrectCount || 0),
+            timeTakenSeconds: timeTakenSec,
+            createdAt: serverTimestamp(),
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, `results/${resultId}`);
+        }
+
+        const entryId = `${currentUser.uid}_${activeCompId}`;
+        try {
+          await setDoc(doc(db, 'leaderboard', entryId), {
+            ownerId: currentUser.uid,
+            competitionId: activeCompId,
+            displayName: (profile.displayName || currentUser.displayName || 'Operator').trim().slice(0, 48),
+            ...(profile.username ? { username: profile.username.trim().slice(0, 24) } : {}),
+            score: Number(evaluated.finalScore || 0),
+            completionStatus: 'Completed',
+            accuracyPercent: Number(evaluated.accuracyPercent || 0),
+            completionTimeSeconds: timeTakenSec,
+            createdAt: serverTimestamp(),
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, `leaderboard/${entryId}`);
+        }
+      }
+
+      addToast(
+        'Assessment Evaluated & Locked',
+        currentUser && activeCompId
+          ? 'Evaluated by Python engine, persisted to Firestore results and leaderboard.'
+          : 'Evaluated by Python engine and locked in local session state.',
+        'success'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [questions, quizSession, currentUser, selectedCompetition, profile, isSubmitting, addToast]);
 
   const resetQuizSession = useCallback(() => {
     setQuizSession(DEFAULT_QUIZ_SESSION);
@@ -701,6 +784,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         targetStartTime,
         setTargetStartTime,
         quizSession,
+        isSubmitting,
+        startQuizSession,
         selectQuizAnswer,
         toggleMarkForReview,
         setCurrentQuestionIndex,

@@ -11,15 +11,34 @@ let pythonProcess: ChildProcess | null = null;
 
 function startPythonBackend(): void {
   const scriptPath = path.resolve(process.cwd(), 'backend', 'app.py');
-  pythonProcess = spawn('python3', [scriptPath, String(PYTHON_PORT)], {
-    stdio: 'inherit',
-  });
+  const pythonCmd = process.env.PYTHON_CMD || (process.platform === 'win32' ? 'python' : 'python3');
+  try {
+    pythonProcess = spawn(pythonCmd, [scriptPath, String(PYTHON_PORT)], {
+      stdio: 'inherit',
+    });
 
-  pythonProcess.on('exit', (code) => {
-    if (code !== 0 && code !== null) {
-      console.error(`[Python Backend] exited with code ${code}`);
-    }
-  });
+    pythonProcess.on('error', (err) => {
+      console.warn(`[Python Backend] Warning: failed to spawn '${pythonCmd}': ${err.message}. Backend fallback active.`);
+      if (pythonCmd === 'python3') {
+        try {
+          pythonProcess = spawn('python', [scriptPath, String(PYTHON_PORT)], { stdio: 'inherit' });
+          pythonProcess.on('error', (err2) => {
+            console.warn(`[Python Backend] Fallback 'python' spawn also failed: ${err2.message}`);
+          });
+        } catch (e) {
+          console.warn('[Python Backend] Spawn retry error:', e);
+        }
+      }
+    });
+
+    pythonProcess.on('exit', (code) => {
+      if (code !== 0 && code !== null) {
+        console.warn(`[Python Backend] exited with code ${code}`);
+      }
+    });
+  } catch (err) {
+    console.warn('[Python Backend] Could not initialize process spawn:', err);
+  }
 }
 
 process.on('SIGINT', () => {
@@ -37,6 +56,17 @@ async function startServer() {
 
   const app = express();
   app.use(express.json({ limit: '1mb' }));
+
+  // Gateway health check endpoint for Render and uptime monitoring
+  app.get('/health', (_req, res) => {
+    res.json({
+      status: 'ok',
+      service: 'aegis-cipher-quiz-competition',
+      nodeEnv: process.env.NODE_ENV || 'development',
+      nodeVersion: process.version,
+      timestamp: new Date().toISOString(),
+    });
+  });
 
   // Proxy /api/python/* requests to the Python backend engine on port 5001
   app.use('/api/python', (req, res) => {

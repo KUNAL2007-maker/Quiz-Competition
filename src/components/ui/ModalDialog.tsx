@@ -37,8 +37,8 @@ export const ModalDialog: React.FC<ModalDialogProps> = ({
       aria-modal="true"
       aria-labelledby="modal-dialog-title"
     >
-      <div className="relative w-full max-w-lg rounded-lg border border-[#252D38] bg-[#0C1017] p-6 shadow-2xl">
-        <div className="mb-4 flex items-start justify-between gap-4 border-b border-[#252D38] pb-4">
+      <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col rounded-lg border border-[#252D38] bg-[#0C1017] p-5 sm:p-6 shadow-2xl">
+        <div className="mb-4 flex items-start justify-between gap-4 border-b border-[#252D38] pb-4 shrink-0">
           <div>
             <h2 id="modal-dialog-title" className="font-display text-lg font-semibold text-[#F0F3F7]">
               {title}
@@ -57,10 +57,10 @@ export const ModalDialog: React.FC<ModalDialogProps> = ({
           </button>
         </div>
 
-        <div className="text-sm text-[#F0F3F7]">{children}</div>
+        <div className="text-sm text-[#F0F3F7] overflow-y-auto pr-1 flex-1">{children}</div>
 
         {footer && (
-          <div className="mt-6 flex items-center justify-end gap-3 border-t border-[#252D38] pt-4">
+          <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-[#252D38] pt-4 shrink-0">
             {footer}
           </div>
         )}

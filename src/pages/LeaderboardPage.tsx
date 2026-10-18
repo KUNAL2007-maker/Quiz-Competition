@@ -123,7 +123,7 @@ export const LeaderboardPage: React.FC = () => {
           <div
             role="group"
             aria-label="Time period filter"
-            className="flex items-center gap-1 rounded-md border border-[#252D38] bg-[#07090D] p-1"
+            className="flex flex-wrap items-center gap-1 rounded-md border border-[#252D38] bg-[#07090D] p-1"
           >
             {[
               { id: 'all-time', label: 'All Time' },

@@ -23,6 +23,7 @@ export const QuizPage: React.FC = () => {
     selectedCompetition,
     questions,
     quizSession,
+    isSubmitting,
     selectQuizAnswer,
     toggleMarkForReview,
     setCurrentQuestionIndex,
@@ -123,15 +124,26 @@ export const QuizPage: React.FC = () => {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsSubmitDialogOpen(true)}
-            disabled={quizSession.isSubmitted}
-            className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2.5 text-xs font-semibold text-[#07090D] transition-colors hover:bg-[#c8ff66] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-          >
-            <Send className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{quizSession.isSubmitted ? 'Session Submitted' : 'Submit Quiz'}</span>
-          </button>
+          {quizSession.isSubmitted ? (
+            <button
+              type="button"
+              onClick={() => navigate('/results')}
+              className="inline-flex items-center gap-2 rounded-md bg-[#36F58A] px-4 py-2.5 text-xs font-semibold text-[#07090D] transition-colors hover:bg-[#5affaa] whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>View Results</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsSubmitDialogOpen(true)}
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2.5 text-xs font-semibold text-[#07090D] transition-colors hover:bg-[#c8ff66] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <Send className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>{isSubmitting ? 'Submitting...' : 'Submit Quiz'}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -314,21 +326,24 @@ export const QuizPage: React.FC = () => {
           <>
             <button
               type="button"
+              disabled={isSubmitting}
               onClick={() => setIsSubmitDialogOpen(false)}
-              className="rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:bg-[#161E2C] cursor-pointer"
+              className="rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:bg-[#161E2C] disabled:opacity-50 cursor-pointer"
             >
               Cancel & Return
             </button>
             <button
               type="button"
-              onClick={() => {
-                submitQuizSession();
+              disabled={isSubmitting}
+              onClick={async () => {
+                await submitQuizSession();
                 setIsSubmitDialogOpen(false);
+                navigate('/results');
               }}
-              className="inline-flex items-center gap-1.5 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] disabled:opacity-50 cursor-pointer"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
-              <span>Confirm Final Submission</span>
+              <span>{isSubmitting ? 'Evaluating & Syncing...' : 'Confirm Final Submission'}</span>
             </button>
           </>
         }
@@ -338,7 +353,7 @@ export const QuizPage: React.FC = () => {
             <div className="flex items-start gap-3 rounded-md border border-[#252D38] bg-[#111722] p-3.5">
               <AlertTriangle className="h-4 w-4 text-[#B6FF3B] shrink-0 mt-0.5" />
               <p className="text-xs text-[#929DAC] leading-relaxed">
-                No quiz questions are currently loaded in this session. Confirming submission will lock the local frontend session state.
+                No quiz questions are currently loaded in this session. Confirming submission will evaluate your assessment session.
               </p>
             </div>
           ) : (
@@ -365,7 +380,7 @@ export const QuizPage: React.FC = () => {
           )}
 
           <p className="text-xs text-[#929DAC] leading-relaxed">
-            Note: This interface operates in frontend-only mode. Answers are tracked in local state and are not transmitted to an external grading server until a backend is integrated.
+            Your answers are evaluated deterministically by the Python logic engine and synced with your verified Firebase operator records.
           </p>
         </div>
       </ModalDialog>

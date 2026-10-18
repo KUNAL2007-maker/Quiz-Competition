@@ -51,13 +51,14 @@ service cloud.firestore {
 
     function isValidQuestion(data, compId) {
       return data.keys().hasAll(['competitionId', 'index', 'prompt']) &&
-        data.keys().hasOnly(['competitionId', 'index', 'category', 'points', 'prompt', 'codeSnippet']) &&
+        data.keys().hasOnly(['competitionId', 'index', 'category', 'points', 'prompt', 'codeSnippet', 'options']) &&
         data.competitionId is string && data.competitionId == compId &&
         data.index is int && data.index >= 0 && data.index <= 500 &&
         (!('category' in data) || (data.category is string && data.category.size() <= 64)) &&
         (!('points' in data) || (data.points is int && data.points >= 0 && data.points <= 10000)) &&
         data.prompt is string && data.prompt.size() >= 2 && data.prompt.size() <= 2000 &&
-        (!('codeSnippet' in data) || (data.codeSnippet is string && data.codeSnippet.size() <= 4000));
+        (!('codeSnippet' in data) || (data.codeSnippet is string && data.codeSnippet.size() <= 4000)) &&
+        (!('options' in data) || data.options is list);
     }
 
     function isValidOperatorProfile(data, userId) {

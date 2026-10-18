@@ -19,6 +19,7 @@ export const CompetitionDetailPage: React.FC = () => {
     selectedCompetition,
     targetStartTime,
     setTargetStartTime,
+    startQuizSession,
     addToast,
   } = useAppContext();
 
@@ -35,11 +36,14 @@ export const CompetitionDetailPage: React.FC = () => {
       'Transitioning into the assessment environment...',
       'success'
     );
+    if (selectedCompetition) {
+      startQuizSession(selectedCompetition);
+    }
     const timer = window.setTimeout(() => {
       navigate('/quiz');
     }, 1400);
     return () => window.clearTimeout(timer);
-  }, [navigate, addToast]);
+  }, [selectedCompetition, startQuizSession, navigate, addToast]);
 
   const handleApplyCustomTimestamp = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,10 +113,15 @@ export const CompetitionDetailPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => navigate('/quiz')}
+            onClick={() => {
+              if (selectedCompetition) {
+                startQuizSession(selectedCompetition);
+              }
+              navigate('/quiz');
+            }}
             className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
-            <span>Open Quiz Interface</span>
+            <span>{selectedCompetition ? 'Enter Assessment Terminal' : 'Open Quiz Interface'}</span>
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         </div>
@@ -122,7 +131,12 @@ export const CompetitionDetailPage: React.FC = () => {
       <CountdownTimer
         targetStartTime={effectiveStartTime}
         onCountdownZero={handleCountdownComplete}
-        onEnterQuizNow={() => navigate('/quiz')}
+        onEnterQuizNow={() => {
+          if (selectedCompetition) {
+            startQuizSession(selectedCompetition);
+          }
+          navigate('/quiz');
+        }}
       />
 
       {/* Competition Information or Selection-Required State */}
