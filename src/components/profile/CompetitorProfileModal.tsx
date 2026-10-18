@@ -1,4 +1,4 @@
-import React, { useState, useId } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import {
   User,
   Phone,
@@ -40,6 +40,16 @@ export const CompetitorProfileModal: React.FC<CompetitorProfileModalProps> = ({
   const assignedAvatarUrl =
     profile.avatarUrl ||
     `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(seed)}&backgroundColor=07090d`;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && onClose) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   if (!isOpen) return null;
 
@@ -84,9 +94,14 @@ export const CompetitorProfileModal: React.FC<CompetitorProfileModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="profile-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#07090D]/85 backdrop-blur-xs"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && onClose) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#07090D]/85 backdrop-blur-xs"
     >
-      <div className="relative w-full max-w-lg rounded-xl border border-[#252D38] bg-[#0C1017] p-6 sm:p-8 shadow-2xl space-y-6">
+      <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col rounded-xl border border-[#252D38] bg-[#0C1017] p-6 sm:p-8 shadow-2xl space-y-6 overflow-y-auto">
         {/* Modal Header */}
         <div className="flex items-start gap-3.5 border-b border-[#252D38] pb-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#B6FF3B]/50 bg-[#B6FF3B]/10 text-[#B6FF3B]">

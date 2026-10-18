@@ -540,9 +540,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       const userEmail = (currentUser.email || '').trim().toLowerCase();
-      const sanitizedUsername = (userEmail.split('@')[0] || trimmedName)
+      let sanitizedUsername = (userEmail.split('@')[0] || trimmedName)
         .replace(/[^a-zA-Z0-9_.-]/g, '_')
-        .slice(0, 24) || `user_${currentUser.uid.slice(0, 6)}`;
+        .slice(0, 24);
+      if (sanitizedUsername.length < 3) {
+        sanitizedUsername = `user_${currentUser.uid.slice(0, 8)}`;
+      }
 
       const profileDocRef = doc(db, 'profiles', currentUser.uid);
       try {
@@ -747,14 +750,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
 
         const entryId = `${currentUser.uid}_${activeCompId}`;
+        const cleanDisplayName = (profile.displayName || currentUser.displayName || 'Operator').trim().slice(0, 64);
         try {
           await setDoc(doc(db, 'leaderboard', entryId), {
             ownerId: currentUser.uid,
             competitionId: activeCompId,
-            displayName: (profile.displayName || currentUser.displayName || 'Operator').trim().slice(0, 64),
+            displayName: cleanDisplayName,
             ...(profile.username ? { username: profile.username.trim().slice(0, 24) } : {}),
-            ...(profile.whatsappNumber ? { whatsappNumber: profile.whatsappNumber.trim().slice(0, 32) } : {}),
-            ...(profile.email || currentUser.email ? { email: (profile.email || currentUser.email || '').trim().slice(0, 120) } : {}),
             ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl.slice(0, 500) } : {}),
             score: Number(evaluated.finalScore || 0),
             completionStatus: 'Completed',
@@ -764,6 +766,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           });
         } catch (error) {
           handleFirestoreError(error, OperationType.CREATE, `leaderboard/${entryId}`);
+        }
+
+        // Securely store winner contact details in admin-protected winner_contacts collection
+        try {
+          await setDoc(doc(db, 'winner_contacts', entryId), {
+            ownerId: currentUser.uid,
+            competitionId: activeCompId,
+            displayName: cleanDisplayName,
+            ...(profile.whatsappNumber ? { whatsappNumber: profile.whatsappNumber.trim().slice(0, 32) } : {}),
+            ...(profile.email || currentUser.email ? { email: (profile.email || currentUser.email || '').trim().slice(0, 120) } : {}),
+            score: Number(evaluated.finalScore || 0),
+            createdAt: serverTimestamp(),
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, `winner_contacts/${entryId}`);
         }
       }
 
@@ -835,6 +852,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               username: merged.username.trim().slice(0, 24),
               biography: (merged.biography || '').trim().slice(0, 280),
               avatarPreset: (merged.avatarPreset || 'cipher-grid').slice(0, 32),
+              ...(merged.whatsappNumber ? { whatsappNumber: merged.whatsappNumber.trim().slice(0, 32) } : {}),
+              ...(merged.email || currentUser.email ? { email: (merged.email || currentUser.email || '').trim().slice(0, 120) } : {}),
+              ...(merged.avatarUrl ? { avatarUrl: merged.avatarUrl.slice(0, 500) } : {}),
+              isProfileComplete: Boolean(merged.isProfileComplete || (merged.whatsappNumber && merged.displayName)),
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
             });
@@ -844,6 +865,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               username: merged.username.trim().slice(0, 24),
               biography: (merged.biography || '').trim().slice(0, 280),
               avatarPreset: (merged.avatarPreset || 'cipher-grid').slice(0, 32),
+              ...(merged.whatsappNumber ? { whatsappNumber: merged.whatsappNumber.trim().slice(0, 32) } : {}),
+              ...(merged.email || currentUser.email ? { email: (merged.email || currentUser.email || '').trim().slice(0, 120) } : {}),
+              ...(merged.avatarUrl ? { avatarUrl: merged.avatarUrl.slice(0, 500) } : {}),
+              isProfileComplete: Boolean(merged.isProfileComplete || (merged.whatsappNumber && merged.displayName)),
               updatedAt: serverTimestamp(),
             });
           }

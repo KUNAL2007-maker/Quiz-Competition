@@ -40,7 +40,7 @@ export const Footer: React.FC = () => {
           </Link>
           <span className="text-[#252D38]">|</span>
           <a
-            href="mailto:checkship66@gmail.com"
+            href="mailto:checkship66@gmail.com,hafizmujawar786@gmail.com"
             className="text-[#929DAC] hover:text-[#36F58A] transition-colors"
           >
             Support

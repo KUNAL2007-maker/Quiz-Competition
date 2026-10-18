@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -18,7 +18,7 @@ import {
   Trophy,
   ExternalLink,
 } from 'lucide-react';
-import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAppContext } from '../context/AppContext';
 import { Competition, QuizQuestion } from '../types';
@@ -111,6 +111,29 @@ export const AdminPage: React.FC = () => {
   // Bulk JSON Upload State
   const [bulkJson, setBulkJson] = useState(SAMPLE_QUESTIONS_JSON);
   const [isBulkUploading, setIsBulkUploading] = useState(false);
+
+  // Private Winner Contact Directory (Synced securely from admin-only collection)
+  const [winnerContacts, setWinnerContacts] = useState<Record<string, { whatsappNumber?: string; email?: string }>>({});
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    try {
+      const unsub = onSnapshot(collection(db, 'winner_contacts'), (snap) => {
+        const map: Record<string, { whatsappNumber?: string; email?: string }> = {};
+        snap.docs.forEach((d) => {
+          const data = d.data();
+          map[d.id] = {
+            whatsappNumber: data.whatsappNumber,
+            email: data.email,
+          };
+        });
+        setWinnerContacts(map);
+      });
+      return () => unsub();
+    } catch {
+      // Standby if offline
+    }
+  }, [isAdmin]);
 
   // If user is not authorized administrator, show access denied
   if (!isAdmin) {
@@ -801,7 +824,10 @@ export const AdminPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-[#252D38]">
                 {leaderboard.map((entry) => {
-                  const cleanPhone = (entry.whatsappNumber || '').replace(/\D/g, '');
+                  const contact = winnerContacts[entry.participantId] || {};
+                  const phone = contact.whatsappNumber || entry.whatsappNumber || '';
+                  const cleanPhone = phone.replace(/\D/g, '');
+                  const email = contact.email || entry.email || '';
                   return (
                     <tr key={entry.participantId} className="hover:bg-[#111722]/50">
                       <td className="py-3 px-3 font-mono font-bold">
@@ -840,9 +866,9 @@ export const AdminPage: React.FC = () => {
                         {entry.score} PTS
                       </td>
                       <td className="py-3 px-3">
-                        {entry.whatsappNumber ? (
+                        {phone ? (
                           <span className="font-mono text-xs text-[#36F58A]">
-                            {entry.whatsappNumber}
+                            {phone}
                           </span>
                         ) : (
                           <span className="font-mono text-[11px] text-[#929DAC] italic">
@@ -851,7 +877,7 @@ export const AdminPage: React.FC = () => {
                         )}
                       </td>
                       <td className="py-3 px-3 font-mono text-xs text-[#929DAC]">
-                        {entry.email || 'N/A'}
+                        {email || 'N/A'}
                       </td>
                       <td className="py-3 px-3 text-right">
                         <div className="inline-flex items-center gap-2">

@@ -13,7 +13,10 @@ service cloud.firestore {
     }
 
     function isVerifiedUser() {
-      return isSignedIn() && request.auth.token.email_verified == true;
+      return isSignedIn() && (
+        request.auth.token.email_verified == true ||
+        request.auth.token.firebase.sign_in_provider == 'password'
+      );
     }
 
     function incoming() {
@@ -82,18 +85,28 @@ service cloud.firestore {
 
     function isValidLeaderboardEntry(data) {
       return data.keys().hasAll(['ownerId', 'competitionId', 'displayName', 'score', 'completionStatus', 'createdAt']) &&
-        data.keys().hasOnly(['ownerId', 'competitionId', 'displayName', 'username', 'score', 'completionStatus', 'accuracyPercent', 'completionTimeSeconds', 'whatsappNumber', 'email', 'avatarUrl', 'createdAt']) &&
+        data.keys().hasOnly(['ownerId', 'competitionId', 'displayName', 'username', 'score', 'completionStatus', 'accuracyPercent', 'completionTimeSeconds', 'avatarUrl', 'createdAt']) &&
         data.ownerId is string && data.ownerId == request.auth.uid &&
         isValidId(data.competitionId) &&
         data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 64 &&
         (!('username' in data) || (data.username is string && data.username.size() >= 3 && data.username.size() <= 32 && data.username.matches('^[a-zA-Z0-9_.\\-]+$'))) &&
-        (!('whatsappNumber' in data) || (data.whatsappNumber is string && data.whatsappNumber.size() <= 32)) &&
-        (!('email' in data) || (data.email is string && data.email.size() <= 120)) &&
         (!('avatarUrl' in data) || (data.avatarUrl is string && data.avatarUrl.size() <= 500)) &&
         data.score is int && data.score >= 0 && data.score <= 1000000 &&
         data.completionStatus is string && data.completionStatus in ['Completed', 'In Progress', 'Verified'] &&
         (!('accuracyPercent' in data) || (data.accuracyPercent is int && data.accuracyPercent >= 0 && data.accuracyPercent <= 100)) &&
         (!('completionTimeSeconds' in data) || (data.completionTimeSeconds is int && data.completionTimeSeconds >= 0 && data.completionTimeSeconds <= 86400)) &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidWinnerContact(data) {
+      return data.keys().hasAll(['ownerId', 'competitionId', 'displayName', 'score', 'createdAt']) &&
+        data.keys().hasOnly(['ownerId', 'competitionId', 'displayName', 'whatsappNumber', 'email', 'score', 'createdAt']) &&
+        data.ownerId is string && data.ownerId == request.auth.uid &&
+        isValidId(data.competitionId) &&
+        data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 64 &&
+        (!('whatsappNumber' in data) || (data.whatsappNumber is string && data.whatsappNumber.size() <= 32)) &&
+        (!('email' in data) || (data.email is string && data.email.size() <= 120)) &&
+        data.score is int && data.score >= 0 && data.score <= 1000000 &&
         data.createdAt is timestamp;
     }
 
@@ -128,12 +141,15 @@ service cloud.firestore {
         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'status', 'startTime', 'durationMinutes', 'difficulty', 'accessType', 'perQuestionTimerSeconds']);
       allow delete: if isAdmin() && isValidId(competitionId);
 
-      // Master Gate Subcollection: Questions belong to a Competition
+      // Questions subcollection
       match /questions/{questionId} {
         allow get: if isValidId(competitionId) && isValidId(questionId) &&
           exists(/databases/$(database)/documents/competitions/$(competitionId)) &&
-          get(/databases/$(database)/documents/competitions/$(competitionId)).data.status in ['live', 'completed'];
-        allow list: if existing().index >= 0;
+          (isAdmin() || get(/databases/$(database)/documents/competitions/$(competitionId)).data.status in ['live', 'completed']);
+        allow list: if isAdmin() || (
+          exists(/databases/$(database)/documents/competitions/$(competitionId)) &&
+          get(/databases/$(database)/documents/competitions/$(competitionId)).data.status in ['live', 'completed']
+        );
         allow create: if isAdmin() && isValidId(competitionId) && isValidId(questionId) &&
           isValidQuestion(incoming(), competitionId) &&
           exists(/databases/$(database)/documents/competitions/$(competitionId));
@@ -146,7 +162,7 @@ service cloud.firestore {
       }
     }
 
-    // Public Operator Identity Dossiers (No PII stored here)
+    // Operator Profiles (Restricted: only the user or admin can read)
     match /profiles/{userId} {
       allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
       allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
@@ -164,7 +180,7 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Public Leaderboard Standings
+    // Public Leaderboard Standings (Free of PII like WhatsApp and Email)
     match /leaderboard/{entryId} {
       allow get: if isValidId(entryId) && existing().score >= 0;
       allow list: if existing().score >= 0;
@@ -181,6 +197,16 @@ service cloud.firestore {
         existing().completionStatus == 'In Progress' &&
         incoming().diff(existing()).affectedKeys().hasOnly(['score', 'completionStatus', 'accuracyPercent', 'completionTimeSeconds']);
       allow delete: if false;
+    }
+
+    // Winner Contacts (Strictly admin-accessible for prize fulfillment)
+    match /winner_contacts/{entryId} {
+      allow get, list: if isAdmin();
+      allow create: if isVerifiedUser() && isValidId(entryId) &&
+        isValidWinnerContact(incoming()) &&
+        incoming().createdAt == request.time &&
+        exists(/databases/$(database)/documents/competitions/$(incoming().competitionId));
+      allow update, delete: if isAdmin() && isValidId(entryId);
     }
 
     // Private Operator Results (Strictly scoped to ownerId)

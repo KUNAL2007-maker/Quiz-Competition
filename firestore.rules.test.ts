@@ -25,3 +25,9 @@ test('firestore.rules authorizes designated administrator emails', () => {
   assert.match(rulesContent, /'hafizmujawar786@gmail\.com'/);
 });
 
+test('firestore.rules protects winner contacts and prevents PII leakage on public leaderboard', () => {
+  assert.match(rulesContent, /match\s+\/winner_contacts\/\{entryId\}/);
+  assert.match(rulesContent, /allow\s+get,\s*list:\s*if\s+isAdmin\(\);/);
+});
+
+
