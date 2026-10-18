@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { Footer } from './Footer';
 import { ToastContainer } from '../ui/ToastContainer';
 import { useAppContext } from '../../context/AppContext';
 
@@ -30,6 +31,8 @@ export const AppShell: React.FC = () => {
         >
           <Outlet />
         </main>
+
+        <Footer />
       </div>
 
       <ToastContainer />

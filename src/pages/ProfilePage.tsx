@@ -7,56 +7,39 @@ import {
   History,
   BarChart2,
   Shield,
-  Upload,
   Check,
   AlertCircle,
+  Phone,
+  Mail,
+  Lock,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { validateOperatorProfileInput } from '../utils/timerLogic';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 
-const AVATAR_PRESETS = [
-  { id: 'cipher-grid', label: 'Cipher Grid' },
-  { id: 'hex-node', label: 'Hexagonal Node' },
-  { id: 'vector-shield', label: 'Vector Shield' },
-];
-
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { profile, updateProfile, results } = useAppContext();
+  const { currentUser, profile, updateProfile, results } = useAppContext();
 
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(profile.displayName);
   const [username, setUsername] = useState(profile.username);
+  const [whatsappNumber, setWhatsappNumber] = useState(profile.whatsappNumber || '');
   const [biography, setBiography] = useState(profile.biography);
-  const [avatarPreset, setAvatarPreset] = useState(profile.avatarPreset);
-  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(profile.avatarUrl);
   const [validationErrors, setValidationErrors] = useState<{
     displayName?: string;
     username?: string;
+    whatsappNumber?: string;
     biography?: string;
   }>({});
 
   const handleOpenEdit = () => {
     setDisplayName(profile.displayName);
     setUsername(profile.username);
+    setWhatsappNumber(profile.whatsappNumber || '');
     setBiography(profile.biography);
-    setAvatarPreset(profile.avatarPreset);
-    setAvatarPreviewUrl(profile.avatarUrl);
     setValidationErrors({});
     setIsEditing(true);
-  };
-
-  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setAvatarPreviewUrl(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -75,9 +58,8 @@ export const ProfilePage: React.FC = () => {
     updateProfile({
       displayName: displayName.trim(),
       username: username.trim(),
+      whatsappNumber: whatsappNumber.trim(),
       biography: biography.trim(),
-      avatarPreset,
-      avatarUrl: avatarPreviewUrl,
     });
     setIsEditing(false);
   };
@@ -129,6 +111,21 @@ export const ProfilePage: React.FC = () => {
                 {profile.username ? `@${profile.username}` : 'No callsign handle assigned'}
               </p>
 
+              <div className="mt-2.5 flex flex-wrap items-center gap-4 font-mono text-xs">
+                {profile.whatsappNumber && (
+                  <span className="inline-flex items-center gap-1.5 text-[#36F58A]">
+                    <Phone className="h-3.5 w-3.5" />
+                    <span>WhatsApp: {profile.whatsappNumber}</span>
+                  </span>
+                )}
+                {currentUser?.email && (
+                  <span className="inline-flex items-center gap-1.5 text-[#929DAC]">
+                    <Mail className="h-3.5 w-3.5" />
+                    <span>Email: {currentUser.email}</span>
+                  </span>
+                )}
+              </div>
+
               <p className="mt-3 max-w-2xl text-sm text-[#929DAC] leading-relaxed">
                 {profile.biography ||
                   'Operator biography has not been configured. Use the local profile editor to set your display name, callsign handle, and operational focus.'}
@@ -150,7 +147,7 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Working Frontend-Only Profile Edit Form */}
+        {/* Working Profile Edit Form */}
         {isEditing && (
           <form
             onSubmit={handleSaveProfile}
@@ -159,10 +156,10 @@ export const ProfilePage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="font-display text-base font-semibold text-[#F0F3F7]">
-                  Edit Operator Identity (Local Session State)
+                  Edit Competitor Profile Details
                 </h2>
                 <p className="text-xs text-[#929DAC]">
-                  Changes update local UI state immediately and are not permanently stored on a remote server.
+                  Update your contact details to ensure prize awards reach you upon winning.
                 </p>
               </div>
             </div>
@@ -173,11 +170,12 @@ export const ProfilePage: React.FC = () => {
                   htmlFor="profile-display-name"
                   className="block font-mono text-xs text-[#929DAC] mb-1.5"
                 >
-                  DISPLAY NAME
+                  FULL LEGAL NAME *
                 </label>
                 <input
                   id="profile-display-name"
                   type="text"
+                  required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Enter operator display name..."
@@ -189,6 +187,24 @@ export const ProfilePage: React.FC = () => {
                     <span>{validationErrors.displayName}</span>
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="profile-whatsapp"
+                  className="block font-mono text-xs text-[#929DAC] mb-1.5"
+                >
+                  WHATSAPP CONTACT NUMBER *
+                </label>
+                <input
+                  id="profile-whatsapp"
+                  type="tel"
+                  required
+                  value={whatsappNumber}
+                  onChange={(e) => setWhatsappNumber(e.target.value)}
+                  placeholder="e.g. +91 9876543210"
+                  className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3.5 py-2 text-sm text-[#F0F3F7] focus:border-[#B6FF3B] focus:outline-none"
+                />
               </div>
 
               <div>
@@ -212,6 +228,26 @@ export const ProfilePage: React.FC = () => {
                     <span>{validationErrors.username}</span>
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="profile-email-ro"
+                  className="block font-mono text-xs text-[#929DAC] mb-1.5"
+                >
+                  REGISTERED EMAIL (LOCKED)
+                </label>
+                <div className="relative">
+                  <input
+                    id="profile-email-ro"
+                    type="email"
+                    readOnly
+                    disabled
+                    value={currentUser?.email || 'unassigned@operator'}
+                    className="w-full rounded-md border border-[#252D38] bg-[#07090D]/50 px-3.5 py-2 text-sm text-[#929DAC] cursor-not-allowed"
+                  />
+                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#929DAC]/50" />
+                </div>
               </div>
             </div>
 
@@ -238,47 +274,12 @@ export const ProfilePage: React.FC = () => {
               )}
             </div>
 
-            {/* Avatar Emblem Preset & Local Image Upload Preview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
-              <div>
-                <span className="block font-mono text-xs text-[#929DAC] mb-2">
-                  AVATAR EMBLEM PRESET
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {AVATAR_PRESETS.map((preset) => (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      onClick={() => {
-                        setAvatarPreset(preset.id);
-                        setAvatarPreviewUrl(null);
-                      }}
-                      className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
-                        avatarPreset === preset.id && !avatarPreviewUrl
-                          ? 'border-[#B6FF3B] bg-[#111722] text-[#B6FF3B]'
-                          : 'border-[#252D38] bg-[#111722] text-[#929DAC] hover:text-[#F0F3F7]'
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <span className="block font-mono text-xs text-[#929DAC] mb-2">
-                  CUSTOM AVATAR PREVIEW (LOCAL ONLY)
-                </span>
-                <label className="inline-flex items-center gap-2 rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-1.5 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] cursor-pointer">
-                  <Upload className="h-3.5 w-3.5 text-[#B6FF3B]" />
-                  <span>Select Image File</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarFileChange}
-                    className="sr-only"
-                  />
-                </label>
+            {/* Locked Avatar Notice */}
+            <div className="rounded-lg border border-[#252D38] bg-[#07090D] p-4 flex items-center gap-3">
+              <Lock className="h-5 w-5 text-[#B6FF3B] shrink-0" />
+              <div className="text-xs text-[#929DAC]">
+                <span className="font-semibold text-[#F0F3F7]">System-Assigned Profile Avatar</span>:
+                To ensure anti-impersonation and tournament integrity, profile photos are randomly assigned by the platform identity protocol and cannot be altered.
               </div>
             </div>
 

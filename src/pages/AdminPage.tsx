@@ -13,6 +13,10 @@ import {
   FolderPlus,
   Play,
   RotateCcw,
+  Phone,
+  Mail,
+  Trophy,
+  ExternalLink,
 } from 'lucide-react';
 import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -74,6 +78,7 @@ export const AdminPage: React.FC = () => {
     currentUser,
     isAdmin,
     competitions,
+    leaderboard,
     selectCompetition,
     addToast,
   } = useAppContext();
@@ -752,6 +757,135 @@ export const AdminPage: React.FC = () => {
             <span>{isSavingQuestion ? 'Saving Question...' : 'Save Question to Competition'}</span>
           </button>
         </form>
+      </section>
+
+      {/* Step 4: Tournament Winners & Competitor Contact Directory */}
+      <section className="rounded-xl border border-[#252D38] bg-[#0C1017] p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#252D38] pb-4">
+          <div className="flex items-center gap-2.5">
+            <Trophy className="h-5 w-5 text-[#B6FF3B]" />
+            <div>
+              <h2 className="font-display text-lg font-bold text-[#F0F3F7]">
+                Tournament Winners & Competitor Directory
+              </h2>
+              <p className="text-xs text-[#929DAC]">
+                Verified contact details (WhatsApp number & Email) of quiz participants to facilitate contacting winners and prize distribution.
+              </p>
+            </div>
+          </div>
+          <span className="font-mono text-xs text-[#929DAC]">
+            {leaderboard.length} RECORDED COMPETITORS
+          </span>
+        </div>
+
+        {leaderboard.length === 0 ? (
+          <div className="rounded-lg border border-[#252D38] bg-[#07090D] p-8 text-center space-y-2">
+            <Trophy className="mx-auto h-8 w-8 text-[#929DAC]/50" />
+            <p className="text-sm font-semibold text-[#F0F3F7]">No competition scores recorded yet</p>
+            <p className="text-xs text-[#929DAC] max-w-md mx-auto">
+              When competitors complete a quiz, their ranked scores, legal names, WhatsApp phone numbers, and email addresses will appear here so you can easily contact the winners.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-[#252D38] text-[#929DAC] font-mono text-[11px]">
+                  <th className="py-2.5 px-3">RANK</th>
+                  <th className="py-2.5 px-3">COMPETITOR</th>
+                  <th className="py-2.5 px-3">SCORE</th>
+                  <th className="py-2.5 px-3">WHATSAPP CONTACT</th>
+                  <th className="py-2.5 px-3">EMAIL ADDRESS</th>
+                  <th className="py-2.5 px-3 text-right">DIRECT ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#252D38]">
+                {leaderboard.map((entry) => {
+                  const cleanPhone = (entry.whatsappNumber || '').replace(/\D/g, '');
+                  return (
+                    <tr key={entry.participantId} className="hover:bg-[#111722]/50">
+                      <td className="py-3 px-3 font-mono font-bold">
+                        {entry.rank === 1 ? (
+                          <span className="text-[#B6FF3B]">🏆 #1</span>
+                        ) : entry.rank === 2 ? (
+                          <span className="text-[#F0F3F7]">🥈 #2</span>
+                        ) : entry.rank === 3 ? (
+                          <span className="text-[#FF883B]">🥉 #3</span>
+                        ) : (
+                          <span className="text-[#929DAC]">#{entry.rank}</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2.5">
+                          {entry.avatarUrl ? (
+                            <img
+                              src={entry.avatarUrl}
+                              alt="Avatar"
+                              className="h-8 w-8 rounded-full border border-[#B6FF3B]/60 object-cover"
+                            />
+                          ) : (
+                            <div className="h-8 w-8 rounded-full border border-[#252D38] bg-[#111722] flex items-center justify-center font-mono text-xs text-[#B6FF3B]">
+                              {entry.displayName.slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-semibold text-[#F0F3F7]">{entry.displayName}</p>
+                            {entry.username && (
+                              <p className="font-mono text-[10px] text-[#929DAC]">@{entry.username}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 font-mono font-bold text-[#B6FF3B]">
+                        {entry.score} PTS
+                      </td>
+                      <td className="py-3 px-3">
+                        {entry.whatsappNumber ? (
+                          <span className="font-mono text-xs text-[#36F58A]">
+                            {entry.whatsappNumber}
+                          </span>
+                        ) : (
+                          <span className="font-mono text-[11px] text-[#929DAC] italic">
+                            Not provided
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-xs text-[#929DAC]">
+                        {entry.email || 'N/A'}
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <div className="inline-flex items-center gap-2">
+                          {cleanPhone && (
+                            <a
+                              href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(entry.displayName)},%20congratulations%20on%20your%20performance%20in%20the%20Aegis%20Cipher%20Cybersecurity%20Competition!`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded bg-[#36F58A]/15 border border-[#36F58A]/50 px-2.5 py-1 text-[11px] font-semibold text-[#36F58A] hover:bg-[#36F58A]/25 transition-colors cursor-pointer"
+                              title="Chat on WhatsApp"
+                            >
+                              <Phone className="h-3 w-3" />
+                              <span>WhatsApp</span>
+                            </a>
+                          )}
+                          {entry.email && (
+                            <a
+                              href={`mailto:${entry.email}?subject=Aegis%20Cipher%20Quiz%20Tournament%20Award&body=Dear%20${encodeURIComponent(entry.displayName)},%0A%0ACongratulations%20on%20your%20result%20in%20our%20cybersecurity%20quiz%20competition!`}
+                              className="inline-flex items-center gap-1.5 rounded bg-[#111722] border border-[#252D38] px-2.5 py-1 text-[11px] font-medium text-[#F0F3F7] hover:border-[#B6FF3B] transition-colors cursor-pointer"
+                              title="Send Email"
+                            >
+                              <Mail className="h-3 w-3" />
+                              <span>Email</span>
+                            </a>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );

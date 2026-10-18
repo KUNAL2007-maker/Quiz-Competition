@@ -16,6 +16,7 @@ import { ModalDialog } from '../components/ui/ModalDialog';
 export const CompetitionDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const {
+    currentUser,
     selectedCompetition,
     targetStartTime,
     setTargetStartTime,
@@ -29,6 +30,17 @@ export const CompetitionDetailPage: React.FC = () => {
 
   const effectiveStartTime = selectedCompetition?.startTime || targetStartTime;
 
+  const handleEnterQuiz = useCallback(() => {
+    if (!currentUser) {
+      navigate('/login?redirect=/quiz');
+      return;
+    }
+    if (selectedCompetition) {
+      startQuizSession(selectedCompetition);
+    }
+    navigate('/quiz');
+  }, [currentUser, selectedCompetition, startQuizSession, navigate]);
+
   const handleCountdownComplete = useCallback(() => {
     setIsTransitioning(true);
     addToast(
@@ -36,6 +48,10 @@ export const CompetitionDetailPage: React.FC = () => {
       'Transitioning into the assessment environment...',
       'success'
     );
+    if (!currentUser) {
+      navigate('/login?redirect=/quiz');
+      return;
+    }
     if (selectedCompetition) {
       startQuizSession(selectedCompetition);
     }
@@ -43,7 +59,7 @@ export const CompetitionDetailPage: React.FC = () => {
       navigate('/quiz');
     }, 1400);
     return () => window.clearTimeout(timer);
-  }, [selectedCompetition, startQuizSession, navigate, addToast]);
+  }, [currentUser, selectedCompetition, startQuizSession, navigate, addToast]);
 
   const handleApplyCustomTimestamp = (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,12 +129,7 @@ export const CompetitionDetailPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => {
-              if (selectedCompetition) {
-                startQuizSession(selectedCompetition);
-              }
-              navigate('/quiz');
-            }}
+            onClick={handleEnterQuiz}
             className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
             <span>{selectedCompetition ? 'Enter Assessment Terminal' : 'Open Quiz Interface'}</span>
@@ -131,12 +142,7 @@ export const CompetitionDetailPage: React.FC = () => {
       <CountdownTimer
         targetStartTime={effectiveStartTime}
         onCountdownZero={handleCountdownComplete}
-        onEnterQuizNow={() => {
-          if (selectedCompetition) {
-            startQuizSession(selectedCompetition);
-          }
-          navigate('/quiz');
-        }}
+        onEnterQuizNow={handleEnterQuiz}
       />
 
       {/* Competition Information or Selection-Required State */}

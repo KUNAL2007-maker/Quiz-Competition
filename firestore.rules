@@ -66,10 +66,14 @@ service cloud.firestore {
 
     function isValidOperatorProfile(data, userId) {
       return data.keys().hasAll(['ownerId', 'displayName', 'username', 'createdAt', 'updatedAt']) &&
-        data.keys().hasOnly(['ownerId', 'displayName', 'username', 'biography', 'avatarPreset', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['ownerId', 'displayName', 'username', 'biography', 'avatarPreset', 'whatsappNumber', 'email', 'avatarUrl', 'isProfileComplete', 'createdAt', 'updatedAt']) &&
         data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId == userId &&
-        data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 48 &&
-        data.username is string && data.username.size() >= 3 && data.username.size() <= 24 && data.username.matches('^[a-zA-Z0-9_.\\-]+$') &&
+        data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 64 &&
+        data.username is string && data.username.size() >= 3 && data.username.size() <= 32 && data.username.matches('^[a-zA-Z0-9_.\\-]+$') &&
+        (!('whatsappNumber' in data) || (data.whatsappNumber is string && data.whatsappNumber.size() <= 32)) &&
+        (!('email' in data) || (data.email is string && data.email.size() <= 120)) &&
+        (!('avatarUrl' in data) || (data.avatarUrl is string && data.avatarUrl.size() <= 500)) &&
+        (!('isProfileComplete' in data) || data.isProfileComplete is bool) &&
         (!('biography' in data) || (data.biography is string && data.biography.size() <= 280)) &&
         (!('avatarPreset' in data) || (data.avatarPreset is string && data.avatarPreset.size() <= 32)) &&
         data.createdAt is timestamp &&
@@ -78,11 +82,14 @@ service cloud.firestore {
 
     function isValidLeaderboardEntry(data) {
       return data.keys().hasAll(['ownerId', 'competitionId', 'displayName', 'score', 'completionStatus', 'createdAt']) &&
-        data.keys().hasOnly(['ownerId', 'competitionId', 'displayName', 'username', 'score', 'completionStatus', 'accuracyPercent', 'completionTimeSeconds', 'createdAt']) &&
+        data.keys().hasOnly(['ownerId', 'competitionId', 'displayName', 'username', 'score', 'completionStatus', 'accuracyPercent', 'completionTimeSeconds', 'whatsappNumber', 'email', 'avatarUrl', 'createdAt']) &&
         data.ownerId is string && data.ownerId == request.auth.uid &&
         isValidId(data.competitionId) &&
-        data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 48 &&
-        (!('username' in data) || (data.username is string && data.username.size() >= 3 && data.username.size() <= 24 && data.username.matches('^[a-zA-Z0-9_.\\-]+$'))) &&
+        data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 64 &&
+        (!('username' in data) || (data.username is string && data.username.size() >= 3 && data.username.size() <= 32 && data.username.matches('^[a-zA-Z0-9_.\\-]+$'))) &&
+        (!('whatsappNumber' in data) || (data.whatsappNumber is string && data.whatsappNumber.size() <= 32)) &&
+        (!('email' in data) || (data.email is string && data.email.size() <= 120)) &&
+        (!('avatarUrl' in data) || (data.avatarUrl is string && data.avatarUrl.size() <= 500)) &&
         data.score is int && data.score >= 0 && data.score <= 1000000 &&
         data.completionStatus is string && data.completionStatus in ['Completed', 'In Progress', 'Verified'] &&
         (!('accuracyPercent' in data) || (data.accuracyPercent is int && data.accuracyPercent >= 0 && data.accuracyPercent <= 100)) &&
@@ -141,8 +148,8 @@ service cloud.firestore {
 
     // Public Operator Identity Dossiers (No PII stored here)
     match /profiles/{userId} {
-      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
-      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
       allow create: if isVerifiedUser() && isValidId(userId) &&
         isValidOperatorProfile(incoming(), userId) &&
         incoming().createdAt == request.time &&
@@ -153,7 +160,7 @@ service cloud.firestore {
         incoming().ownerId == existing().ownerId &&
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time &&
-        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'username', 'biography', 'avatarPreset', 'updatedAt']);
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'username', 'biography', 'avatarPreset', 'whatsappNumber', 'email', 'avatarUrl', 'isProfileComplete', 'updatedAt']);
       allow delete: if false;
     }
 

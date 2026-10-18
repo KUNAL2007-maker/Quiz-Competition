@@ -57,6 +57,9 @@ export interface LeaderboardEntry {
   participantId: string;
   displayName: string;
   username?: string;
+  whatsappNumber?: string;
+  email?: string;
+  avatarUrl?: string;
   score: number;
   completionStatus: 'Completed' | 'In Progress' | 'Verified';
   accuracyPercent?: number;
@@ -68,11 +71,14 @@ export interface LeaderboardEntry {
 export interface OperatorProfile {
   displayName: string;
   username: string;
+  whatsappNumber?: string;
+  email?: string;
   biography: string;
   avatarUrl: string | null;
   avatarPreset: string;
   createdAt: string | null;
   isVerified: boolean | null;
+  isProfileComplete?: boolean;
   strongestCategories: string[];
   badges: Array<{
     id: string;

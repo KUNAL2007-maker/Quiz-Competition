@@ -10,16 +10,21 @@ import {
   AlertTriangle,
   CheckCircle2,
   ArrowLeft,
+  Lock,
+  LogIn,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { calculateCountdown, calculateQuizProgress, formatPad } from '../utils/timerLogic';
 import { QuestionPalette } from '../components/quiz/QuestionPalette';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 import { ModalDialog } from '../components/ui/ModalDialog';
+import { CompetitorProfileModal } from '../components/profile/CompetitorProfileModal';
 
 export const QuizPage: React.FC = () => {
   const navigate = useNavigate();
   const {
+    currentUser,
+    profile,
     selectedCompetition,
     questions,
     quizSession,
@@ -119,8 +124,53 @@ export const QuizPage: React.FC = () => {
     addToast,
   ]);
 
+  // Guard: User must be signed in with Google or email to access the quiz
+  if (!currentUser) {
+    return (
+      <div className="mx-auto max-w-lg py-12 text-center space-y-6">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#252D38] bg-[#0C1017] text-[#B6FF3B]">
+          <Lock className="h-8 w-8" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="font-display text-2xl font-bold text-[#F0F3F7]">
+            Authentication Required
+          </h1>
+          <p className="text-xs text-[#929DAC] leading-relaxed max-w-sm mx-auto">
+            You must sign in with your Google or tournament account to participate in this cybersecurity quiz and record scores on the live leaderboard.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <button
+            type="button"
+            onClick={() => navigate('/login?redirect=/quiz')}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#B6FF3B] px-6 py-2.5 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer shadow-lg"
+          >
+            <LogIn className="h-4 w-4" />
+            <span>Sign In to Access Quiz</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/competitions')}
+            className="w-full sm:w-auto rounded-lg border border-[#252D38] bg-[#111722] px-5 py-2.5 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+          >
+            Browse Tournaments
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Mandatory Competitor Profile Completion Modal */}
+      {currentUser && !profile.isProfileComplete && (
+        <CompetitorProfileModal
+          isOpen={true}
+          onClose={() => navigate('/competitions')}
+          onProfileComplete={() => {}}
+        />
+      )}
+
       {/* Focused Assessment Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-lg border border-[#252D38] bg-[#0C1017] p-5">
         <div className="flex items-center gap-3">

@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import {
   onAuthStateChanged,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   User as FirebaseUser,
 } from 'firebase/auth';
@@ -42,7 +44,10 @@ interface AppContextValue {
   isAuthReady: boolean;
   pythonEngineOnline: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  signUpWithEmail: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   signOutOperator: () => Promise<void>;
+  saveCompetitorProfile: (data: { displayName: string; whatsappNumber: string; avatarUrl: string }) => Promise<{ success: boolean; error?: string }>;
 
   // Data stores (strictly empty until populated in Firestore — zero fabricated data)
   competitions: Competition[];
@@ -92,11 +97,14 @@ interface AppContextValue {
 const DEFAULT_PROFILE: OperatorProfile = {
   displayName: '',
   username: '',
+  whatsappNumber: '',
+  email: '',
   biography: '',
   avatarUrl: null,
   avatarPreset: 'cipher-grid',
   createdAt: null,
   isVerified: null,
+  isProfileComplete: false,
   strongestCategories: [],
   badges: [],
 };
@@ -330,6 +338,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             participantId: d.id,
             displayName: String(data.displayName || 'Operator'),
             username: data.username ? String(data.username) : undefined,
+            whatsappNumber: data.whatsappNumber ? String(data.whatsappNumber) : undefined,
+            email: data.email ? String(data.email) : undefined,
+            avatarUrl: data.avatarUrl ? String(data.avatarUrl) : undefined,
             score: Number(data.score || 0),
             completionStatus: data.completionStatus || 'Completed',
             accuracyPercent:
@@ -389,9 +400,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ...prev,
             displayName: String(data.displayName || ''),
             username: String(data.username || ''),
-            biography: String(data.biography || ''),
+            whatsappNumber: data.whatsappNumber ? String(data.whatsappNumber) : '',
+            email: data.email ? String(data.email) : (currentUser.email || ''),
+            avatarUrl: data.avatarUrl ? String(data.avatarUrl) : null,
             avatarPreset: String(data.avatarPreset || 'cipher-grid'),
+            isProfileComplete: Boolean(data.isProfileComplete),
             isVerified: Boolean(currentUser.emailVerified),
+          }));
+        } else {
+          setProfile((prev) => ({
+            ...prev,
+            displayName: currentUser.displayName || '',
+            email: currentUser.email || '',
+            isProfileComplete: false,
           }));
         }
       },
@@ -471,6 +492,105 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
     }
   }, [addToast]);
+
+  const signInWithEmail = useCallback(
+    async (email: string, pass: string) => {
+      try {
+        await signInWithEmailAndPassword(auth, email.trim(), pass);
+        addToast('Operator Authenticated', 'Signed in with email and password.', 'success');
+        return { success: true };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Invalid credentials or login failed.';
+        addToast('Sign-In Error', msg, 'alert');
+        return { success: false, error: msg };
+      }
+    },
+    [addToast]
+  );
+
+  const signUpWithEmail = useCallback(
+    async (email: string, pass: string) => {
+      try {
+        await createUserWithEmailAndPassword(auth, email.trim(), pass);
+        addToast('Account Registered', 'Welcome! Please complete your competitor profile.', 'success');
+        return { success: true };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to create account.';
+        addToast('Registration Error', msg, 'alert');
+        return { success: false, error: msg };
+      }
+    },
+    [addToast]
+  );
+
+  const saveCompetitorProfile = useCallback(
+    async (data: { displayName: string; whatsappNumber: string; avatarUrl: string }) => {
+      if (!currentUser) {
+        return { success: false, error: 'User is not authenticated' };
+      }
+
+      const trimmedName = data.displayName.trim();
+      const trimmedPhone = data.whatsappNumber.trim();
+      if (trimmedName.length < 2) {
+        return { success: false, error: 'Please enter a valid full name (minimum 2 characters).' };
+      }
+      if (trimmedPhone.length < 7) {
+        return { success: false, error: 'Please enter a valid WhatsApp phone number.' };
+      }
+
+      const userEmail = (currentUser.email || '').trim().toLowerCase();
+      const sanitizedUsername = (userEmail.split('@')[0] || trimmedName)
+        .replace(/[^a-zA-Z0-9_.-]/g, '_')
+        .slice(0, 24) || `user_${currentUser.uid.slice(0, 6)}`;
+
+      const profileDocRef = doc(db, 'profiles', currentUser.uid);
+      try {
+        const snap = await getDoc(profileDocRef);
+        const payload = {
+          ownerId: currentUser.uid,
+          displayName: trimmedName.slice(0, 64),
+          username: sanitizedUsername,
+          whatsappNumber: trimmedPhone.slice(0, 32),
+          email: userEmail.slice(0, 120),
+          avatarUrl: data.avatarUrl,
+          isProfileComplete: true,
+          biography: 'Cybersecurity Tournament Competitor',
+          avatarPreset: 'cipher-grid',
+          updatedAt: serverTimestamp(),
+        };
+
+        if (!snap.exists()) {
+          await setDoc(profileDocRef, {
+            ...payload,
+            createdAt: serverTimestamp(),
+          });
+        } else {
+          await updateDoc(profileDocRef, payload);
+        }
+
+        setProfile((prev) => ({
+          ...prev,
+          displayName: trimmedName,
+          whatsappNumber: trimmedPhone,
+          email: userEmail,
+          avatarUrl: data.avatarUrl,
+          isProfileComplete: true,
+        }));
+
+        addToast(
+          'Competitor Profile Verified',
+          'Profile details saved. You are now eligible to access the quiz competition.',
+          'success'
+        );
+        return { success: true };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to save competitor profile.';
+        addToast('Profile Save Error', msg, 'alert');
+        return { success: false, error: msg };
+      }
+    },
+    [currentUser, addToast]
+  );
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -630,8 +750,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           await setDoc(doc(db, 'leaderboard', entryId), {
             ownerId: currentUser.uid,
             competitionId: activeCompId,
-            displayName: (profile.displayName || currentUser.displayName || 'Operator').trim().slice(0, 48),
+            displayName: (profile.displayName || currentUser.displayName || 'Operator').trim().slice(0, 64),
             ...(profile.username ? { username: profile.username.trim().slice(0, 24) } : {}),
+            ...(profile.whatsappNumber ? { whatsappNumber: profile.whatsappNumber.trim().slice(0, 32) } : {}),
+            ...(profile.email || currentUser.email ? { email: (profile.email || currentUser.email || '').trim().slice(0, 120) } : {}),
+            ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl.slice(0, 500) } : {}),
             score: Number(evaluated.finalScore || 0),
             completionStatus: 'Completed',
             accuracyPercent: Number(evaluated.accuracyPercent || 0),
@@ -784,7 +907,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isAuthReady,
         pythonEngineOnline,
         signInWithGoogle,
+        signInWithEmail,
+        signUpWithEmail,
         signOutOperator,
+        saveCompetitorProfile,
         competitions,
         selectedCompetition,
         selectCompetition,

@@ -27,6 +27,8 @@ const ROUTE_TITLES: Record<string, string> = {
   '/results': 'Results & Performance',
   '/login': 'Operator Identity & Authentication',
   '/admin': 'Admin Tournament & Quiz Console',
+  '/about': 'About Aegis Cipher',
+  '/privacy': 'Privacy Policy & Data Security',
 };
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
