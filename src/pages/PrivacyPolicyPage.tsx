@@ -98,7 +98,7 @@ export const PrivacyPolicyPage: React.FC = () => {
             Our web application is hosted on Google Cloud Platform and Google Firebase infrastructure. All communications between your browser and our servers are encrypted using modern Transport Layer Security (TLS/HTTPS).
           </p>
           <p>
-            Database access is strictly governed by Firebase Security Rules ensuring participants can only write to their own authorized profile and session records, while system-level tournament modifications require verified administrator credentials for <code className="text-[#B6FF3B]">checkship66@gmail.com</code>.
+            Database access is strictly governed by Firebase Security Rules ensuring participants can only write to their own authorized profile and session records, while system-level tournament modifications require verified administrator credentials for <code className="text-[#B6FF3B]">checkship66@gmail.com</code> or <code className="text-[#B6FF3B]">hafizmujawar786@gmail.com</code>.
           </p>
         </div>
 
@@ -112,10 +112,13 @@ export const PrivacyPolicyPage: React.FC = () => {
             You have the right to request access to your personal data, rectify inaccurate details, or request full deletion of your profile and historical tournament scores from our database.
           </p>
           <p>
-            For any privacy inquiries, data deletion requests, or tournament policy questions, you may contact the designated Data Administrator directly at:
+            For any privacy inquiries, data deletion requests, or tournament policy questions, you may contact the designated Data Administrators directly at:
           </p>
-          <div className="rounded-lg border border-[#252D38] bg-[#07090D] p-3 text-xs font-mono text-[#F0F3F7] inline-block">
-            Tournament Data Controller: <a href="mailto:checkship66@gmail.com" className="text-[#B6FF3B] underline">checkship66@gmail.com</a>
+          <div className="rounded-lg border border-[#252D38] bg-[#07090D] p-3 text-xs font-mono text-[#F0F3F7] inline-block space-x-2">
+            <span>Tournament Data Controllers:</span>
+            <a href="mailto:checkship66@gmail.com" className="text-[#B6FF3B] underline">checkship66@gmail.com</a>
+            <span className="text-[#929DAC]">·</span>
+            <a href="mailto:hafizmujawar786@gmail.com" className="text-[#B6FF3B] underline">hafizmujawar786@gmail.com</a>
           </div>
         </div>
       </div>

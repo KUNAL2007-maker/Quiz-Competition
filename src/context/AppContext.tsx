@@ -156,8 +156,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
   const [pythonEngineOnline, setPythonEngineOnline] = useState<boolean>(false);
 
+  const ADMIN_EMAILS = ['checkship66@gmail.com', 'hafizmujawar786@gmail.com'];
   const isAdmin = Boolean(
-    currentUser?.email && currentUser.email.trim().toLowerCase() === 'checkship66@gmail.com'
+    currentUser?.email && ADMIN_EMAILS.includes(currentUser.email.trim().toLowerCase())
   );
 
   const [competitions, setCompetitions] = useState<Competition[]>([]);

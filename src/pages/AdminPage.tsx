@@ -112,7 +112,7 @@ export const AdminPage: React.FC = () => {
   const [bulkJson, setBulkJson] = useState(SAMPLE_QUESTIONS_JSON);
   const [isBulkUploading, setIsBulkUploading] = useState(false);
 
-  // If user is not checkship66@gmail.com, show access denied
+  // If user is not authorized administrator, show access denied
   if (!isAdmin) {
     return (
       <div className="mx-auto max-w-lg space-y-6 py-12 text-center">
@@ -123,7 +123,7 @@ export const AdminPage: React.FC = () => {
           Restricted Command Console
         </h1>
         <p className="text-sm text-[#929DAC] leading-relaxed">
-          Access to the quiz upload and tournament administration interface requires verified authorization for <span className="font-mono text-[#B6FF3B]">checkship66@gmail.com</span>.
+          Access to the quiz upload and tournament administration interface requires verified authorization for <span className="font-mono text-[#B6FF3B]">checkship66@gmail.com</span> or <span className="font-mono text-[#B6FF3B]">hafizmujawar786@gmail.com</span>.
         </p>
         {currentUser ? (
           <p className="text-xs font-mono text-[#FF365B]">
@@ -310,7 +310,7 @@ export const AdminPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center rounded bg-[#B6FF3B]/10 border border-[#B6FF3B]/40 px-2 py-0.5 font-mono text-[11px] font-bold text-[#B6FF3B]">
-              SUPERUSER ACCESS · checkship66@gmail.com
+              SUPERUSER ACCESS · {currentUser?.email || 'Authorized Administrator'}
             </span>
           </div>
           <h1 className="mt-2 font-display text-2xl sm:text-3xl font-bold text-[#F0F3F7]">

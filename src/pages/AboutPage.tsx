@@ -100,8 +100,11 @@ export const AboutPage: React.FC = () => {
         <p className="text-xs text-[#929DAC] leading-relaxed">
           Have questions about an upcoming tournament, corporate sponsorships, or prize claims? Reach out to the event lead:
         </p>
-        <div className="rounded-lg border border-[#252D38] bg-[#07090D] p-3 text-xs font-mono text-[#F0F3F7] inline-block">
-          Official Email: <a href="mailto:checkship66@gmail.com" className="text-[#B6FF3B] underline">checkship66@gmail.com</a>
+        <div className="rounded-lg border border-[#252D38] bg-[#07090D] p-3 text-xs font-mono text-[#F0F3F7] inline-block space-x-2">
+          <span>Official Contact:</span>
+          <a href="mailto:checkship66@gmail.com" className="text-[#B6FF3B] underline">checkship66@gmail.com</a>
+          <span className="text-[#929DAC]">·</span>
+          <a href="mailto:hafizmujawar786@gmail.com" className="text-[#B6FF3B] underline">hafizmujawar786@gmail.com</a>
         </div>
       </div>
     </div>

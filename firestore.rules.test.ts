@@ -19,3 +19,9 @@ test('firestore.rules enforces Dirty Dozen guards (email_verified, hasOnly, isVa
   assert.match(rulesContent, /incoming\(\)\.ownerId\s*==\s*existing\(\)\.ownerId/);
   assert.match(rulesContent, /exists\(\/databases\/\$\(database\)\/documents\/competitions\/\$\(incoming\(\)\.competitionId\)\)/);
 });
+
+test('firestore.rules authorizes designated administrator emails', () => {
+  assert.match(rulesContent, /'checkship66@gmail\.com'/);
+  assert.match(rulesContent, /'hafizmujawar786@gmail\.com'/);
+});
+
