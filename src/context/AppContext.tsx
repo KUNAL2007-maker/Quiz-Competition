@@ -38,6 +38,7 @@ import {
 interface AppContextValue {
   // Auth & Backend Engine Status
   currentUser: FirebaseUser | null;
+  isAdmin: boolean;
   isAuthReady: boolean;
   pythonEngineOnline: boolean;
   signInWithGoogle: () => Promise<void>;
@@ -146,6 +147,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
   const [pythonEngineOnline, setPythonEngineOnline] = useState<boolean>(false);
+
+  const isAdmin = Boolean(
+    currentUser?.email && currentUser.email.trim().toLowerCase() === 'checkship66@gmail.com'
+  );
 
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
@@ -262,6 +267,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               typeof data.durationMinutes === 'number' ? data.durationMinutes : undefined,
             difficulty: data.difficulty,
             accessType: data.accessType,
+            perQuestionTimerSeconds:
+              typeof data.perQuestionTimerSeconds === 'number' ? data.perQuestionTimerSeconds : 15,
           };
         });
         setCompetitions(items);
@@ -294,6 +301,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             prompt: String(data.prompt || ''),
             codeSnippet: data.codeSnippet ? String(data.codeSnippet) : undefined,
             options: Array.isArray(data.options) ? data.options : [],
+            correctOptionId: data.correctOptionId ? String(data.correctOptionId) : undefined,
+            timeLimitSeconds:
+              typeof data.timeLimitSeconds === 'number' ? data.timeLimitSeconds : undefined,
           };
         });
         loaded.sort((a, b) => a.index - b.index);
@@ -770,6 +780,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider
       value={{
         currentUser,
+        isAdmin,
         isAuthReady,
         pythonEngineOnline,
         signInWithGoogle,

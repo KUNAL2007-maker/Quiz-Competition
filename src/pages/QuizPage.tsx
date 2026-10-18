@@ -28,6 +28,7 @@ export const QuizPage: React.FC = () => {
     toggleMarkForReview,
     setCurrentQuestionIndex,
     submitQuizSession,
+    addToast,
   } = useAppContext();
 
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
@@ -63,6 +64,60 @@ export const QuizPage: React.FC = () => {
   const currentQuestion = questions[quizSession.currentQuestionIndex] || null;
   const isNearDeadline =
     timerState.isValid && !timerState.isExpired && timerState.totalMs <= 5 * 60 * 1000;
+
+  // Per-Question countdown timer setting: defaults to 15s if not customized by admin
+  const questionTimeLimit =
+    currentQuestion?.timeLimitSeconds ??
+    selectedCompetition?.perQuestionTimerSeconds ??
+    15;
+
+  const [questionSecondsLeft, setQuestionSecondsLeft] = useState<number>(questionTimeLimit);
+
+  // Reset per-question countdown whenever navigating between questions or when limit changes
+  useEffect(() => {
+    setQuestionSecondsLeft(questionTimeLimit);
+  }, [quizSession.currentQuestionIndex, questionTimeLimit]);
+
+  // Per-question auto-countdown and auto-advance
+  useEffect(() => {
+    if (quizSession.isSubmitted || questions.length === 0 || !currentQuestion) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setQuestionSecondsLeft((prev) => {
+        if (prev <= 1) {
+          if (quizSession.currentQuestionIndex < questions.length - 1) {
+            setCurrentQuestionIndex(quizSession.currentQuestionIndex + 1);
+            addToast(
+              'Question Timer Elapsed',
+              `Time limit of ${questionTimeLimit}s expired. Proceeding to question ${quizSession.currentQuestionIndex + 2}.`,
+              'alert'
+            );
+          } else {
+            setIsSubmitDialogOpen(true);
+            addToast(
+              'Final Question Timer Elapsed',
+              `Time limit of ${questionTimeLimit}s reached for the final question. Please confirm submission.`,
+              'alert'
+            );
+          }
+          return questionTimeLimit;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [
+    quizSession.isSubmitted,
+    quizSession.currentQuestionIndex,
+    questions.length,
+    currentQuestion,
+    questionTimeLimit,
+    setCurrentQuestionIndex,
+    addToast,
+  ]);
 
   return (
     <div className="space-y-6">
@@ -204,6 +259,58 @@ export const QuizPage: React.FC = () => {
                 </button>
               </div>
 
+              {/* Per-Question Live Countdown Banner */}
+              <div
+                className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-2.5 transition-colors ${
+                  questionSecondsLeft <= 5
+                    ? 'border-[#FF365B]/60 bg-[#FF365B]/10'
+                    : 'border-[#252D38] bg-[#07090D]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={`flex h-7 w-7 items-center justify-center rounded-md font-mono text-xs font-bold transition-all ${
+                      questionSecondsLeft <= 5
+                        ? 'bg-[#FF365B] text-[#07090D] animate-pulse'
+                        : 'bg-[#111722] text-[#B6FF3B] border border-[#252D38]'
+                    }`}
+                  >
+                    <Clock className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <span className="font-mono text-xs font-semibold text-[#F0F3F7]">
+                      QUESTION TIMER:
+                    </span>
+                    <span
+                      className={`ml-2 font-mono text-xs font-bold tabular-nums ${
+                        questionSecondsLeft <= 5 ? 'text-[#FF365B]' : 'text-[#B6FF3B]'
+                      }`}
+                    >
+                      {questionSecondsLeft}s remaining
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-[#929DAC]">
+                    Limit: {questionTimeLimit}s
+                  </span>
+                  <div className="w-20 sm:w-28 h-1.5 rounded-full bg-[#111722] overflow-hidden border border-[#252D38]">
+                    <div
+                      className={`h-full transition-all duration-1000 ${
+                        questionSecondsLeft <= 5 ? 'bg-[#FF365B]' : 'bg-[#B6FF3B]'
+                      }`}
+                      style={{
+                        width: `${Math.max(
+                          0,
+                          Math.min(100, (questionSecondsLeft / questionTimeLimit) * 100)
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <h2 className="font-display text-lg font-medium text-[#F0F3F7] leading-relaxed">
                   {currentQuestion.prompt}
@@ -310,6 +417,10 @@ export const QuizPage: React.FC = () => {
               <div className="flex justify-between">
                 <dt className="text-[#929DAC]">Marked for Review</dt>
                 <dd className="text-[#FF365B] tabular-nums">{progress.markedForReview}</dd>
+              </div>
+              <div className="flex justify-between border-t border-[#252D38] pt-2">
+                <dt className="text-[#929DAC]">Per-Question Limit</dt>
+                <dd className="text-[#B6FF3B] tabular-nums font-semibold">{questionTimeLimit}s</dd>
               </div>
             </dl>
           </div>

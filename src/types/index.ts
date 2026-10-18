@@ -11,6 +11,7 @@ export interface Competition {
   difficulty?: CompetitionDifficulty;
   participantCount?: number;
   accessType?: 'Open Clearance' | 'Invite Only' | 'Key Required';
+  perQuestionTimerSeconds?: number; // default 15 seconds per question
   rules?: string[];
   requirements?: string[];
   quizFormat?: {
@@ -34,6 +35,8 @@ export interface QuizQuestion {
   prompt: string;
   codeSnippet?: string;
   options: QuizOption[];
+  correctOptionId?: string;
+  timeLimitSeconds?: number;
 }
 
 export type QuestionVisualState = 'unanswered' | 'answered' | 'review' | 'current';

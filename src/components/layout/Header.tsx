@@ -5,10 +5,11 @@ import {
   Search,
   Bell,
   User,
-  Sliders,
   Trophy,
   Shield,
   X,
+  KeyRound,
+  LogIn,
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 
@@ -24,7 +25,8 @@ const ROUTE_TITLES: Record<string, string> = {
   '/leaderboard': 'Live Leaderboard Ledger',
   '/profile': 'Operator Identity Dossier',
   '/results': 'Results & Performance',
-  '/settings': 'Terminal Preferences',
+  '/login': 'Operator Identity & Authentication',
+  '/admin': 'Admin Tournament & Quiz Console',
 };
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
@@ -36,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
     profile,
     competitions,
     currentUser,
+    isAdmin,
     signInWithGoogle,
     signOutOperator,
   } = useAppContext();
@@ -160,8 +163,30 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         )}
       </div>
 
-      {/* Zone 3: Notifications & Operator Identity Placeholder */}
+      {/* Zone 3: Admin Badge, Sign In, Notifications & Operator Identity */}
       <div className="flex items-center gap-3 shrink-0">
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => navigate('/admin')}
+            className="hidden sm:inline-flex items-center gap-1.5 rounded-md border border-[#B6FF3B]/60 bg-[#B6FF3B]/10 px-2.5 py-1.5 text-xs font-semibold text-[#B6FF3B] hover:bg-[#B6FF3B]/20 transition-colors cursor-pointer"
+          >
+            <KeyRound className="h-3.5 w-3.5" />
+            <span>Admin Console</span>
+          </button>
+        )}
+
+        {!currentUser && (
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className="inline-flex items-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-3 py-1.5 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] hover:text-[#B6FF3B] transition-colors cursor-pointer"
+          >
+            <LogIn className="h-3.5 w-3.5" />
+            <span>Sign In</span>
+          </button>
+        )}
+
         {/* Notifications Menu */}
         <div ref={notifRef} className="relative">
           <button
@@ -194,11 +219,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                   type="button"
                   onClick={() => {
                     setIsNotifOpen(false);
-                    navigate('/settings');
+                    navigate('/profile');
                   }}
                   className="mt-4 inline-flex items-center text-xs font-medium text-[#B6FF3B] hover:underline cursor-pointer"
                 >
-                  Configure alert preferences
+                  View operator dossier
                 </button>
               </div>
             </div>
@@ -237,6 +262,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               </div>
 
               <div className="py-1">
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      navigate('/admin');
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-xs font-semibold text-[#B6FF3B] hover:bg-[#0C1017] cursor-pointer"
+                  >
+                    <KeyRound className="h-3.5 w-3.5 text-[#B6FF3B]" />
+                    <span>Admin Console</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {
@@ -263,12 +301,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                   type="button"
                   onClick={() => {
                     setIsProfileOpen(false);
-                    navigate('/settings');
+                    navigate('/login');
                   }}
                   className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-xs text-[#F0F3F7] hover:bg-[#0C1017] hover:text-[#B6FF3B] cursor-pointer"
                 >
-                  <Sliders className="h-3.5 w-3.5 text-[#929DAC]" />
-                  <span>Terminal Settings</span>
+                  <LogIn className="h-3.5 w-3.5 text-[#929DAC]" />
+                  <span>Account & Authentication</span>
                 </button>
               </div>
 
@@ -289,11 +327,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                     type="button"
                     onClick={() => {
                       setIsProfileOpen(false);
-                      signInWithGoogle();
+                      navigate('/login');
                     }}
                     className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-xs font-semibold text-[#B6FF3B] hover:bg-[#0C1017] cursor-pointer"
                   >
-                    <span>Authenticate with Google</span>
+                    <span>Sign In with Google</span>
                   </button>
                 )}
               </div>

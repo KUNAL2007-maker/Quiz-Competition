@@ -4,13 +4,14 @@ import {
   LayoutDashboard,
   ShieldAlert,
   Clock,
-  Terminal,
   Trophy,
   UserCheck,
   BarChart3,
-  Sliders,
+  LogIn,
+  KeyRound,
   X,
 } from 'lucide-react';
+import { useAppContext } from '../../context/AppContext';
 
 interface SidebarProps {
   isMobileOpen: boolean;
@@ -21,23 +22,40 @@ interface NavItem {
   label: string;
   to: string;
   icon: React.FC<{ className?: string }>;
-  group: 'primary' | 'arena' | 'operator';
+  group: 'primary' | 'arena' | 'operator' | 'admin';
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Overview', to: '/', icon: LayoutDashboard, group: 'primary' },
-  { label: 'Competitions', to: '/competitions', icon: ShieldAlert, group: 'primary' },
-  { label: 'Waiting Room', to: '/arena', icon: Clock, group: 'arena' },
-  { label: 'Assessment UI', to: '/quiz', icon: Terminal, group: 'arena' },
-  { label: 'Live Rankings', to: '/leaderboard', icon: Trophy, group: 'primary' },
-  { label: 'My Profile', to: '/profile', icon: UserCheck, group: 'operator' },
-  { label: 'Performance', to: '/results', icon: BarChart3, group: 'operator' },
-  { label: 'Settings', to: '/settings', icon: Sliders, group: 'operator' },
-];
-
 export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
+  const { currentUser, isAdmin } = useAppContext();
+
+  const navItems: NavItem[] = [
+    { label: 'Overview', to: '/', icon: LayoutDashboard, group: 'primary' },
+    { label: 'Competitions', to: '/competitions', icon: ShieldAlert, group: 'primary' },
+    { label: 'Live Rankings', to: '/leaderboard', icon: Trophy, group: 'primary' },
+    { label: 'Waiting Room', to: '/arena', icon: Clock, group: 'arena' },
+    { label: 'My Profile', to: '/profile', icon: UserCheck, group: 'operator' },
+    { label: 'Performance', to: '/results', icon: BarChart3, group: 'operator' },
+    {
+      label: currentUser ? 'Operator Account' : 'Sign In',
+      to: '/login',
+      icon: LogIn,
+      group: 'operator',
+    },
+    ...(isAdmin
+      ? [
+          {
+            label: 'Admin Console',
+            to: '/admin',
+            icon: KeyRound,
+            group: 'admin' as const,
+          },
+        ]
+      : []),
+  ];
+
   const renderNavLink = (item: NavItem) => {
     const Icon = item.icon;
+    const isSpecialAdmin = item.group === 'admin';
     return (
       <NavLink
         key={item.to}
@@ -47,7 +65,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
         className={({ isActive }) =>
           `group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
             isActive
-              ? 'bg-[#111722] text-[#B6FF3B] border border-[#252D38]'
+              ? isSpecialAdmin
+                ? 'bg-[#B6FF3B]/10 text-[#B6FF3B] border border-[#B6FF3B]/50'
+                : 'bg-[#111722] text-[#B6FF3B] border border-[#252D38]'
+              : isSpecialAdmin
+              ? 'text-[#B6FF3B]/90 hover:bg-[#111722]/80 hover:text-[#B6FF3B] border border-transparent'
               : 'text-[#929DAC] hover:bg-[#111722]/60 hover:text-[#F0F3F7] border border-transparent'
           }`
         }
@@ -88,12 +110,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
 
         {/* Navigation Groups */}
         <nav aria-label="Main Navigation" className="p-4 space-y-6">
+          {isAdmin && (
+            <div>
+              <p className="px-3 mb-2 font-mono text-[11px] font-semibold text-[#B6FF3B] tracking-wider">
+                ADMINISTRATION
+              </p>
+              <div className="space-y-1">
+                {navItems.filter((i) => i.group === 'admin').map(renderNavLink)}
+              </div>
+            </div>
+          )}
+
           <div>
             <p className="px-3 mb-2 font-mono text-[11px] font-medium text-[#929DAC]/70">
               Command Network
             </p>
             <div className="space-y-1">
-              {NAV_ITEMS.filter((i) => i.group === 'primary').map(renderNavLink)}
+              {navItems.filter((i) => i.group === 'primary').map(renderNavLink)}
             </div>
           </div>
 
@@ -102,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
               Tactical Environment
             </p>
             <div className="space-y-1">
-              {NAV_ITEMS.filter((i) => i.group === 'arena').map(renderNavLink)}
+              {navItems.filter((i) => i.group === 'arena').map(renderNavLink)}
             </div>
           </div>
 
@@ -111,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
               Operator Dossier
             </p>
             <div className="space-y-1">
-              {NAV_ITEMS.filter((i) => i.group === 'operator').map(renderNavLink)}
+              {navItems.filter((i) => i.group === 'operator').map(renderNavLink)}
             </div>
           </div>
         </nav>
