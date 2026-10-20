@@ -5,13 +5,11 @@ import {
   Lock,
   FileText,
   ArrowRight,
-  Sliders,
   CheckCircle2,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { CountdownTimer } from '../components/competition/CountdownTimer';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
-import { ModalDialog } from '../components/ui/ModalDialog';
 
 export const CompetitionDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,13 +20,10 @@ export const CompetitionDetailPage: React.FC = () => {
     leaderboard,
     selectCompetition,
     targetStartTime,
-    setTargetStartTime,
     addToast,
   } = useAppContext();
 
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
-  const [customTimestampInput, setCustomTimestampInput] = useState('');
 
   const effectiveStartTime = selectedCompetition?.startTime || targetStartTime;
 
@@ -42,6 +37,16 @@ export const CompetitionDetailPage: React.FC = () => {
       )
     );
   }, [currentUser, selectedCompetition, results, leaderboard]);
+
+  // Check whether the competition has started
+  const isQuizStarted = useMemo(() => {
+    if (!selectedCompetition) return false;
+    if (selectedCompetition.status === 'live') return true;
+    if (selectedCompetition.startTime) {
+      return new Date(selectedCompetition.startTime).getTime() <= Date.now();
+    }
+    return false;
+  }, [selectedCompetition]);
 
   const handleEnterQuiz = useCallback(() => {
     if (!currentUser) {
@@ -58,7 +63,7 @@ export const CompetitionDetailPage: React.FC = () => {
     setIsTransitioning(true);
     addToast(
       'Countdown Reached Zero',
-      'Transitioning into the assessment environment...',
+      'The scheduled start time has arrived! Transitioning to quiz competition...',
       'success'
     );
     if (!currentUser) {
@@ -73,23 +78,6 @@ export const CompetitionDetailPage: React.FC = () => {
     }, 1200);
     return () => window.clearTimeout(timer);
   }, [currentUser, selectedCompetition, selectCompetition, navigate, addToast]);
-
-  const handleApplyCustomTimestamp = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customTimestampInput.trim()) {
-      setTargetStartTime(null);
-      setIsScheduleModalOpen(false);
-      return;
-    }
-    const parsed = Date.parse(customTimestampInput);
-    if (Number.isNaN(parsed)) {
-      addToast('Invalid Timestamp Format', 'Provide a valid ISO date/time string.', 'alert');
-      return;
-    }
-    setTargetStartTime(new Date(parsed).toISOString());
-    setIsScheduleModalOpen(false);
-    addToast('Target Timestamp Configured', 'Local countdown timer synchronized to target time.', 'success');
-  };
 
   return (
     <div className="space-y-8">
@@ -107,10 +95,10 @@ export const CompetitionDetailPage: React.FC = () => {
             COUNTDOWN COMPLETE · ARENA UNLOCKED
           </p>
           <h2 className="mt-2 font-display text-2xl font-bold text-[#F0F3F7]">
-            Initializing Focused Assessment Environment
+            Initializing Quiz Competition
           </h2>
           <p className="mt-2 text-sm text-[#929DAC] max-w-md">
-            Redirecting operator terminal to the quiz interface...
+            Redirecting operator to the quiz interface...
           </p>
         </div>
       )}
@@ -126,36 +114,42 @@ export const CompetitionDetailPage: React.FC = () => {
           </h1>
           <p className="mt-2 text-sm text-[#929DAC] max-w-2xl">
             {selectedCompetition?.description ||
-              'Secure digital staging room for scheduled cybersecurity competitions. The assessment environment unlocks automatically when a valid target start time expires.'}
+              'Secure digital staging room for scheduled cybersecurity competitions. The quiz competition unlocks automatically when the scheduled start time arrives.'}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setIsScheduleModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] hover:text-[#B6FF3B] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-          >
-            <Sliders className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Configure Target Timestamp</span>
-          </button>
-
           {hasAlreadyAttempted ? (
             <button
               type="button"
-              onClick={() => navigate('/quiz')}
+              onClick={() => navigate('/leaderboard')}
               className="inline-flex items-center gap-2 rounded-md border border-[#36F58A]/40 bg-[#36F58A]/10 px-4 py-2 text-xs font-semibold text-[#36F58A] hover:bg-[#36F58A]/20 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Assessment Completed — 1 Attempt Used</span>
+              <span>Quiz Completed — 1 Attempt Used</span>
             </button>
+          ) : !isQuizStarted ? (
+            <div className="inline-flex items-center gap-2 rounded-md border border-[#252D38] bg-[#07090D] px-4 py-2 text-xs font-mono text-[#929DAC]">
+              <Lock className="h-3.5 w-3.5 text-[#00E5FF]" aria-hidden="true" />
+              <span>
+                Quiz Locked · Starts at{' '}
+                {effectiveStartTime
+                  ? new Date(effectiveStartTime).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      month: 'short',
+                      day: 'numeric',
+                    })
+                  : 'Scheduled Start'}
+              </span>
+            </div>
           ) : (
             <button
               type="button"
               onClick={handleEnterQuiz}
-              className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-5 py-2.5 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-lg"
             >
-              <span>{selectedCompetition ? 'Enter Assessment Terminal' : 'Open Quiz Interface'}</span>
+              <span>Start Quiz Competition</span>
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           )}
@@ -320,78 +314,6 @@ export const CompetitionDetailPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Modal to configure target timestamp for countdown verification */}
-      <ModalDialog
-        isOpen={isScheduleModalOpen}
-        onClose={() => setIsScheduleModalOpen(false)}
-        title="Configure Target Start Timestamp"
-        subtitle="Set or clear a local target start timestamp to verify countdown synchronization and automatic quiz transition."
-        footer={
-          <>
-            <button
-              type="button"
-              onClick={() => {
-                setTargetStartTime(null);
-                setCustomTimestampInput('');
-                setIsScheduleModalOpen(false);
-                addToast('Countdown Cleared', 'Waiting room returned to standby state.');
-              }}
-              className="rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
-            >
-              Reset to Standby
-            </button>
-            <button
-              type="submit"
-              form="schedule-timestamp-form"
-              className="rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] cursor-pointer"
-            >
-              Apply Timestamp
-            </button>
-          </>
-        }
-      >
-        <form id="schedule-timestamp-form" onSubmit={handleApplyCustomTimestamp} className="space-y-4">
-          <div>
-            <label
-              htmlFor="target-iso-input"
-              className="block font-mono text-xs text-[#929DAC] mb-1.5"
-            >
-              TARGET START TIMESTAMP (ISO 8601)
-            </label>
-            <input
-              id="target-iso-input"
-              type="text"
-              value={customTimestampInput}
-              onChange={(e) => setCustomTimestampInput(e.target.value)}
-              placeholder="YYYY-MM-DDTHH:mm:ss.sssZ"
-              className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 font-mono text-xs text-[#F0F3F7] focus:border-[#B6FF3B] focus:outline-none"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-xs text-[#929DAC]">Quick Presets:</span>
-            <button
-              type="button"
-              onClick={() =>
-                setCustomTimestampInput(new Date(Date.now() + 5000).toISOString())
-              }
-              className="rounded border border-[#252D38] bg-[#111722] px-2.5 py-1 font-mono text-xs text-[#B6FF3B] hover:border-[#B6FF3B] cursor-pointer"
-            >
-              +5 Seconds
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setCustomTimestampInput(new Date(Date.now() + 60000).toISOString())
-              }
-              className="rounded border border-[#252D38] bg-[#111722] px-2.5 py-1 font-mono text-xs text-[#F0F3F7] hover:border-[#B6FF3B] cursor-pointer"
-            >
-              +1 Minute
-            </button>
-          </div>
-        </form>
-      </ModalDialog>
     </div>
   );
 };

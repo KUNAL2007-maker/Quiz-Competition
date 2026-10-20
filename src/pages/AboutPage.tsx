@@ -27,7 +27,7 @@ export const AboutPage: React.FC = () => {
           About Aegis Cipher
         </h1>
         <p className="mt-2 text-sm text-[#929DAC] max-w-2xl leading-relaxed">
-          The premier competitive cybersecurity assessment network engineered to test, rank, and reward elite offensive and defensive security operators.
+          The premier competitive cybersecurity quiz competition platform engineered to test, rank, and reward elite offensive and defensive security operators.
         </p>
       </div>
 

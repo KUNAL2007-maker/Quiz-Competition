@@ -15,7 +15,7 @@ export const ResultsPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#252D38] pb-6">
         <div>
           <p className="font-mono text-xs tracking-wider text-[#B6FF3B]">
-            POST-ASSESSMENT ANALYTICS
+            POST-QUIZ ANALYTICS
           </p>
           <h1 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-[#F0F3F7]">
             Results & Performance
@@ -41,7 +41,7 @@ export const ResultsPage: React.FC = () => {
           visualType="grid"
           codeLabel="PERFORMANCE ARCHIVE · NO COMPLETED RECORDS"
           title="No Completed Competition Results Available"
-          description="Completed competition outcomes—including final scores, rank placements, accuracy ratios, time taken, and topic-wise performance charts—will render here once real assessment results are recorded."
+          description="Completed competition outcomes—including final scores, rank placements, accuracy ratios, time taken, and topic-wise performance charts—will render here once real quiz results are recorded."
           actionLabel="Explore Active Competitions"
           onAction={() => navigate('/competitions')}
           secondaryActionLabel="Open Live Leaderboard"

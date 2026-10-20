@@ -184,8 +184,8 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
           </p>
           <h2 className="mt-1 font-display text-xl font-semibold text-[#F0F3F7]">
             {countdown.isExpired
-              ? 'Assessment Environment Ready — Initializing Terminal'
-              : 'Time Remaining Until Arena Unlock'}
+              ? 'Quiz Competition Ready — Entering Quiz'
+              : 'Time Remaining Until Quiz Unlocks'}
           </h2>
         </div>
 
@@ -302,14 +302,14 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       {countdown.isExpired && onEnterQuizNow && (
         <div className="mt-4 flex items-center justify-between rounded-md border border-[#36F58A]/40 bg-[#111722] p-4">
           <p className="text-xs font-medium text-[#36F58A]">
-            Countdown complete. Transitioning to assessment terminal...
+            Countdown complete. Transitioning to quiz competition...
           </p>
           <button
             type="button"
             onClick={onEnterQuizNow}
             className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] cursor-pointer"
           >
-            <span>Enter Quiz Terminal</span>
+            <span>Enter Quiz Competition</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>

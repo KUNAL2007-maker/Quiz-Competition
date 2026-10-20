@@ -217,8 +217,8 @@ export const QuizPage: React.FC = () => {
         setIsQuizActive(true);
         setQuestionSecondsLeft(questionTimeLimit);
         addToast(
-          'Assessment Commenced',
-          `Assessment started with ${questionTimeLimit}s per-question timer. Good luck!`,
+          'Quiz Commenced',
+          `Quiz started with ${questionTimeLimit}s per-question timer. Good luck!`,
           'success'
         );
       }, 750);
@@ -266,10 +266,59 @@ export const QuizPage: React.FC = () => {
   if (hasAlreadyAttempted) {
     return (
       <QuizAttemptLockedCard
-        competitionTitle={activeCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Assessment'}
+        competitionTitle={activeCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Quiz Competition'}
         result={previousResult}
         leaderboardEntry={previousLeaderboardEntry}
       />
+    );
+  }
+
+  // Guard 2.5: Tournament Not Started Yet (Locked Until Start Time)
+  const isCompetitionStarted =
+    !activeCompetition ||
+    activeCompetition.status === 'live' ||
+    (activeCompetition.startTime
+      ? new Date(activeCompetition.startTime).getTime() <= Date.now()
+      : activeCompetition.status !== 'upcoming');
+
+  if (!isCompetitionStarted) {
+    return (
+      <div className="mx-auto max-w-lg py-12 text-center space-y-6">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#00E5FF]/40 bg-[#00E5FF]/10 text-[#00E5FF]">
+          <Clock className="h-8 w-8" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="font-display text-2xl font-bold text-[#F0F3F7]">
+            Quiz Has Not Started Yet
+          </h1>
+          <p className="text-xs text-[#929DAC] leading-relaxed max-w-md mx-auto">
+            "{activeCompetition?.title}" is scheduled to begin on{' '}
+            <span className="font-mono text-[#00E5FF]">
+              {activeCompetition?.startTime
+                ? new Date(activeCompetition.startTime).toLocaleString()
+                : 'its scheduled start time'}
+            </span>
+            . The quiz interface is locked. Please wait in the waiting room until the countdown completes.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <button
+            type="button"
+            onClick={() => navigate('/arena')}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#B6FF3B] px-6 py-2.5 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer"
+          >
+            <Clock className="h-4 w-4" />
+            <span>Go to Waiting Room</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/competitions')}
+            className="w-full sm:w-auto rounded-lg border border-[#252D38] bg-[#111722] px-5 py-2.5 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+          >
+            Browse Competitions
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -293,7 +342,7 @@ export const QuizPage: React.FC = () => {
             Operative Profile Required
           </h2>
           <p className="text-xs text-[#929DAC] max-w-md mx-auto leading-relaxed">
-            Please complete your verified name and WhatsApp number in the dialog above to be eligible for this tournament. The assessment timer remains on standby and will not run while you enter your details.
+            Please complete your verified name and WhatsApp number in the dialog above to be eligible for this tournament. The quiz timer remains on standby and will not run while you enter your details.
           </p>
         </div>
       </div>
@@ -320,10 +369,10 @@ export const QuizPage: React.FC = () => {
     );
   }
 
-  // Active Assessment Terminal Environment (Renders ONLY after 3-2-1 countdown finishes)
+  // Active Quiz Environment (Renders ONLY after 3-2-1 countdown finishes)
   return (
     <div className="space-y-6">
-      {/* Focused Assessment Header Bar */}
+      {/* Focused Quiz Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-lg border border-[#252D38] bg-[#0C1017] p-5">
         <div className="flex items-center gap-3">
           <button
@@ -336,17 +385,17 @@ export const QuizPage: React.FC = () => {
           </button>
           <div>
             <p className="font-mono text-xs text-[#929DAC]">
-              FOCUSED ASSESSMENT ENVIRONMENT · 1 ATTEMPT IN PROGRESS
+              FOCUSED QUIZ ENVIRONMENT · 1 ATTEMPT IN PROGRESS
             </p>
             <h1 className="font-display text-lg sm:text-xl font-bold text-[#F0F3F7]">
               {activeCompetition?.title ||
                 quizSession.competitionTitle ||
-                'Cybersecurity Assessment Terminal'}
+                'Cybersecurity Quiz Competition'}
             </h1>
           </div>
         </div>
 
-        {/* Assessment Progress & Real Target Deadline Timer */}
+        {/* Quiz Progress & Real Target Deadline Timer */}
         <div className="flex flex-wrap items-center gap-4">
           <div className="rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-2">
             <span className="block font-mono text-[10px] text-[#929DAC]">
@@ -369,7 +418,7 @@ export const QuizPage: React.FC = () => {
             <Clock className="h-4 w-4 shrink-0 text-[#929DAC]" aria-hidden="true" />
             <div>
               <span className="block font-mono text-[10px] text-[#929DAC]">
-                ASSESSMENT TIMER
+                QUIZ TIMER
               </span>
               <span className="font-mono text-xs font-bold tabular-nums">
                 {timerState.isValid
@@ -404,7 +453,7 @@ export const QuizPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Assessment Layout: Question Area (2 cols) + Question Palette (1 col) */}
+      {/* Main Quiz Layout: Question Area (2 cols) + Question Palette (1 col) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2 space-y-4">
           {questions.length === 0 || !currentQuestion ? (
@@ -412,7 +461,7 @@ export const QuizPage: React.FC = () => {
               icon={Terminal}
               visualType="terminal"
               codeLabel="QUIZ CONTENT · STANDBY"
-              title="Assessment Packet Loading"
+              title="Quiz Questions Loading"
               description="No active questions found in the tournament container. If you are an administrator, add questions via the Admin Dashboard."
               actionLabel="Return to Waiting Room"
               onAction={() => navigate('/arena')}
@@ -632,8 +681,8 @@ export const QuizPage: React.FC = () => {
       <ModalDialog
         isOpen={isSubmitDialogOpen}
         onClose={() => setIsSubmitDialogOpen(false)}
-        title="Confirm Assessment Submission"
-        subtitle="Review your question answers before locking this assessment session. You only have ONE attempt."
+        title="Confirm Quiz Submission"
+        subtitle="Review your question answers before locking your quiz submission. You only have ONE attempt."
         footer={
           <>
             <button
@@ -665,7 +714,7 @@ export const QuizPage: React.FC = () => {
             <div className="flex items-start gap-3 rounded-md border border-[#252D38] bg-[#111722] p-3.5">
               <AlertTriangle className="h-4 w-4 text-[#B6FF3B] shrink-0 mt-0.5" />
               <p className="text-xs text-[#929DAC] leading-relaxed">
-                No quiz questions are currently loaded in this session. Confirming submission will evaluate your assessment session.
+                No quiz questions are currently loaded in this session. Confirming submission will evaluate your quiz session.
               </p>
             </div>
           ) : (

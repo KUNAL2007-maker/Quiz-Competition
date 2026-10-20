@@ -41,7 +41,7 @@ export const DashboardPage: React.FC = () => {
     },
     {
       title: 'Review Performance',
-      subtitle: 'Inspect historical assessment outcomes and accuracy',
+      subtitle: 'Inspect historical quiz outcomes and accuracy',
       icon: BarChart3,
       path: '/results',
       code: 'MET · 04',
@@ -76,7 +76,7 @@ export const DashboardPage: React.FC = () => {
           </h1>
 
           <p className="mt-4 text-sm sm:text-base text-[#929DAC] leading-relaxed">
-            Compete in timed cybersecurity assessments, cryptography challenges, and digital forensics evaluations. Enter the waiting room, monitor the ranking ledger, and manage your operator profile.
+            Compete in timed cybersecurity quiz tournaments, cryptography challenges, and digital forensics evaluations. Enter the waiting room, monitor the ranking ledger, and manage your operator profile.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -208,7 +208,7 @@ export const DashboardPage: React.FC = () => {
               visualType="terminal"
               codeLabel="ACTIVITY LOG · EMPTY"
               title="No Competition Activity Recorded"
-              description="Your recent competition entries, assessment submissions, and ranking updates will be logged in this panel once tournament participation begins."
+              description="Your recent competition entries, quiz submissions, and ranking updates will be logged in this panel once tournament participation begins."
               actionLabel="Configure Operator Profile"
               onAction={() => navigate('/profile')}
             />

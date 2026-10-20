@@ -59,7 +59,7 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
         <div className="rounded-md border border-[#252D38] bg-[#111722]/50 p-4 text-center">
           <p className="font-mono text-xs text-[#929DAC]">PALETTE · EMPTY</p>
           <p className="mt-1 text-xs text-[#929DAC]">
-            Question slots will populate here once a live assessment packet is loaded.
+            Question slots will populate here once a live quiz packet is loaded.
           </p>
         </div>
       ) : (

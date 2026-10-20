@@ -79,7 +79,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
         <div className="mt-4 rounded-lg border border-[#B6FF3B]/30 bg-[#B6FF3B]/5 p-3.5 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
           <span className="text-[#929DAC]">Target Tournament:</span>
           <span className="font-semibold text-[#B6FF3B]">
-            {competition?.title || 'Official Cybersecurity Assessment'}
+            {competition?.title || 'Official Cybersecurity Quiz Competition'}
           </span>
         </div>
 
@@ -95,7 +95,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 1. Strict Zero-AI & No External Assistance Policy
               </h3>
               <p className="text-xs text-[#929DAC] leading-relaxed">
-                The use of <strong className="text-[#F0F3F7]">ChatGPT, Claude, Gemini, Copilot, DeepSeek, or any AI tool</strong> is strictly forbidden. Searching Google, consulting notes, using secondary devices, or switching tabs during the assessment is monitored by anti-cheat controls. Any detected violation will lead to immediate disqualification and a permanent ban.
+                The use of <strong className="text-[#F0F3F7]">ChatGPT, Claude, Gemini, Copilot, DeepSeek, or any AI tool</strong> is strictly forbidden. Searching Google, consulting notes, using secondary devices, or switching tabs during the quiz is monitored by anti-cheat controls. Any detected violation will lead to immediate disqualification and a permanent ban.
               </p>
             </div>
           </div>
@@ -111,7 +111,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                   Total Time: {durationMin} Mins
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  The entire tournament has a hard limit of {durationMin} minutes. The assessment locks and submits automatically when time expires.
+                  The entire tournament has a hard limit of {durationMin} minutes. The quiz locks and submits automatically when time expires.
                 </p>
               </div>
             </div>
@@ -141,7 +141,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 3. Strictly One Attempt Only
               </h4>
               <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                You are granted <strong className="text-[#B6FF3B]">only ONE attempt</strong> at this competition. Once started, refreshing the browser or leaving the assessment will not grant a second chance. All scores are permanent on the leaderboard.
+                You are granted <strong className="text-[#B6FF3B]">only ONE attempt</strong> at this competition. Once started, refreshing the browser or leaving the quiz will not grant a second chance. All scores are permanent on the leaderboard.
               </p>
             </div>
           </div>

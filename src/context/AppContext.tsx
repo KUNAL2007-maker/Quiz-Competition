@@ -728,7 +728,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }));
 
       const activeCompId = selectedCompetition?.id || quizSession.competitionId;
-      const activeCompTitle = selectedCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Assessment';
+      const activeCompTitle = selectedCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Quiz Competition';
 
       if (currentUser && activeCompId) {
         const resultId = `${currentUser.uid}_${activeCompId}`;
@@ -785,10 +785,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       addToast(
-        'Assessment Evaluated & Locked',
+        'Quiz Evaluated & Recorded',
         currentUser && activeCompId
-          ? 'Evaluated by Python engine, persisted to Firestore results and leaderboard.'
-          : 'Evaluated by Python engine and locked in local session state.',
+          ? 'Evaluated by scoring engine, persisted to Firestore results and leaderboard.'
+          : 'Evaluated by scoring engine and saved in local session state.',
         'success'
       );
     } finally {

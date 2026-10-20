@@ -15,7 +15,7 @@ export const QuizCountdownOverlay: React.FC<QuizCountdownOverlayProps> = ({ valu
     },
     2: {
       title: 'STAND BY: PROTOCOL 2',
-      subtitle: 'ENFORCING ZERO-AI INTEGRITY & LOCKING ASSESSMENT WINDOW...',
+      subtitle: 'ENFORCING ZERO-AI INTEGRITY & SECURING QUIZ WINDOW...',
     },
     1: {
       title: 'STAND BY: PROTOCOL 1',
@@ -23,7 +23,7 @@ export const QuizCountdownOverlay: React.FC<QuizCountdownOverlayProps> = ({ valu
     },
     0: {
       title: 'TERMINAL ARMED · GO!',
-      subtitle: 'ASSESSMENT COMMENCED — TIMER IS LIVE!',
+      subtitle: 'QUIZ COMMENCED — TIMER IS LIVE!',
     },
   };
 

@@ -360,14 +360,14 @@ export const ProfilePage: React.FC = () => {
         {/* Recent Results Summary */}
         <section className="space-y-3">
           <h2 className="font-display text-base font-semibold text-[#F0F3F7]">
-            04. Recent Assessment Results
+            04. Recent Quiz Competition Results
           </h2>
           {results.length === 0 ? (
             <EmptyStateBlock
               icon={Shield}
               visualType="terminal"
               codeLabel="RESULTS · EMPTY"
-              title="No Recent Assessment Results"
+              title="No Recent Quiz Results"
               description="Individual competition scorecards and accuracy breakdowns will be listed here after your first official submission."
               actionLabel="Inspect Results Archive"
               onAction={() => navigate('/results')}

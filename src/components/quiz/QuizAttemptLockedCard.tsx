@@ -43,7 +43,7 @@ export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
             <CheckCircle2 className="h-3.5 w-3.5" /> 1 ATTEMPT COMPLETED & RECORDED
           </span>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#F0F3F7]">
-            Assessment Access Locked
+            Quiz Access Locked
           </h1>
           <p className="text-xs sm:text-sm text-[#929DAC] leading-relaxed max-w-md mx-auto">
             You have already completed <span className="font-semibold text-[#F0F3F7]">"{competitionTitle || 'this competition'}"</span>. Retakes are strictly prohibited to protect the competitive fairness of the tournament leaderboard.

@@ -82,7 +82,7 @@ export const CompetitionsPage: React.FC = () => {
             Competitions Directory
           </h1>
           <p className="mt-2 text-sm text-[#929DAC] max-w-2xl">
-            Discover scheduled cybersecurity assessments, inspect operational rules, and enter competition waiting rooms.
+            Discover scheduled cybersecurity competitions, inspect operational rules, and enter competition waiting rooms.
           </p>
         </div>
 
