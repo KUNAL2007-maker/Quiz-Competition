@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Competition } from '../../types';
-import { ArrowRight, Clock, Shield, Users, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Clock, Shield, Users, CheckCircle2, Play, Lock } from 'lucide-react';
+import { calculateCountdown, formatPad } from '../../utils/timerLogic';
 
 interface CompetitionCardProps {
   competition: Competition;
@@ -13,22 +14,72 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
   isCompleted,
   onSelect,
 }) => {
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
+
+  const isLive = useMemo(() => {
+    if (competition.status === 'live') return true;
+    if (competition.startTime) {
+      const startMs = new Date(competition.startTime).getTime();
+      return !Number.isNaN(startMs) && startMs <= nowMs && competition.status !== 'completed';
+    }
+    return false;
+  }, [competition.status, competition.startTime, nowMs]);
+
+  const isUpcoming = useMemo(() => {
+    if (isCompleted || isLive || competition.status === 'completed') return false;
+    if (competition.status === 'upcoming') {
+      if (competition.startTime) {
+        const startMs = new Date(competition.startTime).getTime();
+        return !Number.isNaN(startMs) && startMs > nowMs;
+      }
+      return true;
+    }
+    if (competition.startTime) {
+      const startMs = new Date(competition.startTime).getTime();
+      return !Number.isNaN(startMs) && startMs > nowMs;
+    }
+    return false;
+  }, [competition.status, competition.startTime, nowMs, isCompleted, isLive]);
+
+  const countdown = useMemo(() => {
+    if (!isUpcoming || !competition.startTime) return null;
+    return calculateCountdown(competition.startTime, nowMs);
+  }, [isUpcoming, competition.startTime, nowMs]);
+
+  // Update timer every second when an upcoming competition is displayed
+  useEffect(() => {
+    if (!isUpcoming) return;
+    const interval = setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isUpcoming]);
+
   return (
-    <article className="group relative flex flex-col justify-between rounded-lg border border-[#252D38] bg-[#111722] p-6 transition-colors hover:border-[#B6FF3B]/60">
-      <div>
+    <article className="group relative flex flex-col justify-between rounded-lg border border-[#252D38] bg-[#111722] p-6 transition-colors hover:border-[#B6FF3B]/60 shadow-sm">
+      <div className="space-y-3">
         {/* Metadata kicker */}
-        <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-xs text-[#929DAC]">
-          <span
-            className={
-              competition.status === 'live'
-                ? 'text-[#36F58A] font-semibold'
-                : competition.status === 'upcoming'
-                ? 'text-[#B6FF3B]'
-                : 'text-[#929DAC]'
-            }
-          >
-            {competition.status.toUpperCase()}
-          </span>
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-[#929DAC]">
+          {isCompleted ? (
+            <span className="inline-flex items-center gap-1 rounded bg-[#36F58A]/15 border border-[#36F58A]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#36F58A]">
+              <CheckCircle2 className="h-3 w-3" /> ATTEMPT COMPLETED
+            </span>
+          ) : isLive ? (
+            <span className="inline-flex items-center gap-1.5 rounded bg-[#36F58A]/15 border border-[#36F58A]/40 px-2.5 py-0.5 font-mono text-[11px] font-bold text-[#36F58A]">
+              <span className="h-2 w-2 rounded-full bg-[#36F58A] animate-ping" />
+              LIVE QUIZ NOW
+            </span>
+          ) : isUpcoming ? (
+            <span className="inline-flex items-center gap-1.5 rounded bg-[#00E5FF]/15 border border-[#00E5FF]/40 px-2.5 py-0.5 font-mono text-[11px] font-bold text-[#00E5FF]">
+              <Clock className="h-3 w-3" />
+              UPCOMING QUIZ
+            </span>
+          ) : (
+            <span className="rounded bg-[#252D38] px-2 py-0.5 font-mono text-[10px] text-[#929DAC]">
+              COMPLETED
+            </span>
+          )}
+
           {competition.difficulty && (
             <>
               <span aria-hidden="true">·</span>
@@ -41,26 +92,35 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
               <span>{competition.accessType}</span>
             </>
           )}
-          {isCompleted && (
-            <span className="inline-flex items-center gap-1 rounded bg-[#36F58A]/10 border border-[#36F58A]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#36F58A]">
-              <CheckCircle2 className="h-3 w-3" /> ATTEMPT COMPLETED
-            </span>
-          )}
         </div>
 
-        <h3 className="font-display text-lg font-semibold text-[#F0F3F7] group-hover:text-[#B6FF3B] transition-colors">
+        <h3 className="font-display text-lg font-bold text-[#F0F3F7] group-hover:text-[#B6FF3B] transition-colors">
           {competition.title}
         </h3>
 
         {competition.description && (
-          <p className="mt-2 text-sm text-[#929DAC] leading-relaxed line-clamp-2">
+          <p className="text-xs text-[#929DAC] leading-relaxed line-clamp-2">
             {competition.description}
           </p>
         )}
+
+        {/* Real-time Countdown Banner for Upcoming Competitions */}
+        {isUpcoming && countdown && countdown.isValid && !countdown.isExpired && (
+          <div className="rounded-md border border-[#00E5FF]/30 bg-[#00E5FF]/5 p-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-[#00E5FF]">
+              <Clock className="h-3.5 w-3.5 text-[#00E5FF] animate-pulse" />
+              <span>STARTS IN:</span>
+            </div>
+            <div className="font-mono text-xs font-bold text-[#F0F3F7] tabular-nums">
+              {countdown.days > 0 ? `${countdown.days}d ` : ''}
+              {formatPad(countdown.hours)}h {formatPad(countdown.minutes)}m {formatPad(countdown.seconds)}s
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="mt-6 border-t border-[#252D38] pt-4 flex items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-4 font-mono text-xs text-[#929DAC]">
+      <div className="mt-6 border-t border-[#252D38] pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3.5 font-mono text-xs text-[#929DAC]">
           {competition.startTime && (
             <span className="inline-flex items-center gap-1.5" title={`Scheduled: ${new Date(competition.startTime).toLocaleString()}`}>
               <Clock className="h-3.5 w-3.5 text-[#929DAC]" aria-hidden="true" />
@@ -86,14 +146,47 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => onSelect(competition)}
-          className="inline-flex items-center gap-1.5 rounded-md bg-[#0C1017] border border-[#252D38] px-3 py-1.5 text-xs font-medium text-[#F0F3F7] transition-colors hover:border-[#B6FF3B] hover:text-[#B6FF3B] whitespace-nowrap shrink-0 cursor-pointer"
-        >
-          <span>{isCompleted ? 'View Standing' : 'View Details'}</span>
-          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </button>
+        {isCompleted ? (
+          <button
+            type="button"
+            onClick={() => onSelect(competition)}
+            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#36F58A]/40 px-3.5 py-1.5 text-xs font-semibold text-[#36F58A] transition-colors hover:bg-[#36F58A]/10 whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            <span>View Standings</span>
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+        ) : isLive ? (
+          <button
+            type="button"
+            onClick={() => onSelect(competition)}
+            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#B6FF3B] px-4 py-1.5 text-xs font-bold text-[#07090D] transition-colors hover:bg-[#c8ff66] whitespace-nowrap shrink-0 cursor-pointer shadow-md"
+          >
+            <Play className="h-3.5 w-3.5 fill-current" />
+            <span>Enter Quiz Directly</span>
+          </button>
+        ) : isUpcoming ? (
+          <button
+            type="button"
+            onClick={() => onSelect(competition)}
+            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#00E5FF]/40 px-3.5 py-1.5 text-xs font-semibold text-[#00E5FF] transition-colors hover:bg-[#00E5FF]/10 whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            <Lock className="h-3.5 w-3.5" />
+            <span>
+              {countdown && countdown.isValid && !countdown.isExpired
+                ? `Starts in ${formatPad(countdown.minutes)}m ${formatPad(countdown.seconds)}s`
+                : 'View Countdown'}
+            </span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onSelect(competition)}
+            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#252D38] px-3.5 py-1.5 text-xs font-medium text-[#F0F3F7] transition-colors hover:border-[#B6FF3B] hover:text-[#B6FF3B] whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            <span>View Details</span>
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+        )}
       </div>
     </article>
   );

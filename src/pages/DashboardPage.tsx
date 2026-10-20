@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert,
   Trophy,
   UserCheck,
   ArrowRight,
-  Clock,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
@@ -13,7 +12,29 @@ import { CompetitionCard } from '../components/competition/CompetitionCard';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { competitions, selectCompetition } = useAppContext();
+  const {
+    competitions,
+    results,
+    leaderboard,
+    currentUser,
+    profile,
+    selectCompetition,
+    addToast,
+  } = useAppContext();
+
+  // Completed competition IDs for current user
+  const completedCompetitionIds = useMemo(() => {
+    if (!currentUser) return new Set<string>();
+    const ids = new Set<string>();
+    results.forEach((r) => ids.add(r.competitionId));
+    leaderboard.forEach((l) => {
+      if (l.isCurrentUser && l.participantId.startsWith(`${currentUser.uid}_`)) {
+        const compId = l.participantId.replace(`${currentUser.uid}_`, '');
+        if (compId) ids.add(compId);
+      }
+    });
+    return ids;
+  }, [currentUser, results, leaderboard]);
 
   const quickNavLinks = [
     {
@@ -67,7 +88,7 @@ export const DashboardPage: React.FC = () => {
           </h1>
 
           <p className="mt-4 text-sm sm:text-base text-[#929DAC] leading-relaxed">
-            Compete in timed cybersecurity quiz tournaments, cryptography challenges, and digital forensics evaluations. Enter the waiting room, monitor the ranking ledger, and manage your operator profile.
+            Compete in timed cybersecurity quiz tournaments, cryptography challenges, and digital forensics evaluations. Enter live competitions directly, monitor the ranking ledger, and manage your operator profile.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -82,11 +103,11 @@ export const DashboardPage: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => navigate('/arena')}
+              onClick={() => navigate('/leaderboard')}
               className="inline-flex items-center gap-2 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2.5 text-xs font-medium text-[#F0F3F7] transition-colors hover:border-[#929DAC]/60 hover:bg-[#161E2C] focus-visible:outline-2 focus-visible:outline-[#B6FF3B] whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <Clock className="h-4 w-4 text-[#929DAC]" aria-hidden="true" />
-              <span>Open Waiting Room</span>
+              <Trophy className="h-4 w-4 text-[#929DAC]" aria-hidden="true" />
+              <span>Live Standings Ledger</span>
             </button>
           </div>
         </div>
@@ -163,8 +184,8 @@ export const DashboardPage: React.FC = () => {
             description="There are currently no scheduled or active cybersecurity competitions connected to your session. When tournament rounds are published, their entry criteria, rules, and countdown schedules will appear here."
             actionLabel="Explore Competitions Page"
             onAction={() => navigate('/competitions')}
-            secondaryActionLabel="Inspect Waiting Room"
-            onSecondaryAction={() => navigate('/arena')}
+            secondaryActionLabel="Live Rankings"
+            onSecondaryAction={() => navigate('/leaderboard')}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -172,9 +193,39 @@ export const DashboardPage: React.FC = () => {
               <CompetitionCard
                 key={comp.id}
                 competition={comp}
-                onSelect={(c) => {
-                  selectCompetition(c);
-                  navigate('/arena');
+                isCompleted={completedCompetitionIds.has(comp.id)}
+                onSelect={(selected) => {
+                  if (completedCompetitionIds.has(selected.id)) {
+                    navigate('/leaderboard');
+                    return;
+                  }
+
+                  const isLive =
+                    selected.status === 'live' ||
+                    (selected.startTime &&
+                      new Date(selected.startTime).getTime() <= Date.now() &&
+                      selected.status !== 'completed');
+
+                  if (isLive) {
+                    if (!currentUser) {
+                      navigate('/login?redirect=/quiz');
+                      return;
+                    }
+                    if (!profile.isProfileComplete) {
+                      addToast(
+                        'Profile 100% Completion Required',
+                        'You must complete your profile with Full Name and WhatsApp number before entering any quiz.',
+                        'alert'
+                      );
+                      navigate('/profile?required=1');
+                      return;
+                    }
+                    selectCompetition(selected);
+                    navigate('/quiz');
+                  } else {
+                    // Navigate to competitions directory where the live countdown timer is shown
+                    navigate('/competitions');
+                  }
                 }}
               />
             ))}

@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   ShieldAlert,
-  Clock,
   Trophy,
   UserCheck,
   LogIn,
@@ -21,7 +20,7 @@ interface NavItem {
   label: string;
   to: string;
   icon: React.FC<{ className?: string }>;
-  group: 'primary' | 'arena' | 'operator' | 'admin';
+  group: 'primary' | 'operator' | 'admin';
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
@@ -31,7 +30,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
     { label: 'Overview', to: '/', icon: LayoutDashboard, group: 'primary' },
     { label: 'Competitions', to: '/competitions', icon: ShieldAlert, group: 'primary' },
     { label: 'Live Rankings', to: '/leaderboard', icon: Trophy, group: 'primary' },
-    { label: 'Waiting Room', to: '/arena', icon: Clock, group: 'arena' },
     { label: 'My Profile', to: '/profile', icon: UserCheck, group: 'operator' },
     {
       label: currentUser ? 'Operator Account' : 'Sign In',
@@ -128,14 +126,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
             </div>
           </div>
 
-          <div>
-            <p className="px-3 mb-2 font-mono text-[11px] font-medium text-[#929DAC]/70">
-              Tactical Environment
-            </p>
-            <div className="space-y-1">
-              {navItems.filter((i) => i.group === 'arena').map(renderNavLink)}
-            </div>
-          </div>
 
           <div>
             <p className="px-3 mb-2 font-mono text-[11px] font-medium text-[#929DAC]/70">

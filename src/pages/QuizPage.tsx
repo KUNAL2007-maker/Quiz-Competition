@@ -22,6 +22,7 @@ import { CompetitorProfileModal } from '../components/profile/CompetitorProfileM
 import { QuizRulesModal } from '../components/quiz/QuizRulesModal';
 import { QuizCountdownOverlay } from '../components/quiz/QuizCountdownOverlay';
 import { QuizAttemptLockedCard } from '../components/quiz/QuizAttemptLockedCard';
+import { CountdownTimer } from '../components/competition/CountdownTimer';
 
 export const QuizPage: React.FC = () => {
   const navigate = useNavigate();
@@ -273,7 +274,7 @@ export const QuizPage: React.FC = () => {
     );
   }
 
-  // Guard 2.5: Tournament Not Started Yet (Locked Until Start Time)
+  // Guard 2.5: Tournament Not Started Yet (Locked Until Start Time - Timer Shown Directly)
   const isCompetitionStarted =
     !activeCompetition ||
     activeCompetition.status === 'live' ||
@@ -283,40 +284,52 @@ export const QuizPage: React.FC = () => {
 
   if (!isCompetitionStarted) {
     return (
-      <div className="mx-auto max-w-lg py-12 text-center space-y-6">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#00E5FF]/40 bg-[#00E5FF]/10 text-[#00E5FF]">
-          <Clock className="h-8 w-8" />
-        </div>
-        <div className="space-y-2">
-          <h1 className="font-display text-2xl font-bold text-[#F0F3F7]">
-            Quiz Has Not Started Yet
-          </h1>
-          <p className="text-xs text-[#929DAC] leading-relaxed max-w-md mx-auto">
-            "{activeCompetition?.title}" is scheduled to begin on{' '}
-            <span className="font-mono text-[#00E5FF]">
-              {activeCompetition?.startTime
-                ? new Date(activeCompetition.startTime).toLocaleString()
-                : 'its scheduled start time'}
+      <div className="mx-auto max-w-2xl py-8 space-y-6">
+        <div className="rounded-xl border border-[#00E5FF]/40 bg-[#0C1017] p-6 text-center space-y-4 shadow-xl">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-[#00E5FF]/50 bg-[#00E5FF]/10 text-[#00E5FF]">
+            <Clock className="h-7 w-7" />
+          </div>
+          <div className="space-y-2">
+            <span className="rounded bg-[#00E5FF]/20 px-3 py-1 font-mono text-xs font-bold text-[#00E5FF] tracking-wider uppercase">
+              UPCOMING QUIZ COMPETITION
             </span>
-            . The quiz interface is locked. Please wait in the waiting room until the countdown completes.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => navigate('/arena')}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#B6FF3B] px-6 py-2.5 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer"
-          >
-            <Clock className="h-4 w-4" />
-            <span>Go to Waiting Room</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/competitions')}
-            className="w-full sm:w-auto rounded-lg border border-[#252D38] bg-[#111722] px-5 py-2.5 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
-          >
-            Browse Competitions
-          </button>
+            <h1 className="mt-2 font-display text-2xl font-bold text-[#F0F3F7]">
+              {activeCompetition?.title || 'Cybersecurity Quiz Competition'}
+            </h1>
+            <p className="text-xs text-[#929DAC] leading-relaxed max-w-md mx-auto">
+              This competition is scheduled to start at{' '}
+              <span className="font-mono text-[#00E5FF]">
+                {activeCompetition?.startTime
+                  ? new Date(activeCompetition.startTime).toLocaleString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'its scheduled time'}
+              </span>
+              . The quiz unlocks automatically when the timer reaches zero.
+            </p>
+          </div>
+
+          <CountdownTimer
+            targetStartTime={activeCompetition?.startTime}
+            onCountdownZero={() => {
+              setIsQuizActive(false);
+            }}
+          />
+
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => navigate('/competitions')}
+              className="inline-flex items-center gap-2 rounded-lg border border-[#252D38] bg-[#111722] px-6 py-2.5 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Return to Competitions Directory</span>
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -393,8 +406,8 @@ export const QuizPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate('/arena')}
-            aria-label="Return to waiting room"
+            onClick={() => navigate('/competitions')}
+            aria-label="Return to competitions directory"
             className="rounded-md border border-[#252D38] bg-[#111722] p-2 text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -479,10 +492,10 @@ export const QuizPage: React.FC = () => {
               codeLabel="QUIZ CONTENT · STANDBY"
               title="Quiz Questions Loading"
               description="No active questions found in the tournament container. If you are an administrator, add questions via the Admin Dashboard."
-              actionLabel="Return to Waiting Room"
-              onAction={() => navigate('/arena')}
-              secondaryActionLabel="Browse Competitions"
-              onSecondaryAction={() => navigate('/competitions')}
+              actionLabel="Return to Competitions"
+              onAction={() => navigate('/competitions')}
+              secondaryActionLabel="Live Leaderboard"
+              onSecondaryAction={() => navigate('/leaderboard')}
             />
           ) : (
             <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6 md:p-8 space-y-6">

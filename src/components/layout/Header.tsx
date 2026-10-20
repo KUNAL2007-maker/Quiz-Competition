@@ -20,7 +20,6 @@ interface HeaderProps {
 const ROUTE_TITLES: Record<string, string> = {
   '/': 'Command Center Overview',
   '/competitions': 'Competitions Directory',
-  '/arena': 'Competition Waiting Room',
   '/quiz': 'Cybersecurity Quiz Competition',
   '/leaderboard': 'Live Leaderboard Ledger',
   '/profile': 'Operator Identity Dossier',

@@ -9,7 +9,6 @@ import { AppProvider } from './context/AppContext';
 import { AppShell } from './components/layout/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { CompetitionsPage } from './pages/CompetitionsPage';
-import { CompetitionDetailPage } from './pages/CompetitionDetailPage';
 import { QuizPage } from './pages/QuizPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { ProfilePage } from './pages/ProfilePage';
@@ -27,7 +26,7 @@ export default function App() {
           <Route path="/" element={<AppShell />}>
             <Route index element={<DashboardPage />} />
             <Route path="competitions" element={<CompetitionsPage />} />
-            <Route path="arena" element={<CompetitionDetailPage />} />
+            <Route path="arena" element={<Navigate to="/competitions" replace />} />
             <Route path="quiz" element={<QuizPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="profile" element={<ProfilePage />} />

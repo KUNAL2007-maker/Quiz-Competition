@@ -681,12 +681,27 @@ export const ProfilePage: React.FC = () => {
                         if (!is100PercentComplete) {
                           handleOpenEdit();
                         } else {
-                          navigate('/arena');
+                          const isLive =
+                            comp.status === 'live' ||
+                            (comp.startTime &&
+                              new Date(comp.startTime).getTime() <= Date.now() &&
+                              comp.status !== 'completed');
+                          if (isLive) {
+                            navigate('/quiz');
+                          } else {
+                            navigate('/competitions');
+                          }
                         }
                       }}
                       className="inline-flex items-center gap-1.5 rounded-md bg-[#111722] border border-[#252D38] px-3 py-1.5 text-xs font-semibold text-[#F0F3F7] hover:border-[#B6FF3B] hover:text-[#B6FF3B] transition-colors cursor-pointer"
                     >
-                      <span>{is100PercentComplete ? 'Enter Waiting Room' : 'Complete Profile First'}</span>
+                      <span>
+                        {!is100PercentComplete
+                          ? 'Complete Profile First'
+                          : comp.status === 'live'
+                          ? 'Enter Quiz Directly'
+                          : 'View Start Timer'}
+                      </span>
                       <ArrowRight className="h-3 w-3" />
                     </button>
                   </div>
