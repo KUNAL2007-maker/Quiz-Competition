@@ -66,6 +66,9 @@ export interface LeaderboardEntry {
   completionTimeSeconds?: number;
   rankDelta?: number; // positive = moved up, negative = moved down
   isCurrentUser?: boolean;
+  competitionId?: string;
+  createdAt?: string | number | null;
+  category?: string;
 }
 
 export interface OperatorProfile {

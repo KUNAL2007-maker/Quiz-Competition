@@ -6,7 +6,6 @@ import {
   Clock,
   Trophy,
   UserCheck,
-  BarChart3,
   LogIn,
   KeyRound,
   X,
@@ -34,7 +33,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
     { label: 'Live Rankings', to: '/leaderboard', icon: Trophy, group: 'primary' },
     { label: 'Waiting Room', to: '/arena', icon: Clock, group: 'arena' },
     { label: 'My Profile', to: '/profile', icon: UserCheck, group: 'operator' },
-    { label: 'Performance', to: '/results', icon: BarChart3, group: 'operator' },
     {
       label: currentUser ? 'Operator Account' : 'Sign In',
       to: '/login',

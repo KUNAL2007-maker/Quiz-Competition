@@ -334,9 +334,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       async (snapshot) => {
         const rawEntries: LeaderboardEntry[] = snapshot.docs.map((d, i) => {
           const data = d.data();
+          const compIdFromId = d.id.includes('_') ? d.id.split('_').slice(1).join('_') : undefined;
           return {
             rank: i + 1,
             participantId: d.id,
+            competitionId: data.competitionId ? String(data.competitionId) : compIdFromId,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : (typeof data.createdAt === 'string' ? data.createdAt : null),
+            category: data.category ? String(data.category) : undefined,
             displayName: String(data.displayName || 'Operator'),
             username: data.username ? String(data.username) : undefined,
             whatsappNumber: data.whatsappNumber ? String(data.whatsappNumber) : undefined,
@@ -405,7 +409,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             email: data.email ? String(data.email) : (currentUser.email || ''),
             avatarUrl: data.avatarUrl ? String(data.avatarUrl) : null,
             avatarPreset: String(data.avatarPreset || 'cipher-grid'),
-            isProfileComplete: Boolean(data.isProfileComplete),
+            isProfileComplete: Boolean(
+              data.isProfileComplete ||
+              (data.displayName && String(data.displayName).trim().length >= 2 && data.whatsappNumber && String(data.whatsappNumber).trim().length >= 6)
+            ),
             isVerified: Boolean(currentUser.emailVerified),
           }));
         } else {
@@ -413,7 +420,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ...prev,
             displayName: currentUser.displayName || '',
             email: currentUser.email || '',
-            isProfileComplete: false,
+            isProfileComplete: Boolean(
+              currentUser.displayName && currentUser.displayName.trim().length >= 2 && prev.whatsappNumber && prev.whatsappNumber.trim().length >= 6
+            ),
           }));
         }
       },

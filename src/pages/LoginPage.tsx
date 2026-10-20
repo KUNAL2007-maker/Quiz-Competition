@@ -22,6 +22,7 @@ export const LoginPage: React.FC = () => {
 
   const {
     currentUser,
+    profile,
     isAdmin,
     signInWithGoogle,
     signInWithEmail,
@@ -50,19 +51,24 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
+    const effectiveTarget =
+      redirectTarget === '/quiz' && !profile.isProfileComplete
+        ? '/profile?required=1'
+        : redirectTarget;
+
     setIsSubmitting(true);
     try {
       if (mode === 'signin') {
         const res = await signInWithEmail(email, password);
         if (res.success) {
-          navigate(redirectTarget);
+          navigate(effectiveTarget);
         } else {
           setErrorMessage(res.error || 'Failed to sign in. Please verify your credentials.');
         }
       } else {
         const res = await signUpWithEmail(email, password);
         if (res.success) {
-          navigate(redirectTarget);
+          navigate(effectiveTarget);
         } else {
           setErrorMessage(res.error || 'Failed to create account. Please try again.');
         }
@@ -77,7 +83,11 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       await signInWithGoogle();
-      navigate(redirectTarget);
+      const effectiveTarget =
+        redirectTarget === '/quiz' && !profile.isProfileComplete
+          ? '/profile?required=1'
+          : redirectTarget;
+      navigate(effectiveTarget);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Google authentication failed.');
     } finally {
@@ -144,7 +154,13 @@ export const LoginPage: React.FC = () => {
           <div className="flex items-center justify-between gap-3 border-t border-[#252D38] pt-4">
             <button
               type="button"
-              onClick={() => navigate(redirectTarget)}
+              onClick={() => {
+                const target =
+                  redirectTarget === '/quiz' && !profile.isProfileComplete
+                    ? '/profile?required=1'
+                    : redirectTarget;
+                navigate(target);
+              }}
               className="inline-flex items-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] hover:text-[#B6FF3B] cursor-pointer"
             >
               <span>Continue to Quizzes</span>

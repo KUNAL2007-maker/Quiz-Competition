@@ -13,7 +13,6 @@ import { CompetitionDetailPage } from './pages/CompetitionDetailPage';
 import { QuizPage } from './pages/QuizPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { ResultsPage } from './pages/ResultsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminPage } from './pages/AdminPage';
@@ -32,7 +31,7 @@ export default function App() {
             <Route path="quiz" element={<QuizPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="profile" element={<ProfilePage />} />
-            <Route path="results" element={<ResultsPage />} />
+            <Route path="results" element={<Navigate to="/profile" replace />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="admin" element={<AdminPage />} />
             <Route path="about" element={<AboutPage />} />

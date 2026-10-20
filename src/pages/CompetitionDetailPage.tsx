@@ -15,6 +15,7 @@ export const CompetitionDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const {
     currentUser,
+    profile,
     selectedCompetition,
     results,
     leaderboard,
@@ -53,11 +54,20 @@ export const CompetitionDetailPage: React.FC = () => {
       navigate('/login?redirect=/quiz');
       return;
     }
+    if (!profile.isProfileComplete) {
+      addToast(
+        'Profile Completion Required (100%)',
+        'You must complete your profile 100% with your name and WhatsApp contact number before entering any quiz.',
+        'alert'
+      );
+      navigate('/profile?required=1');
+      return;
+    }
     if (selectedCompetition) {
       selectCompetition(selectedCompetition);
     }
     navigate('/quiz');
-  }, [currentUser, selectedCompetition, selectCompetition, navigate]);
+  }, [currentUser, profile.isProfileComplete, selectedCompetition, selectCompetition, navigate, addToast]);
 
   const handleCountdownComplete = useCallback(() => {
     setIsTransitioning(true);
@@ -70,6 +80,10 @@ export const CompetitionDetailPage: React.FC = () => {
       navigate('/login?redirect=/quiz');
       return;
     }
+    if (!profile.isProfileComplete) {
+      navigate('/profile?required=1');
+      return;
+    }
     if (selectedCompetition) {
       selectCompetition(selectedCompetition);
     }
@@ -77,7 +91,7 @@ export const CompetitionDetailPage: React.FC = () => {
       navigate('/quiz');
     }, 1200);
     return () => window.clearTimeout(timer);
-  }, [currentUser, selectedCompetition, selectCompetition, navigate, addToast]);
+  }, [currentUser, profile.isProfileComplete, selectedCompetition, selectCompetition, navigate, addToast]);
 
   return (
     <div className="space-y-8">

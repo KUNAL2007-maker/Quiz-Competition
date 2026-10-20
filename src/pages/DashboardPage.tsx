@@ -4,10 +4,8 @@ import {
   ShieldAlert,
   Trophy,
   UserCheck,
-  BarChart3,
   ArrowRight,
   Clock,
-  Activity,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
@@ -15,7 +13,7 @@ import { CompetitionCard } from '../components/competition/CompetitionCard';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { competitions, activities, selectCompetition } = useAppContext();
+  const { competitions, selectCompetition } = useAppContext();
 
   const quickNavLinks = [
     {
@@ -38,13 +36,6 @@ export const DashboardPage: React.FC = () => {
       icon: UserCheck,
       path: '/profile',
       code: 'OPR · 03',
-    },
-    {
-      title: 'Review Performance',
-      subtitle: 'Inspect historical quiz outcomes and accuracy',
-      icon: BarChart3,
-      path: '/results',
-      code: 'MET · 04',
     },
   ];
 
@@ -110,7 +101,7 @@ export const DashboardPage: React.FC = () => {
           <span className="font-mono text-xs text-[#929DAC] whitespace-nowrap shrink-0">DIRECT ACCESS</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {quickNavLinks.map((item) => {
             const Icon = item.icon;
             return (
@@ -148,85 +139,48 @@ export const DashboardPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Main Split: Competition Overview & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Competition Overview (2 columns) */}
-        <section className="lg:col-span-2 space-y-4" aria-labelledby="comp-overview-heading">
-          <div className="flex items-center justify-between">
-            <h2 id="comp-overview-heading" className="font-display text-lg font-semibold text-[#F0F3F7]">
-              02. Active Competition Overview
-            </h2>
-            <button
-              type="button"
-              onClick={() => navigate('/competitions')}
-              className="text-xs font-medium text-[#B6FF3B] hover:underline whitespace-nowrap shrink-0 cursor-pointer"
-            >
-              View Directory
-            </button>
+      {/* Active Competition Overview (Full Width) */}
+      <section className="space-y-4" aria-labelledby="comp-overview-heading">
+        <div className="flex items-center justify-between">
+          <h2 id="comp-overview-heading" className="font-display text-lg font-semibold text-[#F0F3F7]">
+            02. Active Competition Overview
+          </h2>
+          <button
+            type="button"
+            onClick={() => navigate('/competitions')}
+            className="text-xs font-medium text-[#B6FF3B] hover:underline whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            View Directory
+          </button>
+        </div>
+
+        {competitions.length === 0 ? (
+          <EmptyStateBlock
+            icon={ShieldAlert}
+            visualType="radar"
+            codeLabel="DIRECTORY · NO ACTIVE TOURNAMENTS"
+            title="No Competition Information Available"
+            description="There are currently no scheduled or active cybersecurity competitions connected to your session. When tournament rounds are published, their entry criteria, rules, and countdown schedules will appear here."
+            actionLabel="Explore Competitions Page"
+            onAction={() => navigate('/competitions')}
+            secondaryActionLabel="Inspect Waiting Room"
+            onSecondaryAction={() => navigate('/arena')}
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {competitions.map((comp) => (
+              <CompetitionCard
+                key={comp.id}
+                competition={comp}
+                onSelect={(c) => {
+                  selectCompetition(c);
+                  navigate('/arena');
+                }}
+              />
+            ))}
           </div>
-
-          {competitions.length === 0 ? (
-            <EmptyStateBlock
-              icon={ShieldAlert}
-              visualType="radar"
-              codeLabel="DIRECTORY · NO ACTIVE TOURNAMENTS"
-              title="No Competition Information Available"
-              description="There are currently no scheduled or active cybersecurity competitions connected to your session. When tournament rounds are published, their entry criteria, rules, and countdown schedules will appear here."
-              actionLabel="Explore Competitions Page"
-              onAction={() => navigate('/competitions')}
-              secondaryActionLabel="Inspect Waiting Room"
-              onSecondaryAction={() => navigate('/arena')}
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {competitions.map((comp) => (
-                <CompetitionCard
-                  key={comp.id}
-                  competition={comp}
-                  onSelect={(c) => {
-                    selectCompetition(c);
-                    navigate('/arena');
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Recent Competition Activity Area (1 column) */}
-        <section className="space-y-4" aria-labelledby="activity-heading">
-          <div className="flex items-center justify-between">
-            <h2 id="activity-heading" className="font-display text-lg font-semibold text-[#F0F3F7]">
-              03. Recent Activity
-            </h2>
-            <span className="font-mono text-xs text-[#929DAC]">EVENT LOG</span>
-          </div>
-
-          {activities.length === 0 ? (
-            <EmptyStateBlock
-              icon={Activity}
-              visualType="terminal"
-              codeLabel="ACTIVITY LOG · EMPTY"
-              title="No Competition Activity Recorded"
-              description="Your recent competition entries, quiz submissions, and ranking updates will be logged in this panel once tournament participation begins."
-              actionLabel="Configure Operator Profile"
-              onAction={() => navigate('/profile')}
-            />
-          ) : (
-            <div className="rounded-lg border border-[#252D38] bg-[#0C1017] divide-y divide-[#252D38]">
-              {activities.map((act) => (
-                <div key={act.id} className="p-4">
-                  <p className="font-mono text-[11px] text-[#929DAC]">{act.timestamp}</p>
-                  <p className="mt-1 text-xs font-semibold text-[#F0F3F7]">{act.title}</p>
-                  {act.detail && (
-                    <p className="mt-0.5 text-xs text-[#929DAC]">{act.detail}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+        )}
+      </section>
     </div>
   );
 };

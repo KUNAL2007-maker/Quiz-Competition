@@ -15,17 +15,70 @@ export const LeaderboardPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const filteredEntries = useMemo(() => {
-    return leaderboard.filter((entry) => {
-      if (
-        searchQuery.trim() !== '' &&
-        !entry.displayName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !(entry.username || '').toLowerCase().includes(searchQuery.toLowerCase())
-      ) {
-        return false;
-      }
-      return true;
-    });
-  }, [leaderboard, searchQuery]);
+    return leaderboard
+      .filter((entry) => {
+        // 1. Competition Filter
+        if (selectedCompId !== 'all') {
+          const entryCompId =
+            entry.competitionId ||
+            (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');
+          if (entryCompId !== selectedCompId) {
+            return false;
+          }
+        }
+
+        // 2. Category Filter
+        if (categoryFilter !== 'overall') {
+          const catLower = categoryFilter.toLowerCase();
+          const targetComp = competitions.find(
+            (c) => c.id === entry.competitionId || entry.participantId.endsWith(`_${c.id}`)
+          );
+          const compMatches =
+            targetComp &&
+            (targetComp.title.toLowerCase().includes(catLower) ||
+              (targetComp.difficulty && targetComp.difficulty.toLowerCase().includes(catLower)) ||
+              (targetComp.description && targetComp.description.toLowerCase().includes(catLower)));
+          const entryMatches =
+            entry.category && entry.category.toLowerCase().includes(catLower);
+
+          if (!compMatches && !entryMatches) {
+            return false;
+          }
+        }
+
+        // 3. Time Period Filter
+        if (timePeriod === '24h' && entry.createdAt) {
+          const timeMs = new Date(entry.createdAt).getTime();
+          if (!Number.isNaN(timeMs) && Date.now() - timeMs > 24 * 60 * 60 * 1000) {
+            return false;
+          }
+        } else if (timePeriod === 'current-round') {
+          // If a live competition is active, show only its entries
+          const liveComp = competitions.find((c) => c.status === 'live');
+          if (liveComp) {
+            const entryCompId =
+              entry.competitionId ||
+              (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');
+            if (entryCompId !== liveComp.id) return false;
+          }
+        }
+
+        // 4. Participant Search
+        if (
+          searchQuery.trim() !== '' &&
+          !entry.displayName.toLowerCase().includes(searchQuery.toLowerCase()) &&
+          !(entry.username || '').toLowerCase().includes(searchQuery.toLowerCase())
+        ) {
+          return false;
+        }
+
+        return true;
+      })
+      .map((entry, idx) => ({
+        ...entry,
+        rank: idx + 1, // Recompute dynamic rank after filtering
+      }));
+  }, [leaderboard, selectedCompId, categoryFilter, timePeriod, searchQuery, competitions]);
 
   const currentUserEntry = leaderboard.find((e) => e.isCurrentUser) || null;
 
@@ -190,11 +243,24 @@ export const LeaderboardPage: React.FC = () => {
             <EmptyStateBlock
               icon={Trophy}
               visualType="grid"
-              codeLabel="RANKING LEDGER · NO RECORDS"
-              title="Ranking Data Not Yet Available"
-              description="No leaderboard records exist for the selected competition and timeframe. Participant rankings, scores, accuracy metrics, and completion times will populate here once a real-time scoring stream or completed tournament dataset is connected."
-              actionLabel="Browse Competitions"
-              onAction={() => navigate('/competitions')}
+              codeLabel="RANKING LEDGER · NO MATCHING RECORDS"
+              title={leaderboard.length > 0 ? "No Participants Match Filters" : "Ranking Data Not Yet Available"}
+              description={
+                leaderboard.length > 0
+                  ? "No leaderboard scores found for the selected competition, category, or timeframe. Reset your filters to view all registered competitors."
+                  : "No leaderboard records exist yet. Once competitors complete a quiz round, their verified standings will populate here."
+              }
+              actionLabel={leaderboard.length > 0 ? "Reset Filters" : "Browse Competitions"}
+              onAction={() => {
+                if (leaderboard.length > 0) {
+                  setSelectedCompId('all');
+                  setCategoryFilter('overall');
+                  setTimePeriod('all-time');
+                  setSearchQuery('');
+                } else {
+                  navigate('/competitions');
+                }
+              }}
             />
           </div>
         ) : (

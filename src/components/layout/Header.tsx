@@ -24,7 +24,6 @@ const ROUTE_TITLES: Record<string, string> = {
   '/quiz': 'Cybersecurity Quiz Competition',
   '/leaderboard': 'Live Leaderboard Ledger',
   '/profile': 'Operator Identity Dossier',
-  '/results': 'Results & Performance',
   '/login': 'Operator Identity & Authentication',
   '/admin': 'Admin Tournament & Quiz Console',
   '/about': 'About Aegis Cipher',
@@ -292,12 +291,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                   type="button"
                   onClick={() => {
                     setIsProfileOpen(false);
-                    navigate('/results');
+                    navigate('/leaderboard');
                   }}
                   className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-xs text-[#F0F3F7] hover:bg-[#0C1017] hover:text-[#B6FF3B] cursor-pointer"
                 >
                   <Trophy className="h-3.5 w-3.5 text-[#929DAC]" />
-                  <span>Performance Records</span>
+                  <span>Leaderboard Standings</span>
                 </button>
                 <button
                   type="button"
