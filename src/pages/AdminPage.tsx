@@ -5,6 +5,7 @@ import {
   PlusCircle,
   Upload,
   Clock,
+  Calendar,
   CheckCircle2,
   AlertTriangle,
   FileCode,
@@ -20,11 +21,12 @@ import {
   Database,
   Copy,
 } from 'lucide-react';
-import { doc, setDoc, serverTimestamp, collection, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, serverTimestamp, collection, onSnapshot } from 'firebase/firestore';
 import { db, firebaseConfig } from '../lib/firebase';
 import { FIRESTORE_RULES_SOURCE } from '../constants/firestoreRules';
 import { useAppContext } from '../context/AppContext';
 import { Competition, QuizQuestion } from '../types';
+import { ModalDialog } from '../components/ui/ModalDialog';
 
 const SAMPLE_QUESTIONS_JSON = JSON.stringify(
   [
@@ -94,6 +96,17 @@ export const AdminPage: React.FC = () => {
   const [compDurationMinutes, setCompDurationMinutes] = useState(15);
   const [perQuestionTimer, setPerQuestionTimer] = useState<number>(15); // Default 15s per question
   const [isCreatingComp, setIsCreatingComp] = useState(false);
+
+  // Scheduled Start Time for Upcoming Competitions (default: 1 hour ahead)
+  const [compStartTime, setCompStartTime] = useState<string>(() => {
+    const d = new Date(Date.now() + 3600000);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  });
+
+  // Competition Deletion States
+  const [compToDelete, setCompToDelete] = useState<Competition | null>(null);
+  const [isDeletingComp, setIsDeletingComp] = useState(false);
 
   // Selected Competition for Question Upload
   const [targetCompId, setTargetCompId] = useState<string>('');
@@ -228,6 +241,10 @@ export const AdminPage: React.FC = () => {
     setIsCreatingComp(true);
     try {
       const compId = `comp_${Date.now()}`;
+      const scheduledStartIso = compStartTime
+        ? new Date(compStartTime).toISOString()
+        : new Date(Date.now() + 3600000).toISOString();
+
       const newCompData = {
         title: compTitle.trim().slice(0, 120),
         description: compDescription.trim().slice(0, 1000) || 'Official cybersecurity competition round.',
@@ -236,7 +253,7 @@ export const AdminPage: React.FC = () => {
         durationMinutes: Number(compDurationMinutes) || 15,
         perQuestionTimerSeconds: Number(perQuestionTimer) || 15,
         accessType: 'Open Clearance',
-        startTime: compStatus === 'upcoming' ? new Date(Date.now() + 3600000).toISOString() : new Date().toISOString(),
+        startTime: compStatus === 'upcoming' ? scheduledStartIso : new Date().toISOString(),
         createdAt: serverTimestamp(),
       };
 
@@ -244,7 +261,7 @@ export const AdminPage: React.FC = () => {
 
       addToast(
         'Competition Created Successfully',
-        `Created tournament "${compTitle}" with ${perQuestionTimer}s per-question timer.`,
+        `Created tournament "${compTitle}" with ${perQuestionTimer}s per-question timer${compStatus === 'upcoming' ? ` (Scheduled: ${new Date(scheduledStartIso).toLocaleString()})` : ''}.`,
         'success'
       );
 
@@ -266,6 +283,38 @@ export const AdminPage: React.FC = () => {
       }
     } finally {
       setIsCreatingComp(false);
+    }
+  };
+
+  // Handle Competition Deletion
+  const handleDeleteCompetition = async () => {
+    if (!compToDelete) return;
+    setIsDeletingComp(true);
+    try {
+      await deleteDoc(doc(db, 'competitions', compToDelete.id));
+      addToast(
+        'Competition Deleted',
+        `Tournament "${compToDelete.title}" has been permanently removed.`,
+        'success'
+      );
+      if (targetCompId === compToDelete.id) {
+        setTargetCompId('');
+      }
+      setCompToDelete(null);
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Unable to delete competition from Firestore.';
+      if (errMsg.toLowerCase().includes('permission') || errMsg.toLowerCase().includes('insufficient')) {
+        setRulesPermissionError(errMsg);
+        addToast(
+          'Missing Permissions in Firebase',
+          'Cloud Firestore blocked competition deletion. Security rules must be published in Firebase Console.',
+          'alert'
+        );
+      } else {
+        addToast('Deletion Failed', errMsg, 'alert');
+      }
+    } finally {
+      setIsDeletingComp(false);
     }
   };
 
@@ -560,7 +609,7 @@ export const AdminPage: React.FC = () => {
                   className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 text-xs text-[#F0F3F7] focus:border-[#B6FF3B] focus:outline-none cursor-pointer"
                 >
                   <option value="live">Live (Active Now)</option>
-                  <option value="upcoming">Upcoming (Staging Arena)</option>
+                  <option value="upcoming">Upcoming (Scheduled Tournament)</option>
                 </select>
               </div>
 
@@ -596,6 +645,62 @@ export const AdminPage: React.FC = () => {
                 />
               </div>
             </div>
+
+            {/* Scheduled Start Date & Time for Upcoming Competitions */}
+            {compStatus === 'upcoming' && (
+              <div className="rounded-lg border border-[#00E5FF]/40 bg-[#00E5FF]/5 p-4 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-[#00E5FF]" />
+                    <label htmlFor="comp-start-time" className="font-mono text-xs font-bold text-[#F0F3F7]">
+                      SCHEDULED TOURNAMENT START TIME *
+                    </label>
+                  </div>
+                  <span className="font-mono text-xs text-[#00E5FF]">
+                    {compStartTime ? new Date(compStartTime).toLocaleString() : 'Pending'}
+                  </span>
+                </div>
+
+                <p className="text-xs text-[#929DAC] leading-relaxed">
+                  Configure the scheduled start time. Participants entering this competition before start will see a synchronized live countdown.
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <input
+                    id="comp-start-time"
+                    type="datetime-local"
+                    required={compStatus === 'upcoming'}
+                    value={compStartTime}
+                    onChange={(e) => setCompStartTime(e.target.value)}
+                    className="rounded-md border border-[#252D38] bg-[#07090D] px-3 py-1.5 font-mono text-xs text-[#00E5FF] focus:border-[#00E5FF] focus:outline-none"
+                  />
+
+                  {/* Preset quick offsets */}
+                  <div className="flex flex-wrap items-center gap-1.5 ml-auto">
+                    {[
+                      { label: '+30m', mins: 30 },
+                      { label: '+1h', mins: 60 },
+                      { label: '+6h', mins: 360 },
+                      { label: '+1d', mins: 1440 },
+                      { label: '+3d', mins: 4320 },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => {
+                          const d = new Date(Date.now() + preset.mins * 60000);
+                          d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                          setCompStartTime(d.toISOString().slice(0, 16));
+                        }}
+                        className="rounded border border-[#252D38] bg-[#07090D] px-2 py-1 font-mono text-[11px] text-[#929DAC] hover:border-[#00E5FF] hover:text-[#00E5FF] transition-colors cursor-pointer"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Per-Question Timer Setting (Default 15s, manually changeable) */}
             <div className="rounded-lg border border-[#B6FF3B]/30 bg-[#111722] p-4 space-y-3">
@@ -663,15 +768,20 @@ export const AdminPage: React.FC = () => {
           </form>
         </section>
 
-        {/* Existing Competitions Selector */}
+        {/* Existing Competitions Selector & Deletion Manager */}
         <section className="rounded-xl border border-[#252D38] bg-[#0C1017] p-6 space-y-4">
-          <div className="border-b border-[#252D38] pb-3">
-            <h2 className="font-display text-base font-bold text-[#F0F3F7]">
-              Select Active Tournament
-            </h2>
-            <p className="text-xs text-[#929DAC]">
-              Choose where questions will be uploaded.
-            </p>
+          <div className="border-b border-[#252D38] pb-3 flex items-center justify-between">
+            <div>
+              <h2 className="font-display text-base font-bold text-[#F0F3F7]">
+                Tournament Directory
+              </h2>
+              <p className="text-xs text-[#929DAC]">
+                Select target to upload questions or delete competition.
+              </p>
+            </div>
+            <span className="font-mono text-xs text-[#B6FF3B]">
+              {competitions.length} rounds
+            </span>
           </div>
 
           {competitions.length === 0 ? (
@@ -687,30 +797,75 @@ export const AdminPage: React.FC = () => {
                 return (
                   <div
                     key={c.id}
-                    onClick={() => {
-                      setTargetCompId(c.id);
-                      selectCompetition(c);
-                    }}
-                    className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                    className={`p-3 rounded-lg border transition-all ${
                       isSelected
                         ? 'border-[#B6FF3B] bg-[#111722]'
                         : 'border-[#252D38] bg-[#07090D] hover:border-[#929DAC]/50'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[10px] text-[#B6FF3B] font-semibold">
-                        {c.status.toUpperCase()}
-                      </span>
-                      <span className="font-mono text-[10px] text-[#929DAC]">
-                        {c.perQuestionTimerSeconds || 15}s / Q
-                      </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`font-mono text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded ${
+                          c.status === 'live'
+                            ? 'text-[#36F58A] bg-[#36F58A]/10 border border-[#36F58A]/30'
+                            : 'text-[#00E5FF] bg-[#00E5FF]/10 border border-[#00E5FF]/30'
+                        }`}>
+                          {c.status}
+                        </span>
+                        <span className="font-mono text-[10px] text-[#929DAC]">
+                          {c.perQuestionTimerSeconds || 15}s / Q
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTargetCompId(c.id);
+                            selectCompetition(c);
+                          }}
+                          className={`px-2 py-0.5 rounded font-mono text-[10px] font-semibold transition-colors cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#B6FF3B] text-[#07090D]'
+                              : 'bg-[#111722] text-[#929DAC] hover:text-[#F0F3F7] border border-[#252D38]'
+                          }`}
+                        >
+                          {isSelected ? 'Active Target' : 'Select'}
+                        </button>
+                        <button
+                          type="button"
+                          title={`Delete ${c.title}`}
+                          aria-label={`Delete competition ${c.title}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCompToDelete(c);
+                          }}
+                          className="p-1 rounded text-[#929DAC] hover:text-[#FF365B] hover:bg-[#FF365B]/10 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    <p className="mt-1 font-semibold text-xs text-[#F0F3F7] truncate">
-                      {c.title}
-                    </p>
-                    <p className="font-mono text-[10px] text-[#929DAC] truncate mt-0.5">
-                      ID: {c.id}
-                    </p>
+
+                    <div
+                      onClick={() => {
+                        setTargetCompId(c.id);
+                        selectCompetition(c);
+                      }}
+                      className="cursor-pointer mt-1.5"
+                    >
+                      <p className="font-semibold text-xs text-[#F0F3F7] truncate hover:text-[#B6FF3B] transition-colors">
+                        {c.title}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 font-mono text-[10px] text-[#929DAC]">
+                        <span>ID: {c.id}</span>
+                        {c.startTime && (
+                          <span className="text-[#00E5FF]/80">
+                            Start: {new Date(c.startTime).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 );
               })}
@@ -720,7 +875,7 @@ export const AdminPage: React.FC = () => {
           {targetCompId && (
             <div className="rounded-md border border-[#36F58A]/30 bg-[#36F58A]/10 p-3 text-xs text-[#36F58A] flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
-              <span className="truncate">Selected ID: {targetCompId}</span>
+              <span className="truncate">Active Upload Target: {targetCompId}</span>
             </div>
           )}
         </section>
@@ -1062,6 +1217,54 @@ export const AdminPage: React.FC = () => {
           </div>
         )}
       </section>
+      {/* Delete Competition Confirmation Modal */}
+      <ModalDialog
+        isOpen={!!compToDelete}
+        onClose={() => !isDeletingComp && setCompToDelete(null)}
+        title="Delete Competition"
+        subtitle="Permanent removal from tournament directory"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 rounded-lg border border-[#FF365B]/30 bg-[#FF365B]/10 p-3.5">
+            <AlertTriangle className="h-5 w-5 text-[#FF365B] shrink-0 mt-0.5" />
+            <div className="space-y-1 text-xs text-[#929DAC]">
+              <p className="font-semibold text-[#FF365B]">
+                This action is permanent and cannot be undone.
+              </p>
+              <p>
+                Are you sure you want to delete tournament{' '}
+                <span className="font-semibold text-[#F0F3F7]">
+                  "{compToDelete?.title}"
+                </span>{' '}
+                (<span className="font-mono text-[#B6FF3B]">{compToDelete?.id}</span>)?
+              </p>
+              <p>
+                The competition record will be removed from Cloud Firestore.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              disabled={isDeletingComp}
+              onClick={() => setCompToDelete(null)}
+              className="rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 font-mono text-xs text-[#929DAC] hover:text-[#F0F3F7] transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={isDeletingComp}
+              onClick={handleDeleteCompetition}
+              className="inline-flex items-center gap-1.5 rounded-md bg-[#FF365B] px-4 py-2 font-mono text-xs font-semibold text-[#07090D] hover:bg-[#ff5775] transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>{isDeletingComp ? 'Deleting from Cloud...' : 'Confirm Permanent Delete'}</span>
+            </button>
+          </div>
+        </div>
+      </ModalDialog>
     </div>
   );
 };

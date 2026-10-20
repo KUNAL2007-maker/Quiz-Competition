@@ -62,9 +62,14 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
       <div className="mt-6 border-t border-[#252D38] pt-4 flex items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-4 font-mono text-xs text-[#929DAC]">
           {competition.startTime && (
-            <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5" title={`Scheduled: ${new Date(competition.startTime).toLocaleString()}`}>
               <Clock className="h-3.5 w-3.5 text-[#929DAC]" aria-hidden="true" />
-              {new Date(competition.startTime).toLocaleDateString()}
+              {new Date(competition.startTime).toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
             </span>
           )}
           {competition.durationMinutes !== undefined && (

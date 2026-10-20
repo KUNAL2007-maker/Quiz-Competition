@@ -46,30 +46,26 @@ service cloud.firestore {
     // 3. Entity Validation Blueprints
     function isValidCompetition(data) {
       return data.keys().hasAll(['title', 'status', 'createdAt']) &&
-        data.keys().hasOnly(['title', 'description', 'status', 'startTime', 'durationMinutes', 'difficulty', 'accessType', 'perQuestionTimerSeconds', 'createdAt']) &&
-        data.title is string && data.title.size() >= 2 && data.title.size() <= 120 &&
-        (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 200 &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 2000)) &&
         data.status is string && data.status in ['upcoming', 'live', 'completed'] &&
-        (!('startTime' in data) || (data.startTime is string && data.startTime.size() <= 64)) &&
-        (!('durationMinutes' in data) || (data.durationMinutes is number && data.durationMinutes >= 1 && data.durationMinutes <= 1440)) &&
-        (!('perQuestionTimerSeconds' in data) || (data.perQuestionTimerSeconds is number && data.perQuestionTimerSeconds >= 5 && data.perQuestionTimerSeconds <= 600)) &&
-        (!('difficulty' in data) || (data.difficulty is string && data.difficulty in ['Field Operator', 'Senior Analyst', 'Zero-Day Specialist', 'Classified'])) &&
-        (!('accessType' in data) || (data.accessType is string && data.accessType in ['Open Clearance', 'Invite Only', 'Key Required'])) &&
-        data.createdAt is timestamp;
+        (!('startTime' in data) || (data.startTime is string && data.startTime.size() <= 128)) &&
+        (!('durationMinutes' in data) || (data.durationMinutes is number && data.durationMinutes >= 1)) &&
+        (!('perQuestionTimerSeconds' in data) || (data.perQuestionTimerSeconds is number && data.perQuestionTimerSeconds >= 1)) &&
+        (data.createdAt == request.time || data.createdAt is timestamp);
     }
 
     function isValidQuestion(data, compId) {
       return data.keys().hasAll(['competitionId', 'index', 'prompt']) &&
-        data.keys().hasOnly(['competitionId', 'index', 'category', 'points', 'prompt', 'codeSnippet', 'options', 'correctOptionId', 'timeLimitSeconds']) &&
         data.competitionId is string && data.competitionId == compId &&
         data.index is number && data.index >= 0 && data.index <= 10000 &&
-        (!('category' in data) || (data.category is string && data.category.size() <= 64)) &&
-        (!('points' in data) || (data.points is number && data.points >= 0 && data.points <= 10000)) &&
-        data.prompt is string && data.prompt.size() >= 2 && data.prompt.size() <= 2000 &&
-        (!('codeSnippet' in data) || (data.codeSnippet is string && data.codeSnippet.size() <= 4000)) &&
+        (!('category' in data) || (data.category is string && data.category.size() <= 128)) &&
+        (!('points' in data) || (data.points is number && data.points >= 0)) &&
+        data.prompt is string && data.prompt.size() >= 1 && data.prompt.size() <= 4000 &&
+        (!('codeSnippet' in data) || (data.codeSnippet is string && data.codeSnippet.size() <= 8000)) &&
         (!('options' in data) || data.options is list) &&
         (!('correctOptionId' in data) || (data.correctOptionId is string && data.correctOptionId.size() <= 64)) &&
-        (!('timeLimitSeconds' in data) || (data.timeLimitSeconds is number && data.timeLimitSeconds >= 5 && data.timeLimitSeconds <= 600));
+        (!('timeLimitSeconds' in data) || (data.timeLimitSeconds is number && data.timeLimitSeconds >= 1));
     }
 
     function isValidOperatorProfile(data, userId) {
@@ -145,9 +141,7 @@ service cloud.firestore {
       allow get: if isValidId(competitionId) && (isAdmin() || existing().status in ['upcoming', 'live', 'completed']);
       allow list: if isAdmin() || existing().status in ['upcoming', 'live', 'completed'];
       allow create: if isAdmin() && isValidId(competitionId) && isValidCompetition(incoming()) && (incoming().createdAt == request.time || incoming().createdAt is timestamp);
-      allow update: if isAdmin() && isValidId(competitionId) && isValidCompetition(incoming()) &&
-        incoming().createdAt == existing().createdAt &&
-        incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'status', 'startTime', 'durationMinutes', 'difficulty', 'accessType', 'perQuestionTimerSeconds']);
+      allow update: if isAdmin() && isValidId(competitionId);
       allow delete: if isAdmin() && isValidId(competitionId);
 
       // Questions subcollection
@@ -162,11 +156,7 @@ service cloud.firestore {
         allow create: if isAdmin() && isValidId(competitionId) && isValidId(questionId) &&
           isValidQuestion(incoming(), competitionId) &&
           exists(/databases/$(database)/documents/competitions/$(competitionId));
-        allow update: if isAdmin() && isValidId(competitionId) && isValidId(questionId) &&
-          isValidQuestion(incoming(), competitionId) &&
-          incoming().competitionId == existing().competitionId &&
-          exists(/databases/$(database)/documents/competitions/$(competitionId)) &&
-          incoming().diff(existing()).affectedKeys().hasOnly(['index', 'category', 'points', 'prompt', 'codeSnippet', 'options', 'correctOptionId', 'timeLimitSeconds']);
+        allow update: if isAdmin() && isValidId(competitionId) && isValidId(questionId);
         allow delete: if isAdmin() && isValidId(competitionId) && isValidId(questionId);
       }
     }
