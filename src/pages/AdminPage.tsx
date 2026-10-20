@@ -17,9 +17,12 @@ import {
   Mail,
   Trophy,
   ExternalLink,
+  Database,
+  Copy,
 } from 'lucide-react';
 import { doc, setDoc, serverTimestamp, collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, firebaseConfig } from '../lib/firebase';
+import { FIRESTORE_RULES_SOURCE } from '../constants/firestoreRules';
 import { useAppContext } from '../context/AppContext';
 import { Competition, QuizQuestion } from '../types';
 
@@ -112,6 +115,11 @@ export const AdminPage: React.FC = () => {
   const [bulkJson, setBulkJson] = useState(SAMPLE_QUESTIONS_JSON);
   const [isBulkUploading, setIsBulkUploading] = useState(false);
 
+  // Cloud Firestore Rules Diagnostic States
+  const [rulesPermissionError, setRulesPermissionError] = useState<string | null>(null);
+  const [isTestingConn, setIsTestingConn] = useState(false);
+  const [rulesCopied, setRulesCopied] = useState(false);
+
   // Private Winner Contact Directory (Synced securely from admin-only collection)
   const [winnerContacts, setWinnerContacts] = useState<Record<string, { whatsappNumber?: string; email?: string }>>({});
 
@@ -170,6 +178,46 @@ export const AdminPage: React.FC = () => {
     );
   }
 
+  // Diagnostic Test: Check whether active admin account can write to Cloud Firestore
+  const handleTestFirestoreConnection = async () => {
+    setIsTestingConn(true);
+    try {
+      await setDoc(doc(db, '_diagnostics', 'admin_ping'), {
+        pingedAt: serverTimestamp(),
+        adminEmail: currentUser?.email || 'unknown',
+        uid: currentUser?.uid || 'unknown',
+      });
+      setRulesPermissionError(null);
+      addToast(
+        'Permissions Verified',
+        'Your admin credentials have verified write clearance on Cloud Firestore.',
+        'success'
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setRulesPermissionError(msg);
+      addToast(
+        'Cloud Permission Blocked',
+        'Firestore rejected write request. Please verify rules deployment in Firebase Console.',
+        'alert'
+      );
+    } finally {
+      setIsTestingConn(false);
+    }
+  };
+
+  // One-click copy for production firestore.rules
+  const handleCopyRules = async () => {
+    try {
+      await navigator.clipboard.writeText(FIRESTORE_RULES_SOURCE);
+      setRulesCopied(true);
+      addToast('Rules Copied', 'Production firestore.rules copied to clipboard.', 'success');
+      setTimeout(() => setRulesCopied(false), 3000);
+    } catch {
+      addToast('Copy Failed', 'Unable to copy to clipboard automatically. Please copy from firestore.rules in repository.', 'alert');
+    }
+  };
+
   // Handle Competition Creation
   const handleCreateCompetition = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,15 +248,22 @@ export const AdminPage: React.FC = () => {
         'success'
       );
 
+      setRulesPermissionError(null);
       setTargetCompId(compId);
       setCompTitle('');
       setCompDescription('');
     } catch (err) {
-      addToast(
-        'Creation Failed',
-        err instanceof Error ? err.message : 'Unable to create competition in Firestore.',
-        'alert'
-      );
+      const errMsg = err instanceof Error ? err.message : 'Unable to create competition in Firestore.';
+      if (errMsg.toLowerCase().includes('permission') || errMsg.toLowerCase().includes('insufficient')) {
+        setRulesPermissionError(errMsg);
+        addToast(
+          'Missing Permissions in Firebase',
+          'Cloud Firestore blocked competition creation. Security rules must be published in Firebase Console.',
+          'alert'
+        );
+      } else {
+        addToast('Creation Failed', errMsg, 'alert');
+      }
     } finally {
       setIsCreatingComp(false);
     }
@@ -250,6 +305,7 @@ export const AdminPage: React.FC = () => {
 
       await setDoc(doc(db, `competitions/${targetCompId}/questions`, questionId), newQuestionData);
 
+      setRulesPermissionError(null);
       addToast('Question Added', `Question added with ${qTimeLimit}s timer.`, 'success');
 
       // Reset single question form
@@ -260,11 +316,17 @@ export const AdminPage: React.FC = () => {
       setQOptC('');
       setQOptD('');
     } catch (err) {
-      addToast(
-        'Upload Failed',
-        err instanceof Error ? err.message : 'Unable to write question to Firestore.',
-        'alert'
-      );
+      const errMsg = err instanceof Error ? err.message : 'Unable to write question to Firestore.';
+      if (errMsg.toLowerCase().includes('permission') || errMsg.toLowerCase().includes('insufficient')) {
+        setRulesPermissionError(errMsg);
+        addToast(
+          'Missing Permissions in Firebase',
+          'Cloud Firestore blocked question upload. Security rules must be published in Firebase Console.',
+          'alert'
+        );
+      } else {
+        addToast('Upload Failed', errMsg, 'alert');
+      }
     } finally {
       setIsSavingQuestion(false);
     }
@@ -310,15 +372,20 @@ export const AdminPage: React.FC = () => {
         successCount++;
       }
 
+      setRulesPermissionError(null);
       addToast(
         'Bulk Upload Complete',
         `Successfully uploaded ${successCount} questions with ${perQuestionTimer}s per-question timer to competition!`,
         'success'
       );
     } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg.toLowerCase().includes('permission') || errMsg.toLowerCase().includes('insufficient')) {
+        setRulesPermissionError(errMsg);
+      }
       addToast(
         'Bulk Upload Error',
-        `Uploaded ${successCount}/${parsedList.length} items before error: ${err instanceof Error ? err.message : String(err)}`,
+        `Uploaded ${successCount}/${parsedList.length} items before error: ${errMsg}`,
         'alert'
       );
     } finally {
@@ -352,6 +419,88 @@ export const AdminPage: React.FC = () => {
           View Public Directory
         </button>
       </div>
+
+      {/* Cloud Firestore Security Rules Diagnostic Banner */}
+      <section className="rounded-xl border border-[#252D38] bg-[#0C1017] p-5 space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Database className="h-4 w-4 text-[#00E5FF]" />
+              <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#F0F3F7]">
+                Cloud Firestore Authorization Status
+              </span>
+              {rulesPermissionError ? (
+                <span className="inline-flex items-center gap-1 rounded bg-[#FF365B]/10 border border-[#FF365B]/30 px-2 py-0.5 font-mono text-[10px] text-[#FF365B]">
+                  <AlertTriangle className="h-3 w-3" /> Permissions Blocked in Cloud
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded bg-[#B6FF3B]/10 border border-[#B6FF3B]/30 px-2 py-0.5 font-mono text-[10px] text-[#B6FF3B]">
+                  <CheckCircle2 className="h-3 w-3" /> Ready
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-[#929DAC]">
+              Project: <span className="font-mono text-[#F0F3F7]">{firebaseConfig.projectId}</span> · Database: <span className="font-mono text-[#00E5FF]">{firebaseConfig.firestoreDatabaseId || '(default)'}</span>
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleTestFirestoreConnection}
+              disabled={isTestingConn}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-3 py-1.5 font-mono text-xs text-[#F0F3F7] hover:border-[#00E5FF] hover:text-[#00E5FF] transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <RotateCcw className={`h-3.5 w-3.5 ${isTestingConn ? 'animate-spin text-[#00E5FF]' : ''}`} />
+              <span>{isTestingConn ? 'Testing Rules...' : 'Test Cloud Write Access'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyRules}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 px-3 py-1.5 font-mono text-xs font-semibold text-[#B6FF3B] hover:bg-[#B6FF3B]/20 transition-colors cursor-pointer"
+            >
+              {rulesCopied ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              <span>{rulesCopied ? 'Rules Copied!' : 'Copy firestore.rules'}</span>
+            </button>
+
+            <a
+              href={`https://console.firebase.google.com/project/${firebaseConfig.projectId}/firestore/databases/${firebaseConfig.firestoreDatabaseId}/rules`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-3 py-1.5 font-mono text-xs text-[#929DAC] hover:border-[#F0F3F7] hover:text-[#F0F3F7] transition-colors"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span>Open Firebase Console</span>
+            </a>
+          </div>
+        </div>
+
+        {/* If permissions error is active, show the 3-step resolution guide */}
+        {rulesPermissionError && (
+          <div className="rounded-lg border border-[#FF365B]/30 bg-[#FF365B]/5 p-4 space-y-3">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="h-4 w-4 text-[#FF365B] mt-0.5 shrink-0" />
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-[#FF365B]">
+                  Firebase Error: Missing or insufficient permissions.
+                </p>
+                <p className="text-xs text-[#929DAC] leading-relaxed">
+                  Firestore rules execute on Google Cloud servers (not locally in Git). To authorize your administrator email on database <span className="font-mono text-[#00E5FF]">{firebaseConfig.firestoreDatabaseId}</span>:
+                </p>
+              </div>
+            </div>
+
+            <ol className="list-decimal list-inside space-y-1 text-xs text-[#F0F3F7] font-mono pl-2">
+              <li>Click the green <strong className="text-[#B6FF3B]">"Copy firestore.rules"</strong> button above.</li>
+              <li>Click <strong className="text-[#00E5FF]">"Open Firebase Console"</strong> (takes you directly to the database rules tab).</li>
+              <li>Ensure the database dropdown selects <strong className="text-[#00E5FF]">{firebaseConfig.firestoreDatabaseId}</strong>.</li>
+              <li>Paste the rules and click <strong className="text-[#B6FF3B]">"Publish"</strong>.</li>
+              <li>Return here and click <strong className="text-[#00E5FF]">"Test Cloud Write Access"</strong>.</li>
+            </ol>
+          </div>
+        )}
+      </section>
 
       {/* Grid: Create Competition & Manage Existing */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
