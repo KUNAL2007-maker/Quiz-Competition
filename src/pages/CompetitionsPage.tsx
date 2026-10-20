@@ -9,7 +9,13 @@ type StatusFilter = 'all' | 'upcoming' | 'live' | 'completed';
 
 export const CompetitionsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { competitions, selectCompetition } = useAppContext();
+  const {
+    competitions,
+    results,
+    leaderboard,
+    currentUser,
+    selectCompetition,
+  } = useAppContext();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -21,6 +27,20 @@ export const CompetitionsPage: React.FC = () => {
     { id: 'live', label: 'Live' },
     { id: 'completed', label: 'Completed' },
   ];
+
+  // Set of competition IDs the current user has already completed (Requirement 4)
+  const completedCompetitionIds = useMemo(() => {
+    if (!currentUser) return new Set<string>();
+    const ids = new Set<string>();
+    results.forEach((r) => ids.add(r.competitionId));
+    leaderboard.forEach((l) => {
+      if (l.isCurrentUser && l.participantId.startsWith(`${currentUser.uid}_`)) {
+        const compId = l.participantId.replace(`${currentUser.uid}_`, '');
+        if (compId) ids.add(compId);
+      }
+    });
+    return ids;
+  }, [currentUser, results, leaderboard]);
 
   const filteredCompetitions = useMemo(() => {
     return competitions.filter((comp) => {
@@ -183,6 +203,7 @@ export const CompetitionsPage: React.FC = () => {
             <CompetitionCard
               key={comp.id}
               competition={comp}
+              isCompleted={completedCompetitionIds.has(comp.id)}
               onSelect={(selected) => {
                 selectCompetition(selected);
                 navigate('/arena');

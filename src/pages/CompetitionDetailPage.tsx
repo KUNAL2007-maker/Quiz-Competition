@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -18,9 +18,11 @@ export const CompetitionDetailPage: React.FC = () => {
   const {
     currentUser,
     selectedCompetition,
+    results,
+    leaderboard,
+    selectCompetition,
     targetStartTime,
     setTargetStartTime,
-    startQuizSession,
     addToast,
   } = useAppContext();
 
@@ -30,16 +32,27 @@ export const CompetitionDetailPage: React.FC = () => {
 
   const effectiveStartTime = selectedCompetition?.startTime || targetStartTime;
 
+  // Single Attempt Check (Requirement 4)
+  const hasAlreadyAttempted = useMemo(() => {
+    if (!currentUser || !selectedCompetition) return false;
+    return (
+      results.some((r) => r.competitionId === selectedCompetition.id) ||
+      leaderboard.some(
+        (l) => l.participantId === `${currentUser.uid}_${selectedCompetition.id}`
+      )
+    );
+  }, [currentUser, selectedCompetition, results, leaderboard]);
+
   const handleEnterQuiz = useCallback(() => {
     if (!currentUser) {
       navigate('/login?redirect=/quiz');
       return;
     }
     if (selectedCompetition) {
-      startQuizSession(selectedCompetition);
+      selectCompetition(selectedCompetition);
     }
     navigate('/quiz');
-  }, [currentUser, selectedCompetition, startQuizSession, navigate]);
+  }, [currentUser, selectedCompetition, selectCompetition, navigate]);
 
   const handleCountdownComplete = useCallback(() => {
     setIsTransitioning(true);
@@ -53,13 +66,13 @@ export const CompetitionDetailPage: React.FC = () => {
       return;
     }
     if (selectedCompetition) {
-      startQuizSession(selectedCompetition);
+      selectCompetition(selectedCompetition);
     }
     const timer = window.setTimeout(() => {
       navigate('/quiz');
-    }, 1400);
+    }, 1200);
     return () => window.clearTimeout(timer);
-  }, [currentUser, selectedCompetition, startQuizSession, navigate, addToast]);
+  }, [currentUser, selectedCompetition, selectCompetition, navigate, addToast]);
 
   const handleApplyCustomTimestamp = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,16 +140,46 @@ export const CompetitionDetailPage: React.FC = () => {
             <span>Configure Target Timestamp</span>
           </button>
 
-          <button
-            type="button"
-            onClick={handleEnterQuiz}
-            className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-          >
-            <span>{selectedCompetition ? 'Enter Assessment Terminal' : 'Open Quiz Interface'}</span>
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
+          {hasAlreadyAttempted ? (
+            <button
+              type="button"
+              onClick={() => navigate('/quiz')}
+              className="inline-flex items-center gap-2 rounded-md border border-[#36F58A]/40 bg-[#36F58A]/10 px-4 py-2 text-xs font-semibold text-[#36F58A] hover:bg-[#36F58A]/20 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Assessment Completed — 1 Attempt Used</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleEnterQuiz}
+              className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <span>{selectedCompetition ? 'Enter Assessment Terminal' : 'Open Quiz Interface'}</span>
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Single Attempt Banner Notification */}
+      {hasAlreadyAttempted && (
+        <div className="rounded-lg border border-[#36F58A]/30 bg-[#36F58A]/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="h-4 w-4 text-[#36F58A] shrink-0" />
+            <span className="text-[#F0F3F7]">
+              You have already completed your 1 permitted attempt for this competition. Your verified score is recorded on the live leaderboard.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/leaderboard')}
+            className="font-mono text-xs font-bold text-[#36F58A] hover:underline shrink-0"
+          >
+            View Live Standings →
+          </button>
+        </div>
+      )}
 
       {/* Prominent Countdown Timer Component */}
       <CountdownTimer
@@ -162,7 +205,7 @@ export const CompetitionDetailPage: React.FC = () => {
             />
           </div>
 
-          {/* Pre-Competition Interface Specification Card (Clearly treated as visual UI contract) */}
+          {/* Pre-Competition Interface Specification Card */}
           <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between border-b border-[#252D38] pb-3">

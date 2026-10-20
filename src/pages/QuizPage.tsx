@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Terminal,
@@ -19,6 +19,9 @@ import { QuestionPalette } from '../components/quiz/QuestionPalette';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 import { ModalDialog } from '../components/ui/ModalDialog';
 import { CompetitorProfileModal } from '../components/profile/CompetitorProfileModal';
+import { QuizRulesModal } from '../components/quiz/QuizRulesModal';
+import { QuizCountdownOverlay } from '../components/quiz/QuizCountdownOverlay';
+import { QuizAttemptLockedCard } from '../components/quiz/QuizAttemptLockedCard';
 
 export const QuizPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,9 +29,14 @@ export const QuizPage: React.FC = () => {
     currentUser,
     profile,
     selectedCompetition,
+    competitions,
     questions,
     quizSession,
     isSubmitting,
+    results,
+    leaderboard,
+    selectCompetition,
+    startQuizSession,
     selectQuizAnswer,
     toggleMarkForReview,
     setCurrentQuestionIndex,
@@ -36,28 +44,84 @@ export const QuizPage: React.FC = () => {
     addToast,
   } = useAppContext();
 
+  // Determine active competition
+  const activeCompetition = useMemo(() => {
+    if (selectedCompetition) return selectedCompetition;
+    if (quizSession.competitionId) {
+      const found = competitions.find((c) => c.id === quizSession.competitionId);
+      if (found) return found;
+    }
+    return competitions[0] || null;
+  }, [selectedCompetition, quizSession.competitionId, competitions]);
+
+  const activeCompId = activeCompetition?.id || quizSession.competitionId;
+
+  // Ensure active competition is synced into context
+  useEffect(() => {
+    if (!selectedCompetition && activeCompetition) {
+      selectCompetition(activeCompetition);
+    }
+  }, [selectedCompetition, activeCompetition, selectCompetition]);
+
+  // Check if participant has ALREADY attempted this competition (Requirement 4)
+  const previousResult = useMemo(() => {
+    if (!currentUser || !activeCompId) return null;
+    return results.find((r) => r.competitionId === activeCompId) || null;
+  }, [currentUser, activeCompId, results]);
+
+  const previousLeaderboardEntry = useMemo(() => {
+    if (!currentUser || !activeCompId) return null;
+    return (
+      leaderboard.find(
+        (l) => l.participantId === `${currentUser.uid}_${activeCompId}`
+      ) || null
+    );
+  }, [currentUser, activeCompId, leaderboard]);
+
+  const hasAlreadyAttempted = Boolean(
+    previousResult ||
+      previousLeaderboardEntry ||
+      (quizSession.competitionId === activeCompId && quizSession.isSubmitted)
+  );
+
+  // Active quiz session state: only true once 3-2-1 countdown finishes or if unexpired session resumed
+  const [isQuizActive, setIsQuizActive] = useState<boolean>(() => {
+    if (!quizSession.deadlineTimestamp || quizSession.isSubmitted) return false;
+    if (activeCompId && quizSession.competitionId !== activeCompId) return false;
+    return Date.now() < quizSession.deadlineTimestamp;
+  });
+
+  // Animated 3-2-1 Countdown State (Requirement 3)
+  const [countdownValue, setCountdownValue] = useState<number | null>(null);
+
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
-  // Update timer every second ONLY when a valid deadlineTimestamp is configured
+  // Countdown timer calculations
   const timerState = calculateCountdown(quizSession.deadlineTimestamp, nowMs);
 
+  // Total assessment clock: ticks ONLY when isQuizActive is true
   useEffect(() => {
-    if (!timerState.isValid || timerState.isExpired || quizSession.isSubmitted) {
+    if (
+      !isQuizActive ||
+      !timerState.isValid ||
+      timerState.isExpired ||
+      quizSession.isSubmitted
+    ) {
       return;
     }
     const id = window.setInterval(() => {
       setNowMs(Date.now());
     }, 500);
     return () => window.clearInterval(id);
-  }, [timerState.isValid, timerState.isExpired, quizSession.isSubmitted]);
+  }, [isQuizActive, timerState.isValid, timerState.isExpired, quizSession.isSubmitted]);
 
-  // Automatically open submission flow when valid quiz timer reaches deadline
+  // Auto-submit when total assessment clock expires
   useEffect(() => {
-    if (timerState.isValid && timerState.isExpired && !quizSession.isSubmitted) {
+    if (isQuizActive && timerState.isValid && timerState.isExpired && !quizSession.isSubmitted) {
       setIsSubmitDialogOpen(true);
     }
-  }, [timerState.isValid, timerState.isExpired, quizSession.isSubmitted]);
+  }, [isQuizActive, timerState.isValid, timerState.isExpired, quizSession.isSubmitted]);
 
   const questionIds = questions.map((q) => q.id);
   const progress = calculateQuizProgress(
@@ -73,19 +137,25 @@ export const QuizPage: React.FC = () => {
   // Per-Question countdown timer setting: defaults to 15s if not customized by admin
   const questionTimeLimit =
     currentQuestion?.timeLimitSeconds ??
-    selectedCompetition?.perQuestionTimerSeconds ??
+    activeCompetition?.perQuestionTimerSeconds ??
     15;
 
   const [questionSecondsLeft, setQuestionSecondsLeft] = useState<number>(questionTimeLimit);
 
-  // Reset per-question countdown whenever navigating between questions or when limit changes
+  // Reset per-question countdown whenever navigating questions or limit changes
   useEffect(() => {
+    if (!isQuizActive) return;
     setQuestionSecondsLeft(questionTimeLimit);
-  }, [quizSession.currentQuestionIndex, questionTimeLimit]);
+  }, [isQuizActive, quizSession.currentQuestionIndex, questionTimeLimit]);
 
-  // Per-question auto-countdown and auto-advance
+  // Per-question auto-countdown and auto-advance: ticks ONLY when isQuizActive is true
   useEffect(() => {
-    if (quizSession.isSubmitted || questions.length === 0 || !currentQuestion) {
+    if (
+      !isQuizActive ||
+      quizSession.isSubmitted ||
+      questions.length === 0 ||
+      !currentQuestion
+    ) {
       return;
     }
 
@@ -96,7 +166,9 @@ export const QuizPage: React.FC = () => {
             setCurrentQuestionIndex(quizSession.currentQuestionIndex + 1);
             addToast(
               'Question Timer Elapsed',
-              `Time limit of ${questionTimeLimit}s expired. Proceeding to question ${quizSession.currentQuestionIndex + 2}.`,
+              `Time limit of ${questionTimeLimit}s expired. Proceeding to question ${
+                quizSession.currentQuestionIndex + 2
+              }.`,
               'alert'
             );
           } else {
@@ -115,6 +187,7 @@ export const QuizPage: React.FC = () => {
 
     return () => window.clearInterval(intervalId);
   }, [
+    isQuizActive,
     quizSession.isSubmitted,
     quizSession.currentQuestionIndex,
     questions.length,
@@ -124,7 +197,36 @@ export const QuizPage: React.FC = () => {
     addToast,
   ]);
 
-  // Guard: User must be signed in with Google or email to access the quiz
+  // Animated 3-2-1 Countdown Timer Effect (Requirement 3)
+  useEffect(() => {
+    if (countdownValue === null) return;
+
+    if (countdownValue > 0) {
+      const timer = window.setTimeout(() => {
+        setCountdownValue((prev) => (prev !== null ? prev - 1 : null));
+      }, 1000);
+      return () => window.clearTimeout(timer);
+    }
+
+    if (countdownValue === 0) {
+      const timer = window.setTimeout(() => {
+        setCountdownValue(null);
+        if (activeCompetition) {
+          startQuizSession(activeCompetition);
+        }
+        setIsQuizActive(true);
+        setQuestionSecondsLeft(questionTimeLimit);
+        addToast(
+          'Assessment Commenced',
+          `Assessment started with ${questionTimeLimit}s per-question timer. Good luck!`,
+          'success'
+        );
+      }, 750);
+      return () => window.clearTimeout(timer);
+    }
+  }, [countdownValue, activeCompetition, questionTimeLimit, startQuizSession, addToast]);
+
+  // Guard 1: User must be signed in with Google or tournament credentials
   if (!currentUser) {
     return (
       <div className="mx-auto max-w-lg py-12 text-center space-y-6">
@@ -160,17 +262,67 @@ export const QuizPage: React.FC = () => {
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Mandatory Competitor Profile Completion Modal */}
-      {currentUser && !profile.isProfileComplete && (
+  // Guard 2: Single Attempt Enforcement (Requirement 4)
+  if (hasAlreadyAttempted) {
+    return (
+      <QuizAttemptLockedCard
+        competitionTitle={activeCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Assessment'}
+        result={previousResult}
+        leaderboardEntry={previousLeaderboardEntry}
+      />
+    );
+  }
+
+  // Guard 3: Mandatory Profile Completion (Requirement 1)
+  // Timers DO NOT start while entering details!
+  if (!profile.isProfileComplete) {
+    return (
+      <div className="mx-auto max-w-xl py-12 text-center space-y-6">
         <CompetitorProfileModal
           isOpen={true}
           onClose={() => navigate('/competitions')}
-          onProfileComplete={() => {}}
+          onProfileComplete={() => {
+            // Profile is now saved; component will re-render into Rules Briefing
+          }}
         />
-      )}
+        <div className="rounded-2xl border border-[#252D38] bg-[#0C1017] p-8 text-center space-y-4 shadow-2xl">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 text-[#B6FF3B]">
+            <Lock className="h-7 w-7" />
+          </div>
+          <h2 className="font-display text-xl font-bold text-[#F0F3F7]">
+            Operative Profile Required
+          </h2>
+          <p className="text-xs text-[#929DAC] max-w-md mx-auto leading-relaxed">
+            Please complete your verified name and WhatsApp number in the dialog above to be eligible for this tournament. The assessment timer remains on standby and will not run while you enter your details.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
+  // Guard 4: Rules Briefing & 3-2-1 Animated Countdown (Requirement 2 & 3)
+  if (!isQuizActive) {
+    return (
+      <>
+        {countdownValue !== null ? (
+          <QuizCountdownOverlay value={countdownValue} />
+        ) : (
+          <QuizRulesModal
+            isOpen={true}
+            competition={activeCompetition}
+            profile={profile}
+            currentUserEmail={currentUser.email}
+            onConfirmStart={() => setCountdownValue(3)}
+            onCancel={() => navigate('/competitions')}
+          />
+        )}
+      </>
+    );
+  }
+
+  // Active Assessment Terminal Environment (Renders ONLY after 3-2-1 countdown finishes)
+  return (
+    <div className="space-y-6">
       {/* Focused Assessment Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-lg border border-[#252D38] bg-[#0C1017] p-5">
         <div className="flex items-center gap-3">
@@ -184,10 +336,10 @@ export const QuizPage: React.FC = () => {
           </button>
           <div>
             <p className="font-mono text-xs text-[#929DAC]">
-              FOCUSED ASSESSMENT ENVIRONMENT
+              FOCUSED ASSESSMENT ENVIRONMENT · 1 ATTEMPT IN PROGRESS
             </p>
             <h1 className="font-display text-lg sm:text-xl font-bold text-[#F0F3F7]">
-              {selectedCompetition?.title ||
+              {activeCompetition?.title ||
                 quizSession.competitionTitle ||
                 'Cybersecurity Assessment Terminal'}
             </h1>
@@ -224,7 +376,7 @@ export const QuizPage: React.FC = () => {
                   ? `${formatPad(timerState.hours)}:${formatPad(
                       timerState.minutes
                     )}:${formatPad(timerState.seconds)}`
-                  : 'NO DEADLINE SET'}
+                  : '15:00'}
               </span>
             </div>
           </div>
@@ -259,16 +411,15 @@ export const QuizPage: React.FC = () => {
             <EmptyStateBlock
               icon={Terminal}
               visualType="terminal"
-              codeLabel="QUIZ CONTENT · UNAVAILABLE"
-              title="Quiz Content Unavailable"
-              description="No assessment questions are currently loaded for this session. When an active cybersecurity competition supplies a question packet, prompts, code artifacts, and answer controls will render here."
+              codeLabel="QUIZ CONTENT · STANDBY"
+              title="Assessment Packet Loading"
+              description="No active questions found in the tournament container. If you are an administrator, add questions via the Admin Dashboard."
               actionLabel="Return to Waiting Room"
               onAction={() => navigate('/arena')}
               secondaryActionLabel="Browse Competitions"
               onSecondaryAction={() => navigate('/competitions')}
             />
           ) : (
-            /* Real Question Layout Contract (renders when real questions are provided) */
             <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6 md:p-8 space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#252D38] pb-4">
                 <div className="flex items-center gap-2 font-mono text-xs text-[#929DAC]">
@@ -482,7 +633,7 @@ export const QuizPage: React.FC = () => {
         isOpen={isSubmitDialogOpen}
         onClose={() => setIsSubmitDialogOpen(false)}
         title="Confirm Assessment Submission"
-        subtitle="Review your local question states before locking this assessment session."
+        subtitle="Review your question answers before locking this assessment session. You only have ONE attempt."
         footer={
           <>
             <button
@@ -541,7 +692,7 @@ export const QuizPage: React.FC = () => {
           )}
 
           <p className="text-xs text-[#929DAC] leading-relaxed">
-            Your answers are evaluated deterministically by the Python logic engine and synced with your verified Firebase operator records.
+            Your answers are evaluated deterministically by the Python logic engine and recorded in Firebase. Once submitted, your score is final and this competition cannot be re-taken.
           </p>
         </div>
       </ModalDialog>
