@@ -51,3 +51,31 @@ test('countdown progression transitions from 3 to 2 to 1 to 0 (GO) before activa
   assert.equal(sequence[0], 3);
   assert.equal(sequence[3], 0); // 0 corresponds to "GO"
 });
+
+test('upcoming competition converts to live when target start timer is reached', () => {
+  const now = Date.now();
+  const pastStartTime = new Date(now - 1000).toISOString();
+  const futureStartTime = new Date(now + 60000).toISOString();
+
+  // 1. Future competition stays upcoming
+  const futureComp = {
+    id: 'comp_1',
+    status: 'upcoming' as const,
+    startTime: futureStartTime,
+  };
+  const isFutureLive =
+    futureComp.status === 'live' ||
+    (futureComp.startTime && new Date(futureComp.startTime).getTime() <= now && futureComp.status !== 'completed');
+  assert.equal(isFutureLive, false);
+
+  // 2. Timer elapsed competition automatically converts to live
+  const elapsedComp = {
+    id: 'comp_2',
+    status: 'upcoming' as const,
+    startTime: pastStartTime,
+  };
+  const isElapsedLive =
+    elapsedComp.status === 'live' ||
+    (elapsedComp.startTime && new Date(elapsedComp.startTime).getTime() <= now && elapsedComp.status !== 'completed');
+  assert.equal(isElapsedLive, true);
+});

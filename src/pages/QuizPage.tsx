@@ -37,6 +37,7 @@ export const QuizPage: React.FC = () => {
     results,
     leaderboard,
     selectCompetition,
+    transitionCompetitionToLive,
     startQuizSession,
     selectQuizAnswer,
     toggleMarkForReview,
@@ -316,6 +317,9 @@ export const QuizPage: React.FC = () => {
           <CountdownTimer
             targetStartTime={activeCompetition?.startTime}
             onCountdownZero={() => {
+              if (activeCompetition) {
+                transitionCompetitionToLive(activeCompetition.id);
+              }
               setIsQuizActive(false);
             }}
           />

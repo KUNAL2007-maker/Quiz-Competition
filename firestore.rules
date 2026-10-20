@@ -140,7 +140,13 @@ service cloud.firestore {
       allow get: if isValidId(competitionId) && (isAdmin() || existing().status in ['upcoming', 'live', 'completed']);
       allow list: if isAdmin() || existing().status in ['upcoming', 'live', 'completed'];
       allow create: if isAdmin() && isValidId(competitionId) && isValidCompetition(incoming()) && (incoming().createdAt == request.time || incoming().createdAt is timestamp);
-      allow update: if isAdmin() && isValidId(competitionId);
+      allow update: if isValidId(competitionId) && (
+        isAdmin() || (
+          existing().status == 'upcoming' &&
+          incoming().status == 'live' &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+        )
+      );
       allow delete: if isAdmin() && isValidId(competitionId);
 
       // Questions subcollection

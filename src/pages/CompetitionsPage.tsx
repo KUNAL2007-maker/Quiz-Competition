@@ -19,6 +19,7 @@ export const CompetitionsPage: React.FC = () => {
     currentUser,
     profile,
     selectCompetition,
+    transitionCompetitionToLive,
     addToast,
   } = useAppContext();
 
@@ -330,7 +331,12 @@ export const CompetitionsPage: React.FC = () => {
           {upcomingModalComp && (
             <CountdownTimer
               targetStartTime={upcomingModalComp.startTime}
-              onCountdownZero={() => setIsModalUnlocked(true)}
+              onCountdownZero={() => {
+                setIsModalUnlocked(true);
+                if (upcomingModalComp) {
+                  transitionCompetitionToLive(upcomingModalComp.id);
+                }
+              }}
               onEnterQuizNow={() => {
                 const comp = upcomingModalComp;
                 setUpcomingModalComp(null);

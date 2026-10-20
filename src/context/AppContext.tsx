@@ -53,6 +53,7 @@ interface AppContextValue {
   competitions: Competition[];
   selectedCompetition: Competition | null;
   selectCompetition: (competition: Competition | null) => void;
+  transitionCompetitionToLive: (competitionId: string) => Promise<void>;
   questions: QuizQuestion[];
   leaderboard: LeaderboardEntry[];
   results: CompetitionResult[];
@@ -264,13 +265,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const unsubscribe = onSnapshot(
       compQuery,
       (snapshot) => {
+        const now = Date.now();
         const items: Competition[] = snapshot.docs.map((d) => {
           const data = d.data();
+          const rawStatus = (data.status as Competition['status']) || 'upcoming';
+          const startMs = data.startTime ? new Date(data.startTime).getTime() : NaN;
+          const isTimerDone =
+            rawStatus === 'upcoming' && !Number.isNaN(startMs) && startMs <= now;
+          const effectiveStatus: Competition['status'] = isTimerDone ? 'live' : rawStatus;
+
           return {
             id: d.id,
             title: String(data.title || ''),
             description: data.description ? String(data.description) : undefined,
-            status: data.status || 'upcoming',
+            status: effectiveStatus,
             startTime: data.startTime ? String(data.startTime) : undefined,
             durationMinutes:
               typeof data.durationMinutes === 'number' ? data.durationMinutes : undefined,
@@ -614,6 +622,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
+  const transitionCompetitionToLive = useCallback(
+    async (competitionId: string) => {
+      // 1. Immediately update local state so UI switches from upcoming to live without delay
+      setCompetitions((prev) =>
+        prev.map((c) => (c.id === competitionId ? { ...c, status: 'live' } : c))
+      );
+      setSelectedCompetition((prev) =>
+        prev && prev.id === competitionId ? { ...prev, status: 'live' } : prev
+      );
+
+      // 2. Persist status update to Firestore
+      try {
+        const compRef = doc(db, 'competitions', competitionId);
+        await updateDoc(compRef, {
+          status: 'live',
+          updatedAt: serverTimestamp(),
+        });
+      } catch {
+        // Local state is already updated; ignore if offline or permission boundary
+      }
+    },
+    []
+  );
+
+  // Periodic 1-second check to convert any upcoming competition to live once its countdown expires
+  useEffect(() => {
+    const checkTimers = () => {
+      const now = Date.now();
+      competitions.forEach((c) => {
+        if (c.status === 'upcoming' && c.startTime) {
+          const startMs = new Date(c.startTime).getTime();
+          if (!Number.isNaN(startMs) && startMs <= now) {
+            transitionCompetitionToLive(c.id);
+          }
+        }
+      });
+    };
+
+    const intervalId = setInterval(checkTimers, 1000);
+    return () => clearInterval(intervalId);
+  }, [competitions, transitionCompetitionToLive]);
+
   const startQuizSession = useCallback((comp: Competition) => {
     setSelectedCompetition(comp);
     const durationMin = comp.durationMinutes || 30;
@@ -949,6 +999,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         competitions,
         selectedCompetition,
         selectCompetition,
+        transitionCompetitionToLive,
         questions,
         leaderboard,
         results,

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Competition } from '../../types';
 import { ArrowRight, Clock, Shield, Users, CheckCircle2, Play, Lock } from 'lucide-react';
 import { calculateCountdown, formatPad } from '../../utils/timerLogic';
+import { useAppContext } from '../../context/AppContext';
 
 interface CompetitionCardProps {
   competition: Competition;
@@ -14,6 +15,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
   isCompleted,
   onSelect,
 }) => {
+  const { transitionCompetitionToLive } = useAppContext();
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
   const isLive = useMemo(() => {
@@ -46,14 +48,21 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
     return calculateCountdown(competition.startTime, nowMs);
   }, [isUpcoming, competition.startTime, nowMs]);
 
-  // Update timer every second when an upcoming competition is displayed
+  // Update timer every second and convert upcoming to live when timer expires
   useEffect(() => {
     if (!isUpcoming) return;
     const interval = setInterval(() => {
-      setNowMs(Date.now());
+      const currentNow = Date.now();
+      setNowMs(currentNow);
+      if (competition.startTime) {
+        const startMs = new Date(competition.startTime).getTime();
+        if (!Number.isNaN(startMs) && startMs <= currentNow) {
+          transitionCompetitionToLive(competition.id);
+        }
+      }
     }, 1000);
     return () => clearInterval(interval);
-  }, [isUpcoming]);
+  }, [isUpcoming, competition.startTime, competition.id, transitionCompetitionToLive]);
 
   return (
     <article className="group relative flex flex-col justify-between rounded-lg border border-[#252D38] bg-[#111722] p-6 transition-colors hover:border-[#B6FF3B]/60 shadow-sm">
