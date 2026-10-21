@@ -1,0 +1,19 @@
+services:
+  quiz-competition:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quiz-competition-app
+    restart: always
+    ports:
+      - "80:3000"
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - PYTHON_PORT=5001
+      - PYTHON_CMD=python3
+    # If using custom environment variables, pass them from a local .env file
+    env_file:
+      - path: .env
+        required: false
