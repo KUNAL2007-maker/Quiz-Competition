@@ -79,11 +79,35 @@ export const QuizPage: React.FC = () => {
     );
   }, [currentUser, activeCompId, leaderboard]);
 
-  const hasAlreadyAttempted = Boolean(
-    previousResult ||
+  const hasAlreadyAttempted = useMemo(() => {
+    if (
+      previousResult ||
       previousLeaderboardEntry ||
       (quizSession.competitionId === activeCompId && quizSession.isSubmitted)
-  );
+    ) {
+      return true;
+    }
+    if (typeof window !== 'undefined' && currentUser && activeCompId) {
+      try {
+        if (
+          window.localStorage.getItem(`completed_comp_${currentUser.uid}_${activeCompId}`) ===
+          'true'
+        ) {
+          return true;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return false;
+  }, [
+    previousResult,
+    previousLeaderboardEntry,
+    quizSession.competitionId,
+    activeCompId,
+    quizSession.isSubmitted,
+    currentUser,
+  ]);
 
   // Active quiz session state: only true once 3-2-1 countdown finishes or if unexpired session resumed
   const [isQuizActive, setIsQuizActive] = useState<boolean>(() => {

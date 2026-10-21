@@ -32,6 +32,7 @@ export const ProfilePage: React.FC = () => {
     results,
     competitions,
     leaderboard,
+    quizSession,
     selectCompetition,
   } = useAppContext();
 
@@ -141,30 +142,105 @@ export const ProfilePage: React.FC = () => {
     setIsEditing(false);
   };
 
-  // Find user's standing for completed quizzes
+  // Find user's standing for completed quizzes, synthesizing local records if Firestore sync is pending
   const enrichedResults = useMemo(() => {
-    return results.map((res) => {
+    const list: Array<{
+      id: string;
+      competitionId: string;
+      competitionTitle: string;
+      completedAt: string;
+      finalScore: number;
+      maxScore: number;
+      accuracyPercent?: number;
+      timeTakenSeconds?: number;
+      correctCount?: number;
+      incorrectCount?: number;
+      rank?: number;
+    }> = [];
+    const seenCompIds = new Set<string>();
+
+    // 1. Existing results in state
+    results.forEach((res) => {
+      if (!res.competitionId || seenCompIds.has(res.competitionId)) return;
+      seenCompIds.add(res.competitionId);
+
       const matchComp = competitions.find((c) => c.id === res.competitionId);
       const matchLeaderboard = leaderboard.find(
         (l) =>
           (l.competitionId === res.competitionId || l.participantId.endsWith(`_${res.competitionId}`)) &&
           (l.isCurrentUser || (currentUser && l.participantId.startsWith(currentUser.uid)))
       );
-      return {
-        ...res,
+
+      list.push({
+        id: res.id,
+        competitionId: res.competitionId,
         competitionTitle: res.competitionName || matchComp?.title || 'Cybersecurity Quiz Competition',
-        rank: matchLeaderboard?.rank || 1,
+        completedAt: res.completedAt || new Date().toISOString(),
+        finalScore: res.finalScore,
         maxScore: res.maxScore || matchComp?.totalPoints || 100,
-      };
+        accuracyPercent: res.accuracyPercent,
+        timeTakenSeconds: res.timeTakenSeconds,
+        correctCount: res.correctCount,
+        incorrectCount: res.incorrectCount,
+        rank: matchLeaderboard?.rank || 1,
+      });
     });
-  }, [results, competitions, leaderboard, currentUser]);
+
+    // 2. Synthesize from current user's leaderboard records if not in results yet
+    leaderboard.forEach((l) => {
+      const compId =
+        l.competitionId ||
+        (currentUser && l.participantId.startsWith(`${currentUser.uid}_`)
+          ? l.participantId.replace(`${currentUser.uid}_`, '')
+          : '');
+      const isMine =
+        l.isCurrentUser || (currentUser && l.participantId.startsWith(currentUser.uid));
+      if (isMine && compId && !seenCompIds.has(compId)) {
+        seenCompIds.add(compId);
+        const matchComp = competitions.find((c) => c.id === compId);
+        list.push({
+          id: l.participantId,
+          competitionId: compId,
+          competitionTitle: matchComp?.title || 'Cybersecurity Quiz Competition',
+          completedAt: l.createdAt || new Date().toISOString(),
+          finalScore: l.score,
+          maxScore: matchComp?.totalPoints || 100,
+          accuracyPercent: l.accuracyPercent,
+          timeTakenSeconds: l.completionTimeSeconds,
+          rank: l.rank || 1,
+        });
+      }
+    });
+
+    // 3. Synthesize from submitted quizSession if not in results yet
+    if (
+      quizSession?.isSubmitted &&
+      quizSession?.competitionId &&
+      !seenCompIds.has(quizSession.competitionId)
+    ) {
+      const compId = quizSession.competitionId;
+      seenCompIds.add(compId);
+      const matchComp = competitions.find((c) => c.id === compId);
+      list.push({
+        id: `session_${compId}`,
+        competitionId: compId,
+        competitionTitle:
+          quizSession.competitionTitle || matchComp?.title || 'Cybersecurity Quiz Competition',
+        completedAt: quizSession.submittedAt || new Date().toISOString(),
+        finalScore: 0,
+        maxScore: matchComp?.totalPoints || 100,
+        rank: 1,
+      });
+    }
+
+    return list;
+  }, [results, competitions, leaderboard, currentUser, quizSession]);
 
   // Competitions not yet attempted
   const pendingCompetitions = useMemo(() => {
-    return competitions.filter(
-      (comp) => !results.some((r) => r.competitionId === comp.id)
-    );
-  }, [competitions, results]);
+    const completedIds = new Set(enrichedResults.map((r) => r.competitionId));
+    return competitions.filter((comp) => !completedIds.has(comp.id));
+  }, [competitions, enrichedResults]);
 
   return (
     <div className="space-y-8">

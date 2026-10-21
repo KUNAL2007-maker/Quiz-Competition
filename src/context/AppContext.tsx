@@ -166,7 +166,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [results, setResults] = useState<CompetitionResult[]>([]);
+  const [results, setResults] = useState<CompetitionResult[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = window.localStorage.getItem('aegis_cipher_user_results');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch {
+        // Ignore storage read errors
+      }
+    }
+    return [];
+  });
   const [activities] = useState<ActivityRecord[]>([]);
 
   const [targetStartTime, setTargetStartTime] = useState<string | null>(() => {
@@ -466,7 +479,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               typeof data.incorrectCount === 'number' ? data.incorrectCount : undefined,
           };
         });
-        setResults(items);
+        setResults((prev) => {
+          const map = new Map<string, CompetitionResult>();
+          prev.forEach((r) => {
+            if (r.competitionId) map.set(r.competitionId, r);
+          });
+          items.forEach((r) => {
+            if (r.competitionId) map.set(r.competitionId, r);
+          });
+          const merged = Array.from(map.values());
+          try {
+            if (typeof window !== 'undefined') {
+              window.localStorage.setItem('aegis_cipher_user_results', JSON.stringify(merged));
+              if (currentUser) {
+                window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(merged));
+              }
+            }
+          } catch {
+            // Ignore storage write errors
+          }
+          return merged;
+        });
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, 'results');
@@ -841,6 +874,57 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } catch (error) {
           handleFirestoreError(error, OperationType.CREATE, `winner_contacts/${entryId}`);
         }
+
+        // Immediately update local results and persist to localStorage
+        const newResultItem: CompetitionResult = {
+          id: resultId,
+          competitionId: activeCompId,
+          competitionName: activeCompTitle,
+          completedAt: new Date().toISOString(),
+          finalScore: Number(evaluated.finalScore || 0),
+          maxScore: Number(evaluated.maxScore || 0),
+          accuracyPercent: Number(evaluated.accuracyPercent || 0),
+          correctCount: Number(evaluated.correctCount || 0),
+          incorrectCount: Number(evaluated.incorrectCount || 0),
+          timeTakenSeconds: timeTakenSec,
+        };
+
+        setResults((prev) => {
+          const remaining = prev.filter((r) => r.competitionId !== activeCompId);
+          const nextList = [newResultItem, ...remaining];
+          try {
+            if (typeof window !== 'undefined') {
+              window.localStorage.setItem('aegis_cipher_user_results', JSON.stringify(nextList));
+              if (currentUser) {
+                window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
+                window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
+              }
+            }
+          } catch {
+            // Ignore storage write errors
+          }
+          return nextList;
+        });
+
+        // Immediately update leaderboard state with current user's entry
+        setLeaderboard((prev) => {
+          const filtered = prev.filter((l) => l.participantId !== entryId);
+          const myEntry: LeaderboardEntry = {
+            rank: 1,
+            participantId: entryId,
+            competitionId: activeCompId,
+            createdAt: new Date().toISOString(),
+            displayName: cleanDisplayName,
+            score: Number(evaluated.finalScore || 0),
+            completionStatus: 'Completed',
+            accuracyPercent: Number(evaluated.accuracyPercent || 0),
+            completionTimeSeconds: timeTakenSec,
+            isCurrentUser: true,
+          };
+          return [...filtered, myEntry]
+            .sort((a, b) => b.score - a.score)
+            .map((item, idx) => ({ ...item, rank: idx + 1 }));
+        });
       }
 
       addToast(

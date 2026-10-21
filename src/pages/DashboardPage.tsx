@@ -16,6 +16,7 @@ export const DashboardPage: React.FC = () => {
     competitions,
     results,
     leaderboard,
+    quizSession,
     currentUser,
     profile,
     selectCompetition,
@@ -24,17 +25,37 @@ export const DashboardPage: React.FC = () => {
 
   // Completed competition IDs for current user
   const completedCompetitionIds = useMemo(() => {
-    if (!currentUser) return new Set<string>();
     const ids = new Set<string>();
-    results.forEach((r) => ids.add(r.competitionId));
+    results.forEach((r) => {
+      if (r.competitionId) ids.add(r.competitionId);
+    });
     leaderboard.forEach((l) => {
-      if (l.isCurrentUser && l.participantId.startsWith(`${currentUser.uid}_`)) {
-        const compId = l.participantId.replace(`${currentUser.uid}_`, '');
-        if (compId) ids.add(compId);
+      if (l.isCurrentUser) {
+        if (l.competitionId) ids.add(l.competitionId);
+        if (currentUser && l.participantId.startsWith(`${currentUser.uid}_`)) {
+          const compId = l.participantId.replace(`${currentUser.uid}_`, '');
+          if (compId) ids.add(compId);
+        }
       }
     });
+    if (quizSession?.isSubmitted && quizSession?.competitionId) {
+      ids.add(quizSession.competitionId);
+    }
+    if (typeof window !== 'undefined' && currentUser) {
+      try {
+        const prefix = `completed_comp_${currentUser.uid}_`;
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const key = window.localStorage.key(i);
+          if (key && key.startsWith(prefix)) {
+            ids.add(key.replace(prefix, ''));
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
     return ids;
-  }, [currentUser, results, leaderboard]);
+  }, [currentUser, results, leaderboard, quizSession?.isSubmitted, quizSession?.competitionId]);
 
   const quickNavLinks = [
     {

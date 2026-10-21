@@ -16,6 +16,7 @@ export const CompetitionsPage: React.FC = () => {
     competitions,
     results,
     leaderboard,
+    quizSession,
     currentUser,
     profile,
     selectCompetition,
@@ -29,32 +30,126 @@ export const CompetitionsPage: React.FC = () => {
   const [upcomingModalComp, setUpcomingModalComp] = useState<Competition | null>(null);
   const [isModalUnlocked, setIsModalUnlocked] = useState(false);
 
-  const statusTabs: Array<{ id: StatusFilter; label: string }> = [
-    { id: 'all', label: 'All' },
-    { id: 'upcoming', label: 'Upcoming' },
-    { id: 'live', label: 'Live' },
-    { id: 'completed', label: 'Completed' },
-  ];
-
   // Set of competition IDs the current user has already completed (Requirement 4)
   const completedCompetitionIds = useMemo(() => {
-    if (!currentUser) return new Set<string>();
     const ids = new Set<string>();
-    results.forEach((r) => ids.add(r.competitionId));
+    // 1. From results state
+    results.forEach((r) => {
+      if (r.competitionId) ids.add(r.competitionId);
+    });
+    // 2. From leaderboard entries
     leaderboard.forEach((l) => {
-      if (l.isCurrentUser && l.participantId.startsWith(`${currentUser.uid}_`)) {
-        const compId = l.participantId.replace(`${currentUser.uid}_`, '');
-        if (compId) ids.add(compId);
+      if (l.isCurrentUser) {
+        if (l.competitionId) ids.add(l.competitionId);
+        if (currentUser && l.participantId.startsWith(`${currentUser.uid}_`)) {
+          const compId = l.participantId.replace(`${currentUser.uid}_`, '');
+          if (compId) ids.add(compId);
+        }
       }
     });
+    // 3. From active quizSession if submitted
+    if (quizSession?.isSubmitted && quizSession?.competitionId) {
+      ids.add(quizSession.competitionId);
+    }
+    // 4. From local storage cache
+    if (typeof window !== 'undefined' && currentUser) {
+      try {
+        const prefix = `completed_comp_${currentUser.uid}_`;
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const key = window.localStorage.key(i);
+          if (key && key.startsWith(prefix)) {
+            ids.add(key.replace(prefix, ''));
+          }
+        }
+      } catch {
+        // Ignore local storage read errors
+      }
+    }
     return ids;
-  }, [currentUser, results, leaderboard]);
+  }, [currentUser, results, leaderboard, quizSession?.isSubmitted, quizSession?.competitionId]);
+
+  // Combined list ensuring completed competitions with records are always included
+  const allDisplayCompetitions = useMemo(() => {
+    const list = [...competitions];
+    const existingIds = new Set(list.map((c) => c.id));
+
+    // Synthesize any completed competition that has results or is marked completed
+    results.forEach((res) => {
+      if (res.competitionId && !existingIds.has(res.competitionId)) {
+        list.push({
+          id: res.competitionId,
+          title: res.competitionName || 'Cybersecurity Quiz Competition',
+          description: 'Official tournament attempt completed by operator.',
+          difficulty: 'Senior Analyst',
+          timeLimitMinutes: 15,
+          totalQuestions: (res.correctCount ?? 0) + (res.incorrectCount ?? 0) || 5,
+          totalPoints: res.maxScore || 100,
+          status: 'completed',
+          tags: ['Completed', 'Verified'],
+          passingScore: 60,
+          participantCount: 1,
+        });
+        existingIds.add(res.competitionId);
+      }
+    });
+    return list;
+  }, [competitions, results]);
+
+  const statusTabs: Array<{ id: StatusFilter; label: string; count: number }> = useMemo(() => {
+    const allCount = allDisplayCompetitions.length;
+    const upcomingCount = allDisplayCompetitions.filter(
+      (c) =>
+        c.status === 'upcoming' &&
+        (!c.startTime || new Date(c.startTime).getTime() > Date.now()) &&
+        !completedCompetitionIds.has(c.id)
+    ).length;
+    const liveCount = allDisplayCompetitions.filter((c) => {
+      const isLive =
+        c.status === 'live' ||
+        (c.startTime &&
+          new Date(c.startTime).getTime() <= Date.now() &&
+          c.status !== 'completed');
+      return isLive;
+    }).length;
+    const completedCount = allDisplayCompetitions.filter(
+      (c) => c.status === 'completed' || completedCompetitionIds.has(c.id)
+    ).length;
+
+    return [
+      { id: 'all', label: 'All', count: allCount },
+      { id: 'upcoming', label: 'Upcoming', count: upcomingCount },
+      { id: 'live', label: 'Live', count: liveCount },
+      { id: 'completed', label: 'Completed', count: completedCount },
+    ];
+  }, [allDisplayCompetitions, completedCompetitionIds]);
 
   const filteredCompetitions = useMemo(() => {
-    return competitions.filter((comp) => {
-      if (statusFilter !== 'all' && comp.status !== statusFilter) {
-        return false;
+    return allDisplayCompetitions.filter((comp) => {
+      if (statusFilter === 'completed') {
+        const isCompletedByUser = completedCompetitionIds.has(comp.id);
+        const isCompletedGlobally = comp.status === 'completed';
+        if (!isCompletedByUser && !isCompletedGlobally) {
+          return false;
+        }
+      } else if (statusFilter === 'live') {
+        const isLive =
+          comp.status === 'live' ||
+          (comp.startTime &&
+            new Date(comp.startTime).getTime() <= Date.now() &&
+            comp.status !== 'completed');
+        if (!isLive) {
+          return false;
+        }
+      } else if (statusFilter === 'upcoming') {
+        const isUpcoming =
+          comp.status === 'upcoming' &&
+          (!comp.startTime || new Date(comp.startTime).getTime() > Date.now()) &&
+          !completedCompetitionIds.has(comp.id);
+        if (!isUpcoming) {
+          return false;
+        }
       }
+
       if (difficultyFilter !== 'all' && comp.difficulty !== difficultyFilter) {
         return false;
       }
@@ -67,7 +162,7 @@ export const CompetitionsPage: React.FC = () => {
       }
       return true;
     });
-  }, [competitions, statusFilter, difficultyFilter, searchQuery]);
+  }, [allDisplayCompetitions, statusFilter, difficultyFilter, searchQuery, completedCompetitionIds]);
 
   const hasActiveFilters =
     statusFilter !== 'all' || difficultyFilter !== 'all' || searchQuery.trim() !== '';
@@ -168,13 +263,22 @@ export const CompetitionsPage: React.FC = () => {
                 key={tab.id}
                 type="button"
                 onClick={() => setStatusFilter(tab.id)}
-                className={`rounded px-3.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                className={`rounded px-3.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer inline-flex items-center gap-1.5 ${
                   active
                     ? 'bg-[#B6FF3B] text-[#07090D] font-semibold'
                     : 'text-[#929DAC] hover:text-[#F0F3F7]'
                 }`}
               >
-                {tab.label}
+                <span>{tab.label}</span>
+                <span
+                  className={`rounded px-1.5 py-0.2 font-mono text-[10px] ${
+                    active
+                      ? 'bg-[#07090D] text-[#B6FF3B] font-bold'
+                      : 'bg-[#111722] text-[#929DAC] border border-[#252D38]'
+                  }`}
+                >
+                  {tab.count}
+                </span>
               </button>
             );
           })}
@@ -234,22 +338,40 @@ export const CompetitionsPage: React.FC = () => {
           icon={ShieldAlert}
           visualType="radar"
           codeLabel={
-            hasActiveFilters
+            statusFilter === 'completed'
+              ? 'HISTORY · NO COMPLETED QUIZZES'
+              : hasActiveFilters
               ? `FILTERED VIEW · ${statusFilter.toUpperCase()}`
               : 'COMPETITION REGISTRY · EMPTY'
           }
           title={
-            hasActiveFilters
+            statusFilter === 'completed'
+              ? 'No Completed Competitions Found'
+              : hasActiveFilters
               ? 'No Competitions Match Current Filter Criteria'
               : 'No Competitions Available'
           }
           description={
-            hasActiveFilters
+            statusFilter === 'completed'
+              ? 'You have not submitted any quiz competitions yet or no records match your search criteria. Take an active competition to earn a permanent tournament ranking.'
+              : hasActiveFilters
               ? 'No competition records match your selected status, clearance filter, or search query. Clear active filters to view all scheduled events.'
               : 'The tournament directory currently contains no scheduled, live, or completed competitions. Competitions will appear here once registered by event operations.'
           }
-          actionLabel={hasActiveFilters ? 'Reset Active Filters' : 'View Leaderboard'}
-          onAction={hasActiveFilters ? handleResetFilters : () => navigate('/leaderboard')}
+          actionLabel={
+            statusFilter === 'completed'
+              ? 'View Live Competitions'
+              : hasActiveFilters
+              ? 'Reset Active Filters'
+              : 'View Leaderboard'
+          }
+          onAction={
+            statusFilter === 'completed'
+              ? () => setStatusFilter('live')
+              : hasActiveFilters
+              ? handleResetFilters
+              : () => navigate('/leaderboard')
+          }
           secondaryActionLabel="My Profile"
           onSecondaryAction={() => navigate('/profile')}
         />

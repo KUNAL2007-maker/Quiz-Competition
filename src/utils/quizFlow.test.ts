@@ -79,3 +79,49 @@ test('upcoming competition converts to live when target start timer is reached',
     (elapsedComp.startTime && new Date(elapsedComp.startTime).getTime() <= now && elapsedComp.status !== 'completed');
   assert.equal(isElapsedLive, true);
 });
+
+test('competitions completed by user match under the completed status filter even when tournament is live', () => {
+  const completedCompId = 'tourney_777';
+  const liveCompId = 'tourney_888';
+  const completedIds = new Set<string>([completedCompId]);
+
+  const competitions = [
+    { id: completedCompId, title: 'Network Security Round 1', status: 'live' as const },
+    { id: liveCompId, title: 'Web Exploitation Round 2', status: 'live' as const },
+    { id: 'tourney_999', title: 'Cryptography Finals', status: 'completed' as const },
+  ];
+
+  // Filtering by 'completed'
+  const filterByCompleted = competitions.filter((comp) => {
+    const isCompletedByUser = completedIds.has(comp.id);
+    const isCompletedGlobally = comp.status === 'completed';
+    return isCompletedByUser || isCompletedGlobally;
+  });
+
+  // Both the globally completed competition AND the user-completed live competition must match
+  assert.equal(filterByCompleted.length, 2);
+  assert.equal(filterByCompleted.some((c) => c.id === completedCompId), true);
+  assert.equal(filterByCompleted.some((c) => c.id === 'tourney_999'), true);
+  assert.equal(filterByCompleted.some((c) => c.id === liveCompId), false);
+});
+
+test('status tab counts accurately categorize live, upcoming, and completed items', () => {
+  const completedCompId = 'comp_user_completed';
+  const completedIds = new Set<string>([completedCompId]);
+
+  const competitions = [
+    { id: completedCompId, title: 'Tourney A', status: 'live' as const },
+    { id: 'comp_live_open', title: 'Tourney B', status: 'live' as const },
+    { id: 'comp_upcoming', title: 'Tourney C', status: 'upcoming' as const },
+    { id: 'comp_archived', title: 'Tourney D', status: 'completed' as const },
+  ];
+
+  const completedCount = competitions.filter(
+    (c) => c.status === 'completed' || completedIds.has(c.id)
+  ).length;
+
+  const liveCount = competitions.filter((c) => c.status === 'live').length;
+
+  assert.equal(completedCount, 2); // comp_user_completed + comp_archived
+  assert.equal(liveCount, 2); // comp_user_completed + comp_live_open
+});
