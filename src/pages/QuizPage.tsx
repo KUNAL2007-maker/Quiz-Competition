@@ -17,7 +17,6 @@ import { useAppContext } from '../context/AppContext';
 import { calculateCountdown, calculateQuizProgress, formatPad } from '../utils/timerLogic';
 import { QuestionPalette } from '../components/quiz/QuestionPalette';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
-import { ModalDialog } from '../components/ui/ModalDialog';
 import { CompetitorProfileModal } from '../components/profile/CompetitorProfileModal';
 import { QuizRulesModal } from '../components/quiz/QuizRulesModal';
 import { QuizCountdownOverlay } from '../components/quiz/QuizCountdownOverlay';
@@ -96,8 +95,22 @@ export const QuizPage: React.FC = () => {
   // Animated 3-2-1 Countdown State (Requirement 3)
   const [countdownValue, setCountdownValue] = useState<number | null>(null);
 
-  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
+
+  // Direct Quiz Submission Handler (No confirmation popup)
+  const handleDirectSubmit = useCallback(async () => {
+    if (isSubmitting || quizSession.isSubmitted) return;
+    try {
+      await submitQuizSession();
+      navigate('/profile');
+    } catch (err) {
+      addToast(
+        'Submission Error',
+        err instanceof Error ? err.message : 'Failed to submit quiz session.',
+        'alert'
+      );
+    }
+  }, [isSubmitting, quizSession.isSubmitted, submitQuizSession, navigate, addToast]);
 
   // Countdown timer calculations
   const timerState = calculateCountdown(quizSession.deadlineTimestamp, nowMs);
@@ -118,12 +131,12 @@ export const QuizPage: React.FC = () => {
     return () => window.clearInterval(id);
   }, [isQuizActive, timerState.isValid, timerState.isExpired, quizSession.isSubmitted]);
 
-  // Auto-submit when total assessment clock expires
+  // Auto-submit directly when total assessment clock expires
   useEffect(() => {
     if (isQuizActive && timerState.isValid && timerState.isExpired && !quizSession.isSubmitted) {
-      setIsSubmitDialogOpen(true);
+      handleDirectSubmit();
     }
-  }, [isQuizActive, timerState.isValid, timerState.isExpired, quizSession.isSubmitted]);
+  }, [isQuizActive, timerState.isValid, timerState.isExpired, quizSession.isSubmitted, handleDirectSubmit]);
 
   const questionIds = questions.map((q) => q.id);
   const progress = calculateQuizProgress(
@@ -174,10 +187,10 @@ export const QuizPage: React.FC = () => {
               'alert'
             );
           } else {
-            setIsSubmitDialogOpen(true);
+            handleDirectSubmit();
             addToast(
               'Final Question Timer Elapsed',
-              `Time limit of ${questionTimeLimit}s reached for the final question. Please confirm submission.`,
+              `Time limit of ${questionTimeLimit}s reached for the final question. Directly submitting quiz...`,
               'alert'
             );
           }
@@ -196,6 +209,7 @@ export const QuizPage: React.FC = () => {
     currentQuestion,
     questionTimeLimit,
     setCurrentQuestionIndex,
+    handleDirectSubmit,
     addToast,
   ]);
 
@@ -475,9 +489,9 @@ export const QuizPage: React.FC = () => {
           ) : (
             <button
               type="button"
-              onClick={() => setIsSubmitDialogOpen(true)}
+              onClick={handleDirectSubmit}
               disabled={isSubmitting}
-              className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2.5 text-xs font-semibold text-[#07090D] transition-colors hover:bg-[#c8ff66] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2.5 text-xs font-semibold text-[#07090D] transition-colors hover:bg-[#c8ff66] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer shadow-md"
             >
               <Send className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{isSubmitting ? 'Submitting...' : 'Submit Quiz'}</span>
@@ -658,11 +672,11 @@ export const QuizPage: React.FC = () => {
                   <button
                     type="button"
                     disabled={isSubmitting || quizSession.isSubmitted}
-                    onClick={() => setIsSubmitDialogOpen(true)}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] disabled:opacity-40 cursor-pointer transition-colors shadow-sm"
+                    onClick={handleDirectSubmit}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-[#B6FF3B] px-5 py-2 text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] disabled:opacity-40 cursor-pointer transition-colors shadow-md"
                   >
                     <Send className="h-3.5 w-3.5" />
-                    <span>Submit Quiz</span>
+                    <span>{isSubmitting ? 'Submitting...' : 'Submit Quiz'}</span>
                   </button>
                 ) : (
                   <button
@@ -720,75 +734,6 @@ export const QuizPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Submission Confirmation Dialog */}
-      <ModalDialog
-        isOpen={isSubmitDialogOpen}
-        onClose={() => setIsSubmitDialogOpen(false)}
-        title="Confirm Quiz Submission"
-        subtitle="Review your question answers before locking your quiz submission. You only have ONE attempt."
-        footer={
-          <>
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => setIsSubmitDialogOpen(false)}
-              className="rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:bg-[#161E2C] disabled:opacity-50 cursor-pointer"
-            >
-              Cancel & Return
-            </button>
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={async () => {
-                await submitQuizSession();
-                setIsSubmitDialogOpen(false);
-                navigate('/profile');
-              }}
-              className="inline-flex items-center gap-1.5 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] disabled:opacity-50 cursor-pointer"
-            >
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              <span>{isSubmitting ? 'Evaluating & Syncing...' : 'Confirm Final Submission'}</span>
-            </button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          {questions.length === 0 ? (
-            <div className="flex items-start gap-3 rounded-md border border-[#252D38] bg-[#111722] p-3.5">
-              <AlertTriangle className="h-4 w-4 text-[#B6FF3B] shrink-0 mt-0.5" />
-              <p className="text-xs text-[#929DAC] leading-relaxed">
-                No quiz questions are currently loaded in this session. Confirming submission will evaluate your quiz session.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="rounded-md border border-[#252D38] bg-[#111722] p-3">
-                <span className="block font-mono text-lg font-bold text-[#36F58A] tabular-nums">
-                  {progress.answered}
-                </span>
-                <span className="font-mono text-[10px] text-[#929DAC]">ANSWERED</span>
-              </div>
-              <div className="rounded-md border border-[#252D38] bg-[#111722] p-3">
-                <span className="block font-mono text-lg font-bold text-[#929DAC] tabular-nums">
-                  {progress.unanswered}
-                </span>
-                <span className="font-mono text-[10px] text-[#929DAC]">UNANSWERED</span>
-              </div>
-              <div className="rounded-md border border-[#252D38] bg-[#111722] p-3">
-                <span className="block font-mono text-lg font-bold text-[#FF365B] tabular-nums">
-                  {progress.markedForReview}
-                </span>
-                <span className="font-mono text-[10px] text-[#929DAC]">FOR REVIEW</span>
-              </div>
-            </div>
-          )}
-
-          <p className="text-xs text-[#929DAC] leading-relaxed">
-            Your answers are evaluated deterministically by the Python logic engine and recorded in Firebase. Once submitted, your score is final and this competition cannot be re-taken.
-          </p>
-        </div>
-      </ModalDialog>
     </div>
   );
 };
