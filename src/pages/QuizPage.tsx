@@ -19,6 +19,7 @@ import {
 import { useAppContext } from '../context/AppContext';
 import { calculateCountdown, calculateQuizProgress, formatPad } from '../utils/timerLogic';
 import { QuestionPalette } from '../components/quiz/QuestionPalette';
+import { getShuffledQuiz } from '../utils/shuffleQuiz';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 import { CompetitorProfileModal } from '../components/profile/CompetitorProfileModal';
 import { QuizRulesModal } from '../components/quiz/QuizRulesModal';
@@ -33,7 +34,7 @@ export const QuizPage: React.FC = () => {
     profile,
     selectedCompetition,
     competitions,
-    questions,
+    questions: rawQuestions,
     quizSession,
     isSubmitting,
     results,
@@ -62,6 +63,14 @@ export const QuizPage: React.FC = () => {
   }, [selectedCompetition, quizSession.competitionId, competitions]);
 
   const activeCompId = activeCompetition?.id || quizSession.competitionId;
+
+  // Deterministic question and option shuffling per candidate session (prevents answer-sharing)
+  const questions = useMemo(() => {
+    if (!currentUser || !rawQuestions || rawQuestions.length === 0) return rawQuestions || [];
+    const seed = `${currentUser.email || currentUser.uid}_${activeCompId}`;
+    return getShuffledQuiz(rawQuestions, seed);
+  }, [rawQuestions, currentUser, activeCompId]);
+
 
   // Ensure active competition is synced into context
   useEffect(() => {
@@ -99,23 +108,29 @@ export const QuizPage: React.FC = () => {
     // Practice simulations allow repeatable calibration and training
     if (isPracticeQuiz) return false;
 
-    // While competition is in live open mode for real-time testing, allow repeatable testing
-    if (activeCompetition?.status === 'live') return false;
+    // 1. Check if competitor has submitted results in Firestore
+    if (previousResult) return true;
 
-    if (
-      previousResult ||
-      previousLeaderboardEntry ||
-      (quizSession.competitionId === activeCompId && quizSession.isSubmitted)
-    ) {
-      return true;
-    }
+    // 2. Check if competitor has recorded score on the leaderboard
+    if (previousLeaderboardEntry) return true;
+
+    // 3. Check active session submission state
+    if (quizSession.competitionId === activeCompId && quizSession.isSubmitted) return true;
+
+    // 4. Strict enforcement of ONE attempt per email in client storage
     if (typeof window !== 'undefined' && currentUser && activeCompId) {
       try {
-        if (
-          window.localStorage.getItem(`completed_comp_${currentUser.uid}_${activeCompId}`) ===
-          'true'
-        ) {
+        const uidKey = `completed_comp_${currentUser.uid}_${activeCompId}`;
+        if (window.localStorage.getItem(uidKey) === 'true') {
           return true;
+        }
+
+        if (currentUser.email) {
+          const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+          const emailKey = `completed_email_${cleanEmail}_${activeCompId}`;
+          if (window.localStorage.getItem(emailKey) === 'true') {
+            return true;
+          }
         }
       } catch {
         // ignore
@@ -123,6 +138,7 @@ export const QuizPage: React.FC = () => {
     }
     return false;
   }, [
+    isAdmin,
     isPracticeQuiz,
     previousResult,
     previousLeaderboardEntry,

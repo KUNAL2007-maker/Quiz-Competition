@@ -184,17 +184,17 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
             </div>
           </div>
 
-          {/* Rule 6: Strictly One Attempt */}
+          {/* Rule 6: Strictly One Attempt Per Email */}
           <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#B6FF3B]/40 transition-colors p-3.5 flex items-start gap-3">
             <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/30 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
               <Clock className="h-4 w-4" />
             </div>
             <div className="space-y-1">
               <h4 className="font-mono text-xs font-semibold text-[#B6FF3B]">
-                6. Strictly One Attempt Only
+                6. Strictly One Attempt Per Email
               </h4>
               <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                You are granted only <strong className="text-[#B6FF3B]">ONE attempt</strong> at this competition. Once started, refreshing the browser or leaving the exam locks your score permanently on the leaderboard.
+                You are granted only <strong className="text-[#B6FF3B]">ONE attempt per registered email address</strong>. Questions and answer choices are uniquely randomized per candidate to prevent sharing. Once started, refreshing or leaving locks your score permanently on the leaderboard.
               </p>
             </div>
           </div>
@@ -211,7 +211,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
               className="mt-0.5 h-4 w-4 rounded border-[#252D38] bg-[#111722] text-[#B6FF3B] focus:ring-[#B6FF3B] cursor-pointer shrink-0"
             />
             <span className="text-xs text-[#F0F3F7] leading-relaxed select-none">
-              I have read, understood, and accept all the rules above. I pledge not to use AI, search engines, or switch tabs, and I acknowledge that exceeding 2 warnings results in immediate score 0 disqualification.
+              I have read, understood, and accept all the rules above. I acknowledge that I have strictly ONE attempt per email address, questions and options are randomized, and exceeding 2 warnings results in immediate score 0 disqualification.
             </span>
           </label>
         </div>

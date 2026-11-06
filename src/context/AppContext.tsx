@@ -973,6 +973,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
                 if (!isPractice) {
                   window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
+                  if (currentUser.email) {
+                    const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+                    window.localStorage.setItem(`completed_email_${cleanEmail}_${activeCompId}`, 'true');
+                  }
                 }
               }
             }
@@ -1109,6 +1113,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
                   if (!isPractice) {
                     window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
+                  if (currentUser.email) {
+                    const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+                    window.localStorage.setItem(`completed_email_${cleanEmail}_${activeCompId}`, 'true');
+                  }
                   }
                   window.localStorage.setItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`, reason);
                 }

@@ -319,3 +319,185 @@ test('strict forward-only progression disallows navigating backwards to previous
   assert.equal(results[1].canNavigate, false);
   assert.equal(results[2].canNavigate, false);
 });
+
+test('getShuffledQuiz produces deterministic results for identical seeds', async () => {
+  const { getShuffledQuiz } = await import('./shuffleQuiz');
+  const sampleQuestions = [
+    {
+      id: 'q1',
+      index: 0,
+      prompt: 'What is port 443?',
+      points: 100,
+      correctOptionId: 'opt_https',
+      options: [
+        { id: 'opt_http', label: 'A', text: 'HTTP' },
+        { id: 'opt_https', label: 'B', text: 'HTTPS' },
+        { id: 'opt_ssh', label: 'C', text: 'SSH' },
+        { id: 'opt_dns', label: 'D', text: 'DNS' },
+      ],
+    },
+    {
+      id: 'q2',
+      index: 1,
+      prompt: 'What is AES?',
+      points: 100,
+      correctOptionId: 'opt_symm',
+      options: [
+        { id: 'opt_asymm', label: 'A', text: 'Asymmetric cipher' },
+        { id: 'opt_symm', label: 'B', text: 'Symmetric cipher' },
+        { id: 'opt_hash', label: 'C', text: 'Hash function' },
+        { id: 'opt_stream', label: 'D', text: 'Stream cipher' },
+      ],
+    },
+    {
+      id: 'q3',
+      index: 2,
+      prompt: 'Default port for SSH?',
+      points: 100,
+      correctOptionId: 'opt_22',
+      options: [
+        { id: 'opt_21', label: 'A', text: '21' },
+        { id: 'opt_22', label: 'B', text: '22' },
+        { id: 'opt_23', label: 'C', text: '23' },
+        { id: 'opt_25', label: 'D', text: '25' },
+      ],
+    },
+  ];
+
+  const seed = 'kunalbankhele07@gmail.com_cyber-quiz-2026';
+  const run1 = getShuffledQuiz(sampleQuestions, seed);
+  const run2 = getShuffledQuiz(sampleQuestions, seed);
+
+  // Exact same question sequence
+  assert.deepEqual(
+    run1.map((q) => q.id),
+    run2.map((q) => q.id)
+  );
+
+  // Exact same option order per question
+  for (let i = 0; i < run1.length; i++) {
+    assert.deepEqual(
+      run1[i].options.map((o) => o.id),
+      run2[i].options.map((o) => o.id)
+    );
+    // Labels are re-indexed A, B, C, D in visual order
+    assert.deepEqual(
+      run1[i].options.map((o) => o.label),
+      ['A', 'B', 'C', 'D']
+    );
+  }
+});
+
+test('getShuffledQuiz produces different question and option order for different candidate seeds', async () => {
+  const { getShuffledQuiz } = await import('./shuffleQuiz');
+  const sampleQuestions = Array.from({ length: 15 }, (_, i) => ({
+    id: `q_${i + 1}`,
+    index: i,
+    prompt: `Question prompt ${i + 1}`,
+    points: 100,
+    correctOptionId: `q_${i + 1}_opt_correct`,
+    options: [
+      { id: `q_${i + 1}_opt_correct`, label: 'A', text: 'Correct Answer' },
+      { id: `q_${i + 1}_opt_w1`, label: 'B', text: 'Wrong 1' },
+      { id: `q_${i + 1}_opt_w2`, label: 'C', text: 'Wrong 2' },
+      { id: `q_${i + 1}_opt_w3`, label: 'D', text: 'Wrong 3' },
+    ],
+  }));
+
+  const userA = getShuffledQuiz(sampleQuestions, 'alice@nullorigin.live_cyber-quiz-2026');
+  const userB = getShuffledQuiz(sampleQuestions, 'bob@nullorigin.live_cyber-quiz-2026');
+
+  const orderA = userA.map((q) => q.id).join(',');
+  const orderB = userB.map((q) => q.id).join(',');
+
+  // The order of questions must be distinct
+  assert.notEqual(orderA, orderB, 'Question ordering should differ between candidates');
+
+  // Verify option shuffling: at least some questions must have differing option orders
+  let optionOrderDifferences = 0;
+  for (const qA of userA) {
+    const qB = userB.find((q) => q.id === qA.id);
+    if (qB) {
+      const optsA = qA.options.map((o) => o.id).join(',');
+      const optsB = qB.options.map((o) => o.id).join(',');
+      if (optsA !== optsB) optionOrderDifferences++;
+    }
+  }
+  assert.ok(optionOrderDifferences > 0, 'Candidate option order must be shuffled independently');
+});
+
+test('scoring engine matches correctOptionId regardless of option shuffling', async () => {
+  const { getShuffledQuiz } = await import('./shuffleQuiz');
+  const sampleQuestions = [
+    {
+      id: 'q1',
+      index: 0,
+      prompt: 'True or False',
+      points: 100,
+      correctOptionId: 'opt_true',
+      options: [
+        { id: 'opt_false', label: 'A', text: 'False' },
+        { id: 'opt_true', label: 'B', text: 'True' },
+      ],
+    },
+  ];
+
+  // Candidates get shuffled options
+  const candidate1 = getShuffledQuiz(sampleQuestions, 'student1_seed');
+  const candidate2 = getShuffledQuiz(sampleQuestions, 'student2_seed');
+
+  // Both choose the correct option by id
+  const ans1: Record<string, string> = { q1: 'opt_true' };
+  const ans2: Record<string, string> = { q1: 'opt_true' };
+
+  let score1 = 0;
+  for (const q of candidate1) {
+    if (ans1[q.id] === q.correctOptionId) score1 += (q.points || 100);
+  }
+
+  let score2 = 0;
+  for (const q of candidate2) {
+    if (ans2[q.id] === q.correctOptionId) score2 += (q.points || 100);
+  }
+
+  assert.equal(score1, 100);
+  assert.equal(score2, 100);
+});
+
+test('hasAlreadyAttempted strictly locks entry per email and per UID', () => {
+  const mockStorage: Record<string, string> = {};
+
+  const checkHasAttempted = (
+    currentUser: { uid: string; email?: string } | null,
+    activeCompId: string,
+    storage: Record<string, string>
+  ) => {
+    if (!currentUser || !activeCompId) return false;
+    const uidKey = `completed_comp_${currentUser.uid}_${activeCompId}`;
+    if (storage[uidKey] === 'true') return true;
+
+    if (currentUser.email) {
+      const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const emailKey = `completed_email_${cleanEmail}_${activeCompId}`;
+      if (storage[emailKey] === 'true') return true;
+    }
+    return false;
+  };
+
+  const compId = 'cyber-quiz-2026';
+  const user = { uid: 'uid_kunal_123', email: 'kunalbankhele07@gmail.com' };
+
+  // Fresh user: not attempted
+  assert.equal(checkHasAttempted(user, compId, mockStorage), false);
+
+  // Mark completed by email
+  const cleanEmail = user.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+  mockStorage[`completed_email_${cleanEmail}_${compId}`] = 'true';
+
+  // Now locked
+  assert.equal(checkHasAttempted(user, compId, mockStorage), true);
+
+  // Even if user logs in with a different UID but the same email: STILL locked
+  const altUidUser = { uid: 'uid_kunal_different_session', email: 'kunalbankhele07@gmail.com' };
+  assert.equal(checkHasAttempted(altUidUser, compId, mockStorage), true);
+});
