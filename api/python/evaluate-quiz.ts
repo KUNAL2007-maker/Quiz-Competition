@@ -69,11 +69,8 @@ export default function handler(req: any, res: any) {
   }
 
   const unansweredCount = Math.max(0, totalQuestions - answeredCount);
-  const gradedTotal = correctCount + incorrectCount;
   const accuracyPercent =
-    gradedTotal > 0
-      ? Math.round((correctCount / gradedTotal) * 100)
-      : Math.round((answeredCount / totalQuestions) * 100);
+    totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
   const topicBreakdown = Object.entries(topicTotals).map(([topic, [earned, possible]]) => ({
     topic,

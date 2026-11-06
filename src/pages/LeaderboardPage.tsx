@@ -95,9 +95,35 @@ export const LeaderboardPage: React.FC = () => {
 
         return true;
       })
+      .sort((a, b) => {
+        // 1. Primary: Higher Score ranks first
+        const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
+        if (scoreDiff !== 0) return scoreDiff;
+
+        // 2. Secondary (Requirement): If score is the same, rank by completion time (faster completion ranks first)
+        const timeA =
+          typeof a.completionTimeSeconds === 'number' && a.completionTimeSeconds >= 0
+            ? a.completionTimeSeconds
+            : 999999999;
+        const timeB =
+          typeof b.completionTimeSeconds === 'number' && b.completionTimeSeconds >= 0
+            ? b.completionTimeSeconds
+            : 999999999;
+        const timeDiff = timeA - timeB;
+        if (timeDiff !== 0) return timeDiff;
+
+        // 3. Tertiary: Higher accuracy percent ranks first
+        const accDiff = Number(b.accuracyPercent || 0) - Number(a.accuracyPercent || 0);
+        if (accDiff !== 0) return accDiff;
+
+        // 4. Quaternary: Earlier submission timestamp ranks first
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 9999999999999;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 9999999999999;
+        return dateA - dateB;
+      })
       .map((entry, idx) => ({
         ...entry,
-        rank: idx + 1, // Recompute dynamic rank after filtering
+        rank: idx + 1, // Recompute dynamic rank after filtering and tie-break sorting
       }));
   }, [leaderboard, selectedCompId, categoryFilter, timePeriod, searchQuery, competitions]);
 

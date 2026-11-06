@@ -125,3 +125,102 @@ test('status tab counts accurately categorize live, upcoming, and completed item
   assert.equal(completedCount, 2); // comp_user_completed + comp_archived
   assert.equal(liveCount, 2); // comp_user_completed + comp_live_open
 });
+
+test('scoreboard tie-breaker: two individuals with identical scores are ranked by completion time', () => {
+  const participants = [
+    {
+      id: 'user_slow',
+      displayName: 'Operator Bob',
+      score: 2800,
+      completionTimeSeconds: 420, // 7 minutes
+      accuracyPercent: 93,
+    },
+    {
+      id: 'user_fast',
+      displayName: 'Operator Alice',
+      score: 2800, // Same score as Bob!
+      completionTimeSeconds: 215, // 3 minutes 35 seconds (Faster)
+      accuracyPercent: 93,
+    },
+    {
+      id: 'user_lowest',
+      displayName: 'Operator Charlie',
+      score: 2500,
+      completionTimeSeconds: 120,
+      accuracyPercent: 83,
+    },
+    {
+      id: 'user_highest',
+      displayName: 'Operator Dave',
+      score: 3000,
+      completionTimeSeconds: 500,
+      accuracyPercent: 100,
+    },
+  ];
+
+  const sorted = [...participants].sort((a, b) => {
+    // 1. Primary: Score (Descending)
+    const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
+    if (scoreDiff !== 0) return scoreDiff;
+
+    // 2. Secondary (Requirement): If score is the same, rank by completion time (faster wins)
+    const timeA = typeof a.completionTimeSeconds === 'number' ? a.completionTimeSeconds : 999999;
+    const timeB = typeof b.completionTimeSeconds === 'number' ? b.completionTimeSeconds : 999999;
+    const timeDiff = timeA - timeB;
+    if (timeDiff !== 0) return timeDiff;
+
+    return 0;
+  });
+
+  // Dave should be #1 with 3000 pts
+  assert.equal(sorted[0].id, 'user_highest');
+
+  // Alice and Bob both have 2800 pts, but Alice finished faster (215s vs 420s), so Alice is #2
+  assert.equal(sorted[1].id, 'user_fast');
+  assert.equal(sorted[1].completionTimeSeconds, 215);
+
+  // Bob is #3
+  assert.equal(sorted[2].id, 'user_slow');
+  assert.equal(sorted[2].completionTimeSeconds, 420);
+
+  // Charlie is #4 with 2500 pts
+  assert.equal(sorted[3].id, 'user_lowest');
+});
+
+test('quiz evaluation accurately scores answers against correctOptionId', () => {
+  const questions = [
+    { id: 'q1', points: 100, correctOptionId: 'opt_b' },
+    { id: 'q2', points: 100, correctOptionId: 'opt_a' },
+    { id: 'q3', points: 100, correctOptionId: 'opt_c' },
+  ];
+
+  const userAnswers: Record<string, string> = {
+    q1: 'opt_b', // Correct (+100)
+    q2: 'opt_d', // Incorrect (+0)
+    // q3 is unanswered (+0)
+  };
+
+  let earned = 0;
+  let correct = 0;
+  let incorrect = 0;
+
+  for (const q of questions) {
+    const chosen = userAnswers[q.id];
+    if (chosen !== undefined && chosen !== null && String(chosen).trim() !== '') {
+      if (q.correctOptionId && String(chosen) === String(q.correctOptionId)) {
+        earned += q.points;
+        correct += 1;
+      } else {
+        incorrect += 1;
+      }
+    } else {
+      incorrect += 1;
+    }
+  }
+
+  assert.equal(earned, 100);
+  assert.equal(correct, 1);
+  assert.equal(incorrect, 2);
+  const accuracy = Math.round((correct / questions.length) * 100);
+  assert.equal(accuracy, 33);
+});

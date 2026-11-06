@@ -390,14 +390,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return;
         }
 
-        // Fast deterministic client-side sorting: score (desc), accuracy (desc), time (asc)
-        // Eliminates redundant serverless round-trips under high concurrent load
+        // Fast deterministic client-side sorting:
+        // 1. Score (descending - highest score first)
+        // 2. Tie-breaker (Requirement): completionTimeSeconds (ascending - faster completion time ranks higher!)
+        // 3. Tertiary tie-breaker: accuracyPercent (descending - higher accuracy first)
+        // 4. Quaternary tie-breaker: createdAt (ascending - earlier submission timestamp first)
         rawEntries.sort((a, b) => {
           const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
           if (scoreDiff !== 0) return scoreDiff;
-
-          const accDiff = Number(b.accuracyPercent || 0) - Number(a.accuracyPercent || 0);
-          if (accDiff !== 0) return accDiff;
 
           const timeA =
             typeof a.completionTimeSeconds === 'number' && a.completionTimeSeconds >= 0
@@ -407,7 +407,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             typeof b.completionTimeSeconds === 'number' && b.completionTimeSeconds >= 0
               ? b.completionTimeSeconds
               : 999999999;
-          return timeA - timeB;
+          const timeDiff = timeA - timeB;
+          if (timeDiff !== 0) return timeDiff;
+
+          const accDiff = Number(b.accuracyPercent || 0) - Number(a.accuracyPercent || 0);
+          if (accDiff !== 0) return accDiff;
+
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 9999999999999;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 9999999999999;
+          return dateA - dateB;
         });
 
         setLeaderboard(rawEntries.map((item, idx) => ({ ...item, rank: idx + 1 })));
@@ -806,21 +814,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Fallback local scoring if Python endpoint unavailable
         let earned = 0;
         let totalPossible = 0;
-        let answered = 0;
+        let correct = 0;
+        let incorrect = 0;
         for (const q of questions) {
-          const pts = q.points || 100;
+          const pts = typeof q.points === 'number' ? q.points : 100;
           totalPossible += pts;
-          if (quizSession.selectedAnswers[q.id]) {
-            earned += pts;
-            answered += 1;
+          const chosen = quizSession.selectedAnswers[q.id];
+          if (chosen !== undefined && chosen !== null && String(chosen).trim() !== '') {
+            if (q.correctOptionId && String(chosen) === String(q.correctOptionId)) {
+              earned += pts;
+              correct += 1;
+            } else {
+              incorrect += 1;
+            }
+          } else {
+            incorrect += 1;
           }
         }
         evaluated = {
           finalScore: earned,
           maxScore: totalPossible,
-          accuracyPercent: questions.length > 0 ? Math.round((answered / questions.length) * 100) : 0,
-          correctCount: answered,
-          incorrectCount: Math.max(0, questions.length - answered),
+          accuracyPercent: questions.length > 0 ? Math.round((correct / questions.length) * 100) : 0,
+          correctCount: correct,
+          incorrectCount: incorrect,
         };
       }
 
