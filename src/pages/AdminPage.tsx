@@ -21,61 +21,15 @@ import {
   Database,
   Copy,
 } from 'lucide-react';
-import { doc, setDoc, deleteDoc, serverTimestamp, collection, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, getDocs, serverTimestamp, collection, onSnapshot } from 'firebase/firestore';
 import { db, firebaseConfig } from '../lib/firebase';
 import { FIRESTORE_RULES_SOURCE } from '../constants/firestoreRules';
+import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
 import { useAppContext } from '../context/AppContext';
 import { Competition, QuizQuestion } from '../types';
 import { ModalDialog } from '../components/ui/ModalDialog';
 
-const SAMPLE_QUESTIONS_JSON = JSON.stringify(
-  [
-    {
-      index: 0,
-      prompt: "Which symmetric encryption algorithm was officially adopted by NIST as FIPS 197 in 2001?",
-      category: "Cryptography",
-      points: 100,
-      timeLimitSeconds: 15,
-      options: [
-        { id: "opt_a", label: "A", text: "Data Encryption Standard (DES)" },
-        { id: "opt_b", label: "B", text: "Advanced Encryption Standard (AES / Rijndael)" },
-        { id: "opt_c", label: "C", text: "Rivest Cipher 4 (RC4)" },
-        { id: "opt_d", label: "D", text: "Triple DES (3DES)" }
-      ],
-      correctOptionId: "opt_b"
-    },
-    {
-      index: 1,
-      prompt: "In network security, which protocol uses asymmetric encryption to negotiate symmetric session keys for HTTPS traffic?",
-      category: "Network Security",
-      points: 100,
-      timeLimitSeconds: 15,
-      options: [
-        { id: "opt_a", label: "A", text: "Transport Layer Security (TLS)" },
-        { id: "opt_b", label: "B", text: "Internet Protocol Security (IPsec)" },
-        { id: "opt_c", label: "C", text: "Simple Network Management Protocol (SNMP)" },
-        { id: "opt_d", label: "D", text: "Border Gateway Protocol (BGP)" }
-      ],
-      correctOptionId: "opt_a"
-    },
-    {
-      index: 2,
-      prompt: "Which digital forensics artifact on modern Windows systems records recently executed executable files and their execution counts?",
-      category: "Digital Forensics",
-      points: 150,
-      timeLimitSeconds: 15,
-      options: [
-        { id: "opt_a", label: "A", text: "Prefetch (.pf) files" },
-        { id: "opt_b", label: "B", text: "SAM registry hive" },
-        { id: "opt_c", label: "C", text: "Volume Shadow Copies" },
-        { id: "opt_d", label: "D", text: "Pagefile.sys" }
-      ],
-      correctOptionId: "opt_a"
-    }
-  ],
-  null,
-  2
-);
+const SAMPLE_QUESTIONS_JSON = JSON.stringify(cyberQuizQuestions, null, 2);
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
@@ -456,6 +410,16 @@ export const AdminPage: React.FC = () => {
     setIsBulkUploading(true);
     let successCount = 0;
     try {
+      // Purge prior questions for this competition to prevent duplicates
+      try {
+        const oldSnap = await getDocs(collection(db, `competitions/${targetCompId}/questions`));
+        for (const oldDoc of oldSnap.docs) {
+          await deleteDoc(oldDoc.ref);
+        }
+      } catch {
+        // continue even if prior collection was empty
+      }
+
       for (let i = 0; i < parsedList.length; i++) {
         const item = parsedList[i];
         const qId = `q_bulk_${Date.now()}_${i}`;

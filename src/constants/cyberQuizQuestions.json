@@ -1,0 +1,422 @@
+[
+  {
+    "index": 0,
+    "prompt": "A financial API endpoint allows authenticated users to view transaction records via 'GET /api/v1/statement?accountId=10492'. An attacker authenticated as accountId=10855 modifies the parameter to 10492 and successfully views another customer's complete banking ledger. Which specific authorization vulnerability was exploited, and which pillar of the CIA Triad was compromised?",
+    "category": "Cyber Security Fundamentals",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Broken Object Level Authorization (BOLA / IDOR) compromising Confidentiality" },
+      { "id": "opt_b", "label": "B", "text": "Missing Function Level Access Control compromising Integrity" },
+      { "id": "opt_c", "label": "C", "text": "Insecure Deserialization compromising Availability" },
+      { "id": "opt_d", "label": "D", "text": "Cross-Origin Resource Sharing (CORS) misconfiguration compromising Non-repudiation" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 1,
+    "prompt": "An enterprise enforces SMS-based OTP and mobile authenticator TOTP as second factors. An adversary deploys an Evilginx2 reverse-proxy framework to target employees with a cloned Microsoft 365 login portal. Why does this Adversary-in-the-Middle (AitM) technique successfully bypass both SMS and TOTP multi-factor authentication?",
+    "category": "Cyber Security Fundamentals",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "It mathematically extracts the secret TOTP cryptographic seed from the mobile device" },
+      { "id": "opt_b", "label": "B", "text": "It relays credentials and OTPs in real-time to the real Identity Provider and captures the post-authentication session cookies (e.g. ESTSAUTH), allowing instant session hijacking" },
+      { "id": "opt_c", "label": "C", "text": "It exploits a buffer overflow in the telecom provider's SS7 signaling network" },
+      { "id": "opt_d", "label": "D", "text": "It forces the victim browser to downgrade from TLS 1.3 to unencrypted HTTP" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 2,
+    "prompt": "A company hashes user passwords using 'MD5(password + salt)' with a unique 16-byte cryptographic salt per user. Despite unique salting, why is this password storage architecture considered critically vulnerable to modern offline attacks using Hashcat on a multi-GPU rig?",
+    "category": "Cyber Security Fundamentals",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "MD5 salts are automatically exposed in plaintext over outbound TLS tunnels" },
+      { "id": "opt_b", "label": "B", "text": "MD5 was engineered for fast checksum verification and has zero tunable work factors, allowing modern GPUs to calculate tens of billions of hashes per second compared to memory-hard KDFs like Argon2id or bcrypt" },
+      { "id": "opt_c", "label": "C", "text": "MD5 automatically truncates all candidate passwords to 8 characters" },
+      { "id": "opt_d", "label": "D", "text": "A cryptographic salt fails to stop rainbow tables if the salt length is under 64 bytes" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 3,
+    "prompt": "In an OAuth 2.0 / OIDC implementation, why is the Proof Key for Code Exchange (PKCE) with 'code_verifier' and 'code_challenge' strongly mandated for Single Page Applications (SPAs) and native mobile apps?",
+    "category": "Cyber Security Fundamentals",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "To prevent authorization code interception and injection attacks on public clients that cannot securely maintain a client_secret" },
+      { "id": "opt_b", "label": "B", "text": "To protect against DNS cache poisoning targeting the authorization server" },
+      { "id": "opt_c", "label": "C", "text": "To automatically encrypt SQL queries executed against the user database" },
+      { "id": "opt_d", "label": "D", "text": "To replace HTTPS transport layer security with symmetric session keys" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 4,
+    "prompt": "A security analyst reviews packet capture telemetry and discovers TCP packets addressed to various destination ports with both SYN and FIN flags enabled simultaneously (0x003). What is the adversary's primary tactical goal with this anomalous packet structure?",
+    "category": "Network Security",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "To initiate a multiplexed QUIC datagram stream over UDP" },
+      { "id": "opt_b", "label": "B", "text": "To perform an evasive port scan that circumvents simple stateless packet-filtering firewalls by exploiting non-standard TCP stack implementations" },
+      { "id": "opt_c", "label": "C", "text": "To dynamically adjust Network Time Protocol (NTP) jitter across edge routers" },
+      { "id": "opt_d", "label": "D", "text": "To force the web server to reissue its root TLS certificate" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 5,
+    "prompt": "In a robust enterprise DMZ architecture, an attacker successfully compromises a public web server residing in the DMZ. Under the Principle of Least Privilege, which network communication flow must be strictly blocked by the internal firewall?",
+    "category": "Network Security",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Inbound HTTPS traffic originating from the public Internet to the DMZ web server (TCP 443)" },
+      { "id": "opt_b", "label": "B", "text": "New unsolicited TCP connection requests initiated by the DMZ web server into the internal corporate LAN/database subnet" },
+      { "id": "opt_c", "label": "C", "text": "Outbound DNS resolution queries forwarded by the DMZ recursive resolver to external root servers" },
+      { "id": "opt_d", "label": "D", "text": "Encrypted administrative SSH sessions initiated from internal jump-hosts to the DMZ server" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 6,
+    "prompt": "An adversary executes ARP cache poisoning on a local enterprise network segment. Which switch security technology intercepts ARP requests and responses, verifying their IP-to-MAC bindings against a trusted DHCP snooping database before forwarding?",
+    "category": "Network Security",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Spanning Tree Protocol (STP / 802.1D)" },
+      { "id": "opt_b", "label": "B", "text": "Dynamic ARP Inspection (DAI)" },
+      { "id": "opt_c", "label": "C", "text": "Port Fast with BPDU Guard" },
+      { "id": "opt_d", "label": "D", "text": "Link Aggregation Control Protocol (LACP)" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 7,
+    "prompt": "Why is an IKEv2/IPsec VPN tunnel utilizing Ephemeral Diffie-Hellman Group 19 (ECDH) vastly superior to legacy PPTP VPN using MS-CHAPv2?",
+    "category": "Network Security",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "PPTP operates at Layer 7 and cannot transport IP packets" },
+      { "id": "opt_b", "label": "B", "text": "MS-CHAPv2 relies on easily cracked DES keys and PPTP lacks Perfect Forward Secrecy (PFS), meaning a single compromised private key allows retroactive decryption of all historical traffic" },
+      { "id": "opt_c", "label": "C", "text": "PPTP cannot function across modern IPv6 routers under any circumstances" },
+      { "id": "opt_d", "label": "D", "text": "IKEv2 requires no cryptographic pre-shared keys or certificates" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 8,
+    "prompt": "An attacker targets a web endpoint: 'GET /items?category=' + userInput. The web application does not display database errors or return data rows, but the HTTP response takes ~5 seconds if a tested condition is true and ~0.1 seconds if false. What vulnerability is this?",
+    "category": "Web Application Attacks",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Second-Order Stored SQL Injection" },
+      { "id": "opt_b", "label": "B", "text": "Time-Based Blind SQL Injection (using sleep functions or heavy queries)" },
+      { "id": "opt_c", "label": "C", "text": "In-Band Union-Based SQL Injection" },
+      { "id": "opt_d", "label": "D", "text": "XML External Entity (XXE) Injection" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 9,
+    "prompt": "A client-side script executes: 'document.getElementById('welcome').innerHTML = decodeURIComponent(location.hash.slice(1));'. Because the payload executes within the browser DOM without ever being transmitted to the server, what attack type is present?",
+    "category": "Web Application Attacks",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Reflected XSS" },
+      { "id": "opt_b", "label": "B", "text": "DOM-Based XSS" },
+      { "id": "opt_c", "label": "C", "text": "Stored XSS" },
+      { "id": "opt_d", "label": "D", "text": "Server-Side Template Injection (SSTI)" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 10,
+    "prompt": "An application sets the 'SameSite=Lax' attribute on its session cookies. Under which condition will the user's browser still send this cookie on a cross-site request originating from a third-party website?",
+    "category": "Web Application Attacks",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "A cross-origin AJAX 'fetch()' request utilizing the POST method" },
+      { "id": "opt_b", "label": "B", "text": "A top-level user navigation initiated via an HTML anchor link ('<a href=\"...\">') using a safe HTTP GET method" },
+      { "id": "opt_c", "label": "C", "text": "An embedded '<iframe>' submitting an automated POST form" },
+      { "id": "opt_d", "label": "D", "text": "An HTML image tag ('<img src=\"...\">') loading a cross-origin tracking pixel" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 11,
+    "prompt": "An attacker probes a PDF export service with: 'GET /export?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/app-role'. What critical vulnerability exists, and what is the primary threat in an AWS cloud environment?",
+    "category": "Web Application Attacks",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Cross-Site WebSocket Hijacking; causes a distributed denial of service on the VPC" },
+      { "id": "opt_b", "label": "B", "text": "Server-Side Request Forgery (SSRF); exfiltrates temporary IAM security credentials allowing full cloud account takeover" },
+      { "id": "opt_c", "label": "C", "text": "Local File Inclusion (LFI); overwrites the kernel bootloader on the instance" },
+      { "id": "opt_d", "label": "D", "text": "HTTP Request Smuggling; desynchronizes proxy keep-alive sockets" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 12,
+    "prompt": "Why is AES in Cipher Block Chaining (CBC) mode with PKCS#7 padding vulnerable to a Padding Oracle Attack if the server exposes differences between padding errors and decryption errors?",
+    "category": "Cryptography",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "CBC mode operates with a weak fixed 56-bit key" },
+      { "id": "opt_b", "label": "B", "text": "An adversary can systematically manipulate bytes in the preceding ciphertext block (or IV) and use the server's padding validity oracle to deduce plaintext bytes one by one without knowing the secret key" },
+      { "id": "opt_c", "label": "C", "text": "CBC mode does not use an Initialization Vector (IV)" },
+      { "id": "opt_d", "label": "D", "text": "Padding error messages disclose the master AES encryption key in cleartext" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 13,
+    "prompt": "In TLS 1.3, static RSA key exchange was completely eliminated in favor of Ephemeral Diffie-Hellman (ECDHE). What fundamental security requirement drove this architectural change?",
+    "category": "Cryptography",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "RSA key lengths cannot exceed 1024 bits under modern computing standards" },
+      { "id": "opt_b", "label": "B", "text": "Perfect Forward Secrecy (PFS): static RSA allows an adversary who captures encrypted network sessions to retroactively decrypt all historical communications if the server private key is compromised in the future" },
+      { "id": "opt_c", "label": "C", "text": "RSA encryption cannot be combined with SHA-256 under FIPS standards" },
+      { "id": "opt_d", "label": "D", "text": "ECDHE completely eliminates the requirement for digital certificates" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 14,
+    "prompt": "What catastrophic cryptographic failure occurs when an implementation reuses the same 96-bit Initialization Vector (Nonce) under the same AES key across two distinct messages in Galois/Counter Mode (AES-GCM)?",
+    "category": "Cryptography",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "The CPU triggers a hardware fault in the AES-NI instruction pipeline" },
+      { "id": "opt_b", "label": "B", "text": "The XOR of both plaintexts is exposed (C1 ⊕ C2 = P1 ⊕ P2), and the adversary can derive the GHASH authentication key, completely destroying both confidentiality and message integrity" },
+      { "id": "opt_c", "label": "C", "text": "The cipher key automatically degrades from 256 bits to 64 bits" },
+      { "id": "opt_d", "label": "D", "text": "The ciphertext blocks will be permanently corrupted and cannot be decrypted" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 15,
+    "prompt": "Why are standard Merkle-Damgård hash functions (such as MD5, SHA-1, and SHA-256) vulnerable to Length Extension Attacks when used as 'H(secret || message)', while HMAC and SHA-3/Keccak are immune?",
+    "category": "Cryptography",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Because SHA-256 keys expire after 24 hours of generation" },
+      { "id": "opt_b", "label": "B", "text": "The output hash represents the entire internal state of the Merkle-Damgård compressor, allowing an attacker to initialize a new hash instance with that state and append arbitrary data without knowing the secret" },
+      { "id": "opt_c", "label": "C", "text": "HMAC uses three independent asymmetric encryption keys" },
+      { "id": "opt_d", "label": "D", "text": "SHA-3 hashes can only process plaintext up to 128 bytes in length" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 16,
+    "prompt": "An adversary spawns a legitimate signed Windows executable (e.g. 'svchost.exe') in a suspended state, unmaps its original code section via 'NtUnmapViewOfSection', writes shellcode into the allocated virtual memory, and resumes the thread. What stealth technique is this?",
+    "category": "Malware & Threats",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Process Hollowing (RunPE)" },
+      { "id": "opt_b", "label": "B", "text": "DLL Sideloading" },
+      { "id": "opt_c", "label": "C", "text": "Pass-the-Ticket" },
+      { "id": "opt_d", "label": "D", "text": "Living-off-the-Land Binary (LOLBin) execution" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 17,
+    "prompt": "During a corporate intrusion, threat actors execute: 'vssadmin.exe delete shadows /all /quiet && wbadmin delete catalog -quiet'. What is the critical strategic objective of this command prior to deploying ransomware?",
+    "category": "Malware & Threats",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "To bypass endpoint antivirus real-time signature checks" },
+      { "id": "opt_b", "label": "B", "text": "To destroy all Volume Shadow Copies and system restore points, preventing victim administrators from recovering encrypted files locally without paying ransom" },
+      { "id": "opt_c", "label": "C", "text": "To flush the Kerberos ticket-granting service cache on domain controllers" },
+      { "id": "opt_d", "label": "D", "text": "To wipe NVRAM routing tables on perimeter core switches" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 18,
+    "prompt": "A modern botnet sample generates hundreds of pseudorandom domain names daily (e.g., 'z9k2q81a.biz') derived from a date-based mathematical seed to contact its Command and Control (C2) server. What mechanism is this, and how is it counteracted?",
+    "category": "Malware & Threats",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Fast-Flux DNS; counteracted by disabling IPv6 on gateway routers" },
+      { "id": "opt_b", "label": "B", "text": "Domain Generation Algorithm (DGA); counteracted by reverse-engineering the algorithm to sinkhole or proactively block anticipated domains" },
+      { "id": "opt_c", "label": "C", "text": "DNS Tunneling; counteracted by dropping all ICMP echo replies" },
+      { "id": "opt_d", "label": "D", "text": "BGP Prefix Hijacking; counteracted by resetting autonomous system numbers" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 19,
+    "prompt": "In the 2017 global WannaCry ransomware outbreak, which specific vulnerability and kernel driver flaw in Windows SMBv1 was exploited by the EternalBlue (MS17-010) toolchain to achieve unauthenticated remote code execution?",
+    "category": "Malware & Threats",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "An integer overflow in 'srv.sys' during mathematical handling of SMB File Extended Attribute (FEA) structures, causing kernel pool corruption" },
+      { "id": "opt_b", "label": "B", "text": "A hardcoded administrative password embedded in the Windows NetBIOS service" },
+      { "id": "opt_c", "label": "C", "text": "A SQL injection vulnerability inside the Windows Active Directory SAM registry hive" },
+      { "id": "opt_d", "label": "D", "text": "A race condition in the Windows Print Spooler service ('spoolsv.exe')" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 20,
+    "prompt": "A penetration tester runs: 'nmap -sS -sV -O -p- 192.168.1.100'. How does Nmap determine the remote host's operating system with high precision without possessing login credentials?",
+    "category": "Security Tools",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "It connects to port 445 and reads the '/etc/os-release' file via anonymous SMB access" },
+      { "id": "opt_b", "label": "B", "text": "It transmits structured TCP/UDP/ICMP probes and compares subtle idiosyncrasies in TCP window size, IP ID sequencing, and flag responses against the 'nmap-os-db' fingerprint database" },
+      { "id": "opt_c", "label": "C", "text": "It queries Shodan API keys configured within the Kali Linux distribution" },
+      { "id": "opt_d", "label": "D", "text": "It writes shellcode to the target host's BIOS NVRAM" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 21,
+    "prompt": "A SOC analyst investigating data exfiltration in Wireshark wants to filter exclusively for suspicious DNS queries whose domain name length exceeds 60 characters, indicating possible DNS Tunneling. Which display filter syntax accomplishes this?",
+    "category": "Security Tools",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "tcp.port == 53 && ip.len > 1500" },
+      { "id": "opt_b", "label": "B", "text": "dns.qry.name.len > 60 && dns.flags.response == 0" },
+      { "id": "opt_c", "label": "C", "text": "http.request.method == \"POST\" && udp.port == 53" },
+      { "id": "opt_d", "label": "D", "text": "icmp.type == 8 && ip.ttl < 32" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 22,
+    "prompt": "When generating payloads with Metasploit on Kali Linux, what is the core operational distinction between a staged payload ('windows/x64/meterpreter/reverse_tcp') and a stageless payload ('windows/x64/meterpreter_reverse_tcp')?",
+    "category": "Security Tools",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Staged payloads require root access on the target, whereas stageless payloads run in user-space" },
+      { "id": "opt_b", "label": "B", "text": "A staged payload uses a compact stub that connects back to pull the full payload into memory (risking network detection of the stage), whereas a stageless payload packages all modules in one binary, avoiding secondary network stage fetches" },
+      { "id": "opt_c", "label": "C", "text": "Staged payloads only function on ARM processors" },
+      { "id": "opt_d", "label": "D", "text": "Stageless payloads can only target Linux kernels older than 2.6" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 23,
+    "prompt": "In deception technology architecture, what is the primary operational trade-off between deploying a Low-Interaction Honeypot (e.g., Cowrie) versus a High-Interaction Honeypot (e.g., an instrumented full Windows VM)?",
+    "category": "Security Tools",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Low-interaction honeypots require mainframes; high-interaction honeypots run in Docker" },
+      { "id": "opt_b", "label": "B", "text": "Low-interaction honeypots simulate services with low maintenance and minimal risk but capture limited intelligence, while high-interaction honeypots run real OS environments that reveal advanced post-exploitation TTPs but risk lateral pivot if escaped" },
+      { "id": "opt_c", "label": "C", "text": "High-interaction honeypots cannot capture packet PCAPs" },
+      { "id": "opt_d", "label": "D", "text": "Low-interaction honeypots are prohibited under international cybersecurity treaties" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 24,
+    "prompt": "In an Active Directory domain, an authenticated low-privilege user issues a Kerberos TGS request for a service account that has a Service Principal Name (SPN) set. Why does the Domain Controller fulfill this request, and how is it exploited offline?",
+    "category": "Best Practices & Real-World Incidents",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Kerberoasting: Any domain user can request a TGS for any valid SPN; the ticket is encrypted with the service account's NTLM password hash, allowing the attacker to extract the encrypted ticket and brute-force the plaintext password offline without alerting the DC" },
+      { "id": "opt_b", "label": "B", "text": "Active Directory transmits all cleartext passwords over unencrypted LDAP queries by default" },
+      { "id": "opt_c", "label": "C", "text": "The TGS ticket contains the unencrypted Kerberos Master Key (krbtgt)" },
+      { "id": "opt_d", "label": "D", "text": "Service accounts automatically downgrade Kerberos to 40-bit DES keys" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 25,
+    "prompt": "An adversary executes a DCSync attack via Mimikatz ('lsadump::dcsync /domain:corp.local /user:krbtgt'). Which Active Directory replication protocol is abused, and what specific directory rights are required for this attack to succeed?",
+    "category": "Best Practices & Real-World Incidents",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Directory Replication Service Remote Protocol (MS-DRSR); requires 'Replicating Directory Changes' and 'Replicating Directory Changes All' rights to impersonate a Domain Controller and pull password hashes" },
+      { "id": "opt_b", "label": "B", "text": "Netlogon RPC Zerologon protocol; requires anonymous guest access on the domain" },
+      { "id": "opt_c", "label": "C", "text": "Group Policy Object (GPO) replication; requires local Administrator rights on client workstations" },
+      { "id": "opt_d", "label": "D", "text": "Server Message Block (SMB) file sharing; requires write access to the SYSVOL share" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 26,
+    "prompt": "In the historic 2020 SolarWinds SUNBURST cyber espionage operation, why was the malicious backdoor undetectable by standard cryptographic hash verification and signature checks on customer endpoints?",
+    "category": "Best Practices & Real-World Incidents",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "The threat actors weaponized an unpatched zero-day flaw in Intel hyperthreading architecture" },
+      { "id": "opt_b", "label": "B", "text": "Software supply chain compromise: attackers compromised the internal Orion software build pipeline, injecting the backdoor source code before compilation so the resulting malicious DLL was legitimately signed with SolarWinds' authentic certificate" },
+      { "id": "opt_c", "label": "C", "text": "The threat actors forced the Windows operating system to accept unsigned device drivers" },
+      { "id": "opt_d", "label": "D", "text": "The malware payload resided exclusively inside the customer router's hardware ROM chip" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 27,
+    "prompt": "What sophisticated industrial control evasion technique allowed the Stuxnet worm to destroy Natanz nuclear centrifuges while preventing human engineers from discovering the sabotage on SCADA monitoring screens?",
+    "category": "Best Practices & Real-World Incidents",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "It generated a continuous UDP packet flood that took Siemens Step7 software offline" },
+      { "id": "opt_b", "label": "B", "text": "It compromised Programmable Logic Controller (PLC) firmware to manipulate physical rotor speeds while intercepting sensor telemetry and replaying pre-recorded normal operational data back to the human operator SCADA console" },
+      { "id": "opt_c", "label": "C", "text": "It erased the Master Boot Records across all facility desktop computers simultaneously" },
+      { "id": "opt_d", "label": "D", "text": "It exploited a thermal sensor vulnerability to melt electric power grid transformers" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 28,
+    "prompt": "An adversary compromises an executive laptop and extracts active session tokens stored in browser memory that were originally generated using FIDO2 / WebAuthn hardware security keys. Why is the attacker able to access cloud services despite hardware MFA being enforced?",
+    "category": "Best Practices & Real-World Incidents",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "FIDO2 hardware keys can be wirelessly cloned over Bluetooth from up to 5 miles away" },
+      { "id": "opt_b", "label": "B", "text": "FIDO2 verifies the initial authentication ceremony, but cloud services issue HTTP bearer session cookies post-authentication; stealing the active session cookie allows complete session hijacking without needing the physical key again until session expiry" },
+      { "id": "opt_c", "label": "C", "text": "FIDO2 tokens store the user's master password in cleartext on the USB device" },
+      { "id": "opt_d", "label": "D", "text": "The attacker can derive the private key from the public key using a standard desktop computer" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 29,
+    "prompt": "Under the NIST SP 800-207 Zero Trust Architecture framework, what fundamental architectural paradigm replaces traditional perimeter-based security ('trust inside the firewall, distrust outside')?",
+    "category": "Best Practices & Real-World Incidents",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "All internal corporate traffic is assumed secure, with inspection applied exclusively at boundary edge firewalls" },
+      { "id": "opt_b", "label": "B", "text": "'Never Trust, Always Verify': every access request is dynamically authenticated, authorized, and encrypted per-session based on user identity, device health, and context, accompanied by network microsegmentation to eliminate lateral movement" },
+      { "id": "opt_c", "label": "C", "text": "All enterprise firewalls and VPNs are removed in favor of unencrypted public IP routing" },
+      { "id": "opt_d", "label": "D", "text": "All enterprise applications must operate on air-gapped mainframes without network connectivity" }
+    ],
+    "correctOptionId": "opt_b"
+  }
+]
