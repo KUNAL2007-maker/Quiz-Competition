@@ -305,15 +305,6 @@ export const ProfilePage: React.FC = () => {
               </div>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={handleOpenEdit}
-            className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-5 py-2.5 text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] transition-colors whitespace-nowrap cursor-pointer shrink-0 shadow-md"
-          >
-            <Edit3 className="h-4 w-4" />
-            <span>Complete Profile (100%)</span>
-          </button>
         </div>
       )}
 
