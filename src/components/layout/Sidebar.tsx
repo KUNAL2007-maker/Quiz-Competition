@@ -137,29 +137,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
           </div>
         </nav>
       </div>
-
-      {/* Bottom Environment Notice */}
-      <div className="p-4 border-t border-[#252D38]">
-        {isAdmin ? (
-          <div className="rounded-md bg-[#07090D] border border-[#252D38] p-3">
-            <p className="font-mono text-[11px] text-[#36F58A]">
-              FIREBASE · PYTHON BACKEND
-            </p>
-            <p className="mt-1 text-xs text-[#929DAC]/80 leading-relaxed">
-              Connected to Firestore & Python API gateway. Admin mode active.
-            </p>
-          </div>
-        ) : (
-          <div className="rounded-md bg-[#07090D] border border-[#252D38] p-3">
-            <p className="font-mono text-[11px] text-[#B6FF3B]">
-              NULL ORIGIN
-            </p>
-            <p className="mt-1 text-xs text-[#929DAC]/80 leading-relaxed">
-              Official Cybersecurity Quiz Competition Platform.
-            </p>
-          </div>
-        )}
-      </div>
     </div>
   );
 
