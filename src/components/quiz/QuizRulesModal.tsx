@@ -5,7 +5,6 @@ import {
   Clock,
   Hourglass,
   Lock,
-  Phone,
   Bot,
   ArrowRight,
   RotateCcw,
@@ -187,34 +186,18 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
             </div>
           </div>
 
-          {/* Rule 6 & 7: One Attempt & Winner Verification */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-3.5 flex items-start gap-3">
-              <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
-                <Clock className="h-4 w-4" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
-                  6. Strictly One Attempt
-                </h4>
-                <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  You are granted only <strong className="text-[#B6FF3B]">ONE attempt</strong>. Refreshing or leaving the exam locks your score permanently on the leaderboard.
-                </p>
-              </div>
+          {/* Rule 6: Strictly One Attempt */}
+          <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-3.5 flex items-start gap-3">
+            <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
+              <Clock className="h-4 w-4" />
             </div>
-
-            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-3.5 flex items-start gap-3">
-              <div className="mt-0.5 rounded-lg border border-[#252D38] bg-[#07090D] p-2 text-[#929DAC] shrink-0">
-                <Phone className="h-4 w-4 text-[#B6FF3B]" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
-                  7. Winner Verification
-                </h4>
-                <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  Admins verify winners via WhatsApp (<span className="font-mono text-[#F0F3F7]">{profile.whatsappNumber || 'Registered phone'}</span>) and registered Email.
-                </p>
-              </div>
+            <div className="space-y-1">
+              <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
+                6. Strictly One Attempt Only
+              </h4>
+              <p className="text-[11px] text-[#929DAC] leading-relaxed">
+                You are granted only <strong className="text-[#B6FF3B]">ONE attempt</strong> at this competition. Once started, refreshing the browser or leaving the exam locks your score permanently on the leaderboard.
+              </p>
             </div>
           </div>
         </div>
