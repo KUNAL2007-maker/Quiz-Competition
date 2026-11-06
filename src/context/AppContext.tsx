@@ -16,6 +16,7 @@ import {
   onSnapshot,
   query,
   where,
+  limit,
   serverTimestamp,
 } from 'firebase/firestore';
 import {
@@ -353,10 +354,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Real-time Firestore listener for Leaderboard + Python Ranking Engine sorting
   useEffect(() => {
     if (!isAuthReady) return;
-    const lbQuery = query(collection(db, 'leaderboard'), where('score', '>=', 0));
+    // Bound query to top 100 entries to strictly cap read quota under 300+ concurrent operators
+    const lbQuery = query(collection(db, 'leaderboard'), where('score', '>=', 0), limit(100));
     const unsubscribe = onSnapshot(
       lbQuery,
-      async (snapshot) => {
+      (snapshot) => {
         const rawEntries: LeaderboardEntry[] = snapshot.docs.map((d, i) => {
           const data = d.data();
           const compIdFromId = d.id.includes('_') ? d.id.split('_').slice(1).join('_') : undefined;
@@ -388,23 +390,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return;
         }
 
-        try {
-          const resp = await fetch('/api/python/rank-leaderboard', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ entries: rawEntries }),
-          });
-          if (resp.ok) {
-            const rankedData = await resp.json();
-            if (Array.isArray(rankedData.entries)) {
-              setLeaderboard(rankedData.entries);
-              return;
-            }
-          }
-        } catch {
-          // Fallback to local sort if Python endpoint is unreachable
-        }
-        rawEntries.sort((a, b) => b.score - a.score);
+        // Fast deterministic client-side sorting: score (desc), accuracy (desc), time (asc)
+        // Eliminates redundant serverless round-trips under high concurrent load
+        rawEntries.sort((a, b) => {
+          const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
+          if (scoreDiff !== 0) return scoreDiff;
+
+          const accDiff = Number(b.accuracyPercent || 0) - Number(a.accuracyPercent || 0);
+          if (accDiff !== 0) return accDiff;
+
+          const timeA =
+            typeof a.completionTimeSeconds === 'number' && a.completionTimeSeconds >= 0
+              ? a.completionTimeSeconds
+              : 999999999;
+          const timeB =
+            typeof b.completionTimeSeconds === 'number' && b.completionTimeSeconds >= 0
+              ? b.completionTimeSeconds
+              : 999999999;
+          return timeA - timeB;
+        });
+
         setLeaderboard(rawEntries.map((item, idx) => ({ ...item, rank: idx + 1 })));
       },
       (error) => {
