@@ -15,13 +15,20 @@ export const LeaderboardPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const filteredEntries = useMemo(() => {
+    const validCompIds = new Set(competitions.map((c) => c.id));
     return leaderboard
       .filter((entry) => {
+        const entryCompId =
+          entry.competitionId ||
+          (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');
+
+        // Only include entries belonging to active existing competitions
+        if (entryCompId && !validCompIds.has(entryCompId)) {
+          return false;
+        }
+
         // 1. Competition Filter
         if (selectedCompId !== 'all') {
-          const entryCompId =
-            entry.competitionId ||
-            (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');
           if (entryCompId !== selectedCompId) {
             return false;
           }
@@ -80,7 +87,7 @@ export const LeaderboardPage: React.FC = () => {
       }));
   }, [leaderboard, selectedCompId, categoryFilter, timePeriod, searchQuery, competitions]);
 
-  const currentUserEntry = leaderboard.find((e) => e.isCurrentUser) || null;
+  const currentUserEntry = filteredEntries.find((e) => e.isCurrentUser) || null;
 
   return (
     <div className="space-y-8">

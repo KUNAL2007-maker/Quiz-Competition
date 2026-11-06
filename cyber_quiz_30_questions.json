@@ -1,0 +1,422 @@
+[
+  {
+    "index": 0,
+    "prompt": "Which principle of the CIA Triad is violated when an unauthorized user intercepts and reads unencrypted sensitive network traffic?",
+    "category": "Cyber Security Fundamentals",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Integrity" },
+      { "id": "opt_b", "label": "B", "text": "Availability" },
+      { "id": "opt_c", "label": "C", "text": "Confidentiality" },
+      { "id": "opt_d", "label": "D", "text": "Non-repudiation" }
+    ],
+    "correctOptionId": "opt_c"
+  },
+  {
+    "index": 1,
+    "prompt": "An employee receives a fraudulent email masquerading as the company CEO requesting an urgent wire transfer. What specific form of social engineering is this?",
+    "category": "Cyber Security Fundamentals",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Spear Phishing / Whaling" },
+      { "id": "opt_b", "label": "B", "text": "Watering Hole Attack" },
+      { "id": "opt_c", "label": "C", "text": "Shoulder Surfing" },
+      { "id": "opt_d", "label": "D", "text": "Smishing" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 2,
+    "prompt": "Which standard TCP port is utilized by default for secure web traffic encrypted with TLS/HTTPS?",
+    "category": "Network Security",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Port 80" },
+      { "id": "opt_b", "label": "B", "text": "Port 443" },
+      { "id": "opt_c", "label": "C", "text": "Port 22" },
+      { "id": "opt_d", "label": "D", "text": "Port 8080" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 3,
+    "prompt": "What is the primary security objective of establishing a Virtual Private Network (VPN) connection over an untrusted public network?",
+    "category": "Network Security",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "To increase raw download bandwidth and bypass local ISP data throttling" },
+      { "id": "opt_b", "label": "B", "text": "To establish an encrypted tunnel that shields network traffic from local eavesdropping and packet inspection" },
+      { "id": "opt_c", "label": "C", "text": "To automatically eliminate all server-side SQL injection vulnerabilities" },
+      { "id": "opt_d", "label": "D", "text": "To permanently randomize the hardware MAC address of the network interface" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 4,
+    "prompt": "In Multi-Factor Authentication (MFA), which combination represents two distinct authentication factor categories?",
+    "category": "Cyber Security Fundamentals",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "A password and an ATM PIN" },
+      { "id": "opt_b", "label": "B", "text": "A fingerprint biometric scan and a facial recognition scan" },
+      { "id": "opt_c", "label": "C", "text": "A memorized passphrase and a hardware TOTP security token" },
+      { "id": "opt_d", "label": "D", "text": "A security question answer and an employee badge ID number" }
+    ],
+    "correctOptionId": "opt_c"
+  },
+  {
+    "index": 5,
+    "prompt": "What fundamental cryptographic architecture distinguishes symmetric encryption algorithms from asymmetric encryption algorithms?",
+    "category": "Cryptography",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Symmetric encryption uses the same shared key for both encryption and decryption, whereas asymmetric encryption uses a mathematically linked public-private key pair" },
+      { "id": "opt_b", "label": "B", "text": "Symmetric encryption only encrypts text files, whereas asymmetric encryption can only encrypt executable binaries" },
+      { "id": "opt_c", "label": "C", "text": "Symmetric encryption is mathematically impossible to brute-force regardless of key length" },
+      { "id": "opt_d", "label": "D", "text": "Asymmetric encryption provides higher throughput and significantly less computational overhead than symmetric ciphers" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 6,
+    "prompt": "An attacker enters `' OR '1'='1' --` into a web login form, causing the database to bypass password checks and authenticate the attacker as admin. What vulnerability was exploited?",
+    "category": "Web Application Attacks",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Cross-Site Request Forgery (CSRF)" },
+      { "id": "opt_b", "label": "B", "text": "SQL Injection (SQLi)" },
+      { "id": "opt_c", "label": "C", "text": "Cross-Site Scripting (XSS)" },
+      { "id": "opt_d", "label": "D", "text": "Server-Side Template Injection (SSTI)" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 7,
+    "prompt": "Which category of malicious software encrypts critical user files on victim endpoints and demands payment in exchange for the decryption key?",
+    "category": "Malware & Threats",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Spyware" },
+      { "id": "opt_b", "label": "B", "text": "Adware" },
+      { "id": "opt_c", "label": "C", "text": "Ransomware" },
+      { "id": "opt_d", "label": "D", "text": "Rootkit" }
+    ],
+    "correctOptionId": "opt_c"
+  },
+  {
+    "index": 8,
+    "prompt": "What is the primary role of Wireshark within a network security analyst's investigation toolkit?",
+    "category": "Security Tools",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Automated penetration testing of web application firewalls" },
+      { "id": "opt_b", "label": "B", "text": "Capturing and interactively dissecting live network packet traffic and PCAP capture files" },
+      { "id": "opt_c", "label": "C", "text": "Cracking password hashes using GPU-accelerated wordlists" },
+      { "id": "opt_d", "label": "D", "text": "Compiling shellcode into polymorphic binary payloads" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 9,
+    "prompt": "Which security countermeasure is most effective in preventing automated online brute-force attacks against operator login interfaces?",
+    "category": "Best Practices & Real-World Incidents",
+    "points": 100,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Implementing progressive rate limiting, account lockout thresholds, and CAPTCHA challenges" },
+      { "id": "opt_b", "label": "B", "text": "Storing user passwords as unpadded MD5 hashes in the database" },
+      { "id": "opt_c", "label": "C", "text": "Masking password characters with dots in the client-side browser DOM" },
+      { "id": "opt_d", "label": "D", "text": "Disabling TLS certificate validation on external login endpoints" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 10,
+    "prompt": "In enterprise network defense architecture, what is the primary operational purpose of a Demilitarized Zone (DMZ)?",
+    "category": "Network Security",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "To isolate public-facing internet services (web/proxy/DNS) in a controlled buffer zone between untrusted external networks and the protected internal LAN" },
+      { "id": "opt_b", "label": "B", "text": "To store offline cryptographic root certification authority private keys" },
+      { "id": "opt_c", "label": "C", "text": "To bypass all stateful firewall filtering rules for internal administrative servers" },
+      { "id": "opt_d", "label": "D", "text": "To automatically bridge physical layer ethernet packets across disparate geographic subnets" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 11,
+    "prompt": "An attacker injects malicious JavaScript into an application forum post. When other users view the thread, the payload executes in their browser context and steals their session cookies. What attack type is this?",
+    "category": "Web Application Attacks",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Reflected Cross-Site Scripting (Reflected XSS)" },
+      { "id": "opt_b", "label": "B", "text": "Stored / Persistent Cross-Site Scripting (Stored XSS)" },
+      { "id": "opt_c", "label": "C", "text": "DOM-based Cross-Site Scripting (DOM XSS)" },
+      { "id": "opt_d", "label": "D", "text": "Server-Side Request Forgery (SSRF)" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 12,
+    "prompt": "How does an Anti-CSRF token reliably protect an application against Cross-Site Request Forgery vulnerabilities?",
+    "category": "Web Application Attacks",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "By encrypting the entire HTTP request body with the client browser's TLS public key" },
+      { "id": "opt_b", "label": "B", "text": "By embedding a cryptographically random, user-specific secret into state-changing requests that a third-party origin cannot read due to Same-Origin Policy" },
+      { "id": "opt_c", "label": "C", "text": "By converting all incoming HTTP POST requests into idempotent HTTP GET queries" },
+      { "id": "opt_d", "label": "D", "text": "By blocking any browser that does not have JavaScript completely disabled" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 13,
+    "prompt": "Why are standard cryptographic hash functions like SHA-256 classified as 'one-way' functions?",
+    "category": "Cryptography",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Because they use private keys that are purged from memory immediately after digest calculation" },
+      { "id": "opt_b", "label": "B", "text": "Because it is computationally infeasible to invert the output digest and reconstruct the original input preimage (pre-image resistance)" },
+      { "id": "opt_c", "label": "C", "text": "Because they can only process network packets moving in the outbound direction" },
+      { "id": "opt_d", "label": "D", "text": "Because the resulting hash digest expands dynamically with the size of the original plaintext" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 14,
+    "prompt": "When storing password hashes in a database, what is the primary defensive benefit of appending a unique cryptographic salt to each user's password prior to hashing?",
+    "category": "Cryptography",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "It compresses the hash string to minimize database indexing overhead" },
+      { "id": "opt_b", "label": "B", "text": "It neutralizes precomputed rainbow table attacks and guarantees identical passwords produce completely different hash digests" },
+      { "id": "opt_c", "label": "C", "text": "It allows administrators to reverse and decrypt forgotten user passwords upon verified identity request" },
+      { "id": "opt_d", "label": "D", "text": "It automatically authenticates the user across federated OAuth identity providers" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 15,
+    "prompt": "An adversary broadcasts falsified ARP reply messages across a local subnet to map the default gateway IP to their own MAC address. What attack is being conducted?",
+    "category": "Network Security",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "DNS Amplification Attack" },
+      { "id": "opt_b", "label": "B", "text": "ARP Cache Poisoning / Man-in-the-Middle (MitM)" },
+      { "id": "opt_c", "label": "C", "text": "BGP Route Hijacking" },
+      { "id": "opt_d", "label": "D", "text": "SYN Flood Exhaustion" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 16,
+    "prompt": "In the Nmap network scanner, what does the `-sS` flag specify, and why is it widely favored by security practitioners?",
+    "category": "Security Tools",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Script Scan; triggers all invasive vulnerability evaluation modules" },
+      { "id": "opt_b", "label": "B", "text": "TCP SYN Stealth Scan; sends SYN packets without completing the 3-way TCP handshake (half-open), making it fast and less likely to trigger basic application logging" },
+      { "id": "opt_c", "label": "C", "text": "Subnet Sweep; sends ICMP echo requests to all 254 host addresses simultaneously" },
+      { "id": "opt_d", "label": "D", "text": "Slow Scan; adds a 10-second delay between probe packets to avoid firewall detection" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 17,
+    "prompt": "What key architectural behavior distinguishes a network Worm from a standard Trojan Horse or Virus?",
+    "category": "Malware & Threats",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "A worm requires human interaction (e.g. executing an attachment) to execute its payload" },
+      { "id": "opt_b", "label": "B", "text": "A worm is self-replicating and autonomously propagates across network vulnerabilities without needing a host file or user intervention" },
+      { "id": "opt_c", "label": "C", "text": "A worm executes exclusively within the BIOS firmware of legacy endpoints" },
+      { "id": "opt_d", "label": "D", "text": "A worm never communicates over TCP/IP protocol stacks" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 18,
+    "prompt": "Which detection technique enables modern Endpoint Detection & Response (EDR) solutions to identify sophisticated keylogger malware?",
+    "category": "Malware & Threats",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Monitoring DNS lookup volume for local loopback addresses" },
+      { "id": "opt_b", "label": "B", "text": "Behavioral API heuristics detecting unauthorized user-space keyboard hook registrations (such as SetWindowsHookEx) and raw input device polling" },
+      { "id": "opt_c", "label": "C", "text": "Scanning temporary browser directories for expired authentication cookies" },
+      { "id": "opt_d", "label": "D", "text": "Measuring CPU clock cycle frequency during system boot" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 19,
+    "prompt": "What is the primary operational objective of deploying a network Honeypot in an enterprise security operations environment?",
+    "category": "Security Tools",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "To cache external DNS records and reduce latency for employee web browsing" },
+      { "id": "opt_b", "label": "B", "text": "To act as an intentionally attractive decoy system with no legitimate business use, enabling early detection of intrusion attempts and adversary TTP reconnaissance" },
+      { "id": "opt_c", "label": "C", "text": "To store encrypted tape backups of core Active Directory schemas" },
+      { "id": "opt_d", "label": "D", "text": "To enforce zero-trust identity federation across public SaaS providers" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 20,
+    "prompt": "An attacker constructs a fabricated persona as an external compliance auditor to manipulate an employee into sharing confidential database credentials. Which social engineering tactic is this?",
+    "category": "Best Practices & Real-World Incidents",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Pretexting" },
+      { "id": "opt_b", "label": "B", "text": "Baiting" },
+      { "id": "opt_c", "label": "C", "text": "Quid Pro Quo" },
+      { "id": "opt_d", "label": "D", "text": "Tailgating" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 21,
+    "prompt": "What precisely constitutes a 'Zero-Day' vulnerability in cybersecurity terminology?",
+    "category": "Malware & Threats",
+    "points": 150,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "A vulnerability that requires zero CPU cycles to weaponize across remote hosts" },
+      { "id": "opt_b", "label": "B", "text": "A security flaw that is actively exploitable before the software vendor is aware of it or has released an official patch" },
+      { "id": "opt_c", "label": "C", "text": "A software bug that automatically expires and fixes itself within 24 hours of discovery" },
+      { "id": "opt_d", "label": "D", "text": "A legacy vulnerability that has been cataloged in the NIST NVD for more than five years" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 22,
+    "prompt": "On which fundamental mathematical problem does the asymmetric security of the standard RSA cryptosystem rely?",
+    "category": "Cryptography",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "The computational difficulty of factoring the product of two large prime numbers (integer factorization problem)" },
+      { "id": "opt_b", "label": "B", "text": "The discrete logarithm problem over finite Galois fields" },
+      { "id": "opt_c", "label": "C", "text": "The shortest vector problem in multi-dimensional lattice structures" },
+      { "id": "opt_d", "label": "D", "text": "The invertibility of non-linear substitution permutation networks" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 23,
+    "prompt": "When implementing the Advanced Encryption Standard (AES), why is Galois/Counter Mode (AES-GCM) strongly preferred over legacy modes like AES-CBC or AES-ECB?",
+    "category": "Cryptography",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "AES-GCM provides Authenticated Encryption with Associated Data (AEAD), combining high-speed confidentiality with cryptographic integrity verification to eliminate padding oracle attacks" },
+      { "id": "opt_b", "label": "B", "text": "AES-GCM produces identical ciphertext blocks for identical plaintext inputs, simplifying caching" },
+      { "id": "opt_c", "label": "C", "text": "AES-GCM completely eliminates the need for an Initialization Vector (IV) or nonce" },
+      { "id": "opt_d", "label": "D", "text": "AES-GCM uses 512-bit symmetric keys natively accelerated by 32-bit microcontrollers" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 24,
+    "prompt": "How does a Stateful Packet Inspection (SPI) firewall identify and mitigate out-of-sequence TCP ACK/SYN injection attacks compared to a simple stateless packet filter?",
+    "category": "Network Security",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "It inspects only Layer 3 IP headers and rejects any packet with an odd destination port" },
+      { "id": "opt_b", "label": "B", "text": "It tracks dynamic connection state tables, validating TCP sequence and acknowledgment numbers against the established handshake lifecycle" },
+      { "id": "opt_c", "label": "C", "text": "It terminates and re-encrypts all packet payloads into UDP datagrams before routing" },
+      { "id": "opt_d", "label": "D", "text": "It discards any packet whose payload contains ASCII characters" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 25,
+    "prompt": "Why are Parameterized Queries (Prepared Statements) universally regarded as the definitive architectural remediation against SQL Injection vulnerabilities?",
+    "category": "Web Application Attacks",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Prepared statements execute SQL commands in a dedicated Python web worker" },
+      { "id": "opt_b", "label": "B", "text": "The database engine pre-compiles the SQL query structure, ensuring user inputs are treated strictly as data literals rather than executable commands" },
+      { "id": "opt_c", "label": "C", "text": "Prepared statements automatically encrypt all database columns using transparent table encryption" },
+      { "id": "opt_d", "label": "D", "text": "Prepared statements reject any incoming HTTP request that exceeds 128 bytes in length" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 26,
+    "prompt": "The 2017 global WannaCry ransomware outbreak achieved catastrophic lateral network propagation by weaponizing which critical vulnerability and exploit?",
+    "category": "Malware & Threats",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "Heartbleed (CVE-2014-0160) OpenSSL buffer over-read" },
+      { "id": "opt_b", "label": "B", "text": "EternalBlue (MS17-010) exploiting Microsoft Server Message Block 1.0 (SMBv1)" },
+      { "id": "opt_c", "label": "C", "text": "Log4Shell (CVE-2021-44228) Apache Log4j JNDI injection" },
+      { "id": "opt_d", "label": "D", "text": "Shellshock (CVE-2014-6271) GNU Bash command injection" }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 27,
+    "prompt": "During live memory analysis on Kali Linux using the Volatility forensics framework, which command is used to inspect active process IDs and hierarchical tree structures from raw RAM dumps?",
+    "category": "Security Tools",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "windows.pslist / windows.pstree" },
+      { "id": "opt_b", "label": "B", "text": "iptables -L -n -v" },
+      { "id": "opt_c", "label": "C", "text": "airmon-ng start wlan0" },
+      { "id": "opt_d", "label": "D", "text": "hashcat -m 1000 -a 0" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 28,
+    "prompt": "In the landmark 2020 SolarWinds SUNBURST cyber espionage operation, what sophisticated attack vector was executed by the threat actors?",
+    "category": "Best Practices & Real-World Incidents",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "A software supply chain compromise where attackers infiltrated the Orion build pipeline to inject backdoored source code into legitimately signed software updates" },
+      { "id": "opt_b", "label": "B", "text": "A mass SMS phishing blitz targeting SolarWinds executive cell phones for corporate VPN credentials" },
+      { "id": "opt_c", "label": "C", "text": "A 2.5 Tbps distributed denial of service attack overwhelming Authoritative DNS roots" },
+      { "id": "opt_d", "label": "D", "text": "An unauthorized theft of Let's Encrypt master private root signing keys" }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 29,
+    "prompt": "In an Active Directory enterprise domain compromise, what fundamental operational difference distinguishes a 'Pass-the-Hash' (PtH) attack from a 'Golden Ticket' attack?",
+    "category": "Best Practices & Real-World Incidents",
+    "points": 200,
+    "timeLimitSeconds": 30,
+    "options": [
+      { "id": "opt_a", "label": "A", "text": "PtH targets Linux PAM modules, whereas Golden Tickets only function on macOS Directory services" },
+      { "id": "opt_b", "label": "B", "text": "PtH leverages a stolen NTLM hash to authenticate as a specific user without cracking plaintext, whereas a Golden Ticket forges a Kerberos TGT using the compromised KRBTGT master key, granting arbitrary, undetectable domain-wide persistence" },
+      { "id": "opt_c", "label": "C", "text": "PtH requires physical access to a YubiKey hardware token, whereas Golden Tickets require smart card PINs" },
+      { "id": "opt_d", "label": "D", "text": "PtH requires Domain Admin clearance, whereas Golden Tickets can be generated by unauthenticated guest users" }
+    ],
+    "correctOptionId": "opt_b"
+  }
+]

@@ -156,6 +156,35 @@ export const AdminPage: React.FC = () => {
     }
   }, [isAdmin]);
 
+  const filteredLeaderboard = useMemo(() => {
+    const validCompIds = new Set(competitions.map((c) => c.id));
+    return leaderboard
+      .filter((entry) => {
+        const entryCompId =
+          entry.competitionId ||
+          (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');
+        return Boolean(entryCompId && validCompIds.has(entryCompId));
+      })
+      .map((entry, idx) => ({
+        ...entry,
+        rank: idx + 1,
+      }));
+  }, [leaderboard, competitions]);
+
+  const handleDeleteLeaderboardEntry = async (entryId: string) => {
+    try {
+      await deleteDoc(doc(db, 'leaderboard', entryId));
+      try {
+        await deleteDoc(doc(db, 'winner_contacts', entryId));
+      } catch {
+        // ignore
+      }
+      addToast('Record Purged', 'Leaderboard record removed from directory.', 'info');
+    } catch (err) {
+      addToast('Deletion Error', err instanceof Error ? err.message : 'Unable to remove record.', 'alert');
+    }
+  };
+
   // If user is not authorized administrator, show access denied
   if (!isAdmin) {
     return (
@@ -1101,11 +1130,11 @@ export const AdminPage: React.FC = () => {
             </div>
           </div>
           <span className="font-mono text-xs text-[#929DAC]">
-            {leaderboard.length} RECORDED COMPETITORS
+            {filteredLeaderboard.length} RECORDED COMPETITORS
           </span>
         </div>
 
-        {leaderboard.length === 0 ? (
+        {filteredLeaderboard.length === 0 ? (
           <div className="rounded-lg border border-[#252D38] bg-[#07090D] p-8 text-center space-y-2">
             <Trophy className="mx-auto h-8 w-8 text-[#929DAC]/50" />
             <p className="text-sm font-semibold text-[#F0F3F7]">No competition scores recorded yet</p>
@@ -1127,7 +1156,7 @@ export const AdminPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#252D38]">
-                {leaderboard.map((entry) => {
+                {filteredLeaderboard.map((entry) => {
                   const contact = winnerContacts[entry.participantId] || {};
                   const phone = contact.whatsappNumber || entry.whatsappNumber || '';
                   const cleanPhone = phone.replace(/\D/g, '');
@@ -1207,6 +1236,15 @@ export const AdminPage: React.FC = () => {
                               <span>Email</span>
                             </a>
                           )}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLeaderboardEntry(entry.participantId)}
+                            className="inline-flex items-center gap-1 rounded bg-[#FF365B]/10 border border-[#FF365B]/30 px-2 py-1 text-[11px] font-medium text-[#FF365B] hover:bg-[#FF365B]/20 transition-colors cursor-pointer"
+                            title="Purge record"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            <span>Purge</span>
+                          </button>
                         </div>
                       </td>
                     </tr>

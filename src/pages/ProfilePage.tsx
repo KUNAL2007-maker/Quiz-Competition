@@ -157,11 +157,12 @@ export const ProfilePage: React.FC = () => {
       incorrectCount?: number;
       rank?: number;
     }> = [];
+    const validCompIds = new Set(competitions.map((c) => c.id));
     const seenCompIds = new Set<string>();
 
     // 1. Existing results in state
     results.forEach((res) => {
-      if (!res.competitionId || seenCompIds.has(res.competitionId)) return;
+      if (!res.competitionId || !validCompIds.has(res.competitionId) || seenCompIds.has(res.competitionId)) return;
       seenCompIds.add(res.competitionId);
 
       const matchComp = competitions.find((c) => c.id === res.competitionId);
@@ -195,7 +196,7 @@ export const ProfilePage: React.FC = () => {
           : '');
       const isMine =
         l.isCurrentUser || (currentUser && l.participantId.startsWith(currentUser.uid));
-      if (isMine && compId && !seenCompIds.has(compId)) {
+      if (isMine && compId && validCompIds.has(compId) && !seenCompIds.has(compId)) {
         seenCompIds.add(compId);
         const matchComp = competitions.find((c) => c.id === compId);
         list.push({
@@ -216,6 +217,7 @@ export const ProfilePage: React.FC = () => {
     if (
       quizSession?.isSubmitted &&
       quizSession?.competitionId &&
+      validCompIds.has(quizSession.competitionId) &&
       !seenCompIds.has(quizSession.competitionId)
     ) {
       const compId = quizSession.competitionId;
