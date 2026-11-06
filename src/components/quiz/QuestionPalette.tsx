@@ -1,4 +1,5 @@
 import React from 'react';
+import { Lock } from 'lucide-react';
 import { QuizQuestion } from '../../types';
 
 interface QuestionPaletteProps {
@@ -18,7 +19,7 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
 }) => {
   return (
     <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-5">
-      <div className="mb-4 flex items-center justify-between border-b border-[#252D38] pb-3">
+      <div className="mb-3 flex items-center justify-between border-b border-[#252D38] pb-3">
         <h3 className="font-display text-sm font-semibold text-[#F0F3F7]">
           Question Navigator
         </h3>
@@ -27,31 +28,31 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
         </span>
       </div>
 
-      {/* Accessible Legend (state is not communicated through color alone) */}
-      <div className="mb-4 grid grid-cols-2 gap-2 text-xs text-[#929DAC]">
-        <div className="flex items-center gap-2">
+      {/* Forward-only Notice */}
+      <div className="mb-3.5 flex items-center gap-2 rounded-md border border-[#E6B450]/30 bg-[#E6B450]/10 px-2.5 py-1.5 text-[11px] font-mono text-[#E6B450]">
+        <Lock className="h-3.5 w-3.5 shrink-0" />
+        <span>Strict Forward-Only · Returning Locked</span>
+      </div>
+
+      {/* Accessible Legend */}
+      <div className="mb-4 grid grid-cols-3 gap-2 text-[11px] text-[#929DAC]">
+        <div className="flex items-center gap-1.5">
           <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#B6FF3B] bg-[#B6FF3B]/15 font-mono text-[10px] font-bold text-[#B6FF3B]">
             •
           </span>
           <span>Current</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#36F58A]/60 bg-[#111722] font-mono text-[10px] font-bold text-[#36F58A]">
-            ✓
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#252D38] bg-[#111722] font-mono text-[10px] text-[#929DAC]">
+            🔒
           </span>
-          <span>Answered</span>
+          <span>Locked</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#FF365B]/70 bg-[#111722] font-mono text-[10px] font-bold text-[#FF365B]">
-            !
-          </span>
-          <span>Review</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#252D38] bg-[#07090D] font-mono text-[10px] text-[#929DAC]">
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#252D38] bg-[#07090D] font-mono text-[10px] text-[#929DAC]/50">
             -
           </span>
-          <span>Unanswered</span>
+          <span>Upcoming</span>
         </div>
       </div>
 
@@ -66,43 +67,49 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
         <div className="grid grid-cols-5 gap-2">
           {questions.map((q, idx) => {
             const isCurrent = idx === currentIndex;
+            const isPast = idx < currentIndex;
+            const isFuture = idx > currentIndex;
             const isAnswered = Boolean(selectedAnswers[q.id]);
-            const isReview = Boolean(markedForReview[q.id]);
 
-            let statusSymbol = '';
-            let statusAria = 'Unanswered';
-            let btnStyle =
-              'border-[#252D38] bg-[#07090D] text-[#929DAC] hover:border-[#929DAC]';
+            let statusSymbol = '-';
+            let statusAria = 'Upcoming question (locked)';
+            let btnStyle = 'border-[#252D38]/50 bg-[#07090D] text-[#929DAC]/40 cursor-not-allowed opacity-50';
+            let isDisabled = true;
 
             if (isCurrent) {
               statusSymbol = '•';
               statusAria = 'Current question';
-              btnStyle =
-                'border-[#B6FF3B] bg-[#B6FF3B]/15 text-[#B6FF3B] font-bold';
-            } else if (isReview) {
-              statusSymbol = '!';
-              statusAria = 'Marked for review';
-              btnStyle =
-                'border-[#FF365B]/80 bg-[#111722] text-[#FF365B] font-semibold';
-            } else if (isAnswered) {
-              statusSymbol = '✓';
-              statusAria = 'Answered';
-              btnStyle =
-                'border-[#36F58A]/60 bg-[#111722] text-[#36F58A] font-semibold';
+              btnStyle = 'border-[#B6FF3B] bg-[#B6FF3B]/15 text-[#B6FF3B] font-bold ring-1 ring-[#B6FF3B]/50';
+              isDisabled = false;
+            } else if (isPast) {
+              statusSymbol = isAnswered ? '✓' : '🔒';
+              statusAria = isAnswered
+                ? 'Answered and locked (returning disabled)'
+                : 'Locked (returning disabled)';
+              btnStyle = 'border-[#252D38] bg-[#111722]/60 text-[#929DAC]/60 cursor-not-allowed opacity-60';
+              isDisabled = true;
+            } else if (isFuture) {
+              statusSymbol = '-';
+              statusAria = 'Upcoming question (locked)';
+              btnStyle = 'border-[#252D38]/50 bg-[#07090D] text-[#929DAC]/40 cursor-not-allowed opacity-50';
+              isDisabled = true;
             }
 
             return (
               <button
                 key={q.id}
                 type="button"
-                onClick={() => onSelectIndex(idx)}
+                disabled={isDisabled}
+                onClick={() => {
+                  if (!isDisabled) onSelectIndex(idx);
+                }}
                 aria-label={`Question ${idx + 1}: ${statusAria}`}
                 aria-current={isCurrent ? 'step' : undefined}
-                className={`flex flex-col items-center justify-center rounded-md border py-2 px-1 font-mono text-xs transition-colors tabular-nums cursor-pointer ${btnStyle}`}
+                className={`flex flex-col items-center justify-center rounded-md border py-2 px-1 font-mono text-xs transition-colors tabular-nums ${btnStyle}`}
               >
                 <span>{String(idx + 1).padStart(2, '0')}</span>
                 <span className="text-[9px] leading-none mt-0.5" aria-hidden="true">
-                  {statusSymbol || '-'}
+                  {statusSymbol}
                 </span>
               </button>
             );

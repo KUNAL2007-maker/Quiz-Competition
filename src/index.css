@@ -91,3 +91,12 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #3A4656;
 }
+
+
+/* Anti-Cheat Print & Screenshot Capture Protection */
+@media print {
+  body, html, #root {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}

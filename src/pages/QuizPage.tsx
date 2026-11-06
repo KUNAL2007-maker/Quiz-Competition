@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom';
 import {
   Terminal,
+  ShieldAlert,
   Flag,
   ChevronLeft,
   ChevronRight,
@@ -44,6 +45,7 @@ export const QuizPage: React.FC = () => {
     toggleMarkForReview,
     setCurrentQuestionIndex,
     submitQuizSession,
+    submitDisqualifiedQuizSession,
     addToast,
   } = useAppContext();
 
@@ -127,6 +129,25 @@ export const QuizPage: React.FC = () => {
     quizSession.isSubmitted,
     currentUser,
   ]);
+
+
+  // Anti-Cheat & Tab-Switching Proctoring States
+  const [tabSwitchWarnings, setTabSwitchWarnings] = useState<number>(0);
+  const [activeTabWarningModal, setActiveTabWarningModal] = useState<number | null>(null);
+  const [isDisqualified, setIsDisqualified] = useState<boolean>(false);
+  const [disqualificationReason, setDisqualificationReason] = useState<string>('');
+  const lastTabSwitchViolationRef = useRef<number>(0);
+
+  // Check stored disqualification status on load
+  useEffect(() => {
+    if (currentUser && activeCompId) {
+      const dqReason = localStorage.getItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`);
+      if (dqReason) {
+        setIsDisqualified(true);
+        setDisqualificationReason(dqReason);
+      }
+    }
+  }, [currentUser, activeCompId]);
 
   // Active quiz session state: always false initially so every entrance consistently shows warnings then countdown!
   const [isQuizActive, setIsQuizActive] = useState<boolean>(false);
@@ -246,6 +267,157 @@ export const QuizPage: React.FC = () => {
     activeCompetition?.perQuestionTimerSeconds,
   ]);
 
+
+  // Anti-Cheat 1: Block Copy, Cut, Paste, Drag, and Context Menu
+  useEffect(() => {
+    if (!isQuizActive || quizSession.isSubmitted || isDisqualified) return;
+
+    const preventCopyCutPaste = (e: ClipboardEvent) => {
+      e.preventDefault();
+      addToast('Action Blocked', 'Copying, cutting, and pasting are disabled during the examination.', 'alert');
+    };
+
+    const preventContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      addToast('Action Blocked', 'Right-click context menu is disabled during the examination.', 'alert');
+    };
+
+    const preventDrag = (e: DragEvent) => {
+      e.preventDefault();
+    };
+
+    document.addEventListener('copy', preventCopyCutPaste);
+    document.addEventListener('cut', preventCopyCutPaste);
+    document.addEventListener('paste', preventCopyCutPaste);
+    document.addEventListener('contextmenu', preventContextMenu);
+    document.addEventListener('dragstart', preventDrag);
+
+    return () => {
+      document.removeEventListener('copy', preventCopyCutPaste);
+      document.removeEventListener('cut', preventCopyCutPaste);
+      document.removeEventListener('paste', preventCopyCutPaste);
+      document.removeEventListener('contextmenu', preventContextMenu);
+      document.removeEventListener('dragstart', preventDrag);
+    };
+  }, [isQuizActive, quizSession.isSubmitted, isDisqualified, addToast]);
+
+  // Anti-Cheat 2: Block Screenshot Key Combinations, Print, and DevTools
+  useEffect(() => {
+    if (!isQuizActive || quizSession.isSubmitted || isDisqualified) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // PrintScreen Key
+      if (e.key === 'PrintScreen' || e.keyCode === 44) {
+        e.preventDefault();
+        try {
+          navigator.clipboard?.writeText('').catch(() => {});
+        } catch {}
+        addToast('Screenshot Blocked', 'Taking screenshots is strictly prohibited during the exam.', 'alert');
+        return;
+      }
+
+      // Windows Snipping tool / Screenshot combinations: Win+Shift+S / Cmd+Shift+3,4,5
+      if (e.shiftKey && (e.metaKey || e.ctrlKey) && (e.key === 'S' || e.key === 's')) {
+        e.preventDefault();
+        addToast('Screenshot Blocked', 'Screenshot shortcuts are disabled.', 'alert');
+        return;
+      }
+
+      if (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key)) {
+        e.preventDefault();
+        addToast('Screenshot Blocked', 'Screenshot shortcuts are disabled.', 'alert');
+        return;
+      }
+
+      // Print Command: Ctrl+P / Cmd+P
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        addToast('Print Blocked', 'Printing is disabled during the examination.', 'alert');
+        return;
+      }
+
+      // Developer Tools: F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+      if (
+        e.key === 'F12' ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key))
+      ) {
+        e.preventDefault();
+        addToast('DevTools Blocked', 'Developer inspection tools are strictly prohibited.', 'alert');
+        return;
+      }
+
+      // Save Page / View Source: Ctrl+S / Ctrl+U
+      if ((e.ctrlKey || e.metaKey) && ['s', 'u'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+        return;
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'PrintScreen' || e.keyCode === 44) {
+        try {
+          navigator.clipboard?.writeText('').catch(() => {});
+        } catch {}
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [isQuizActive, quizSession.isSubmitted, isDisqualified, addToast]);
+
+  // Anti-Cheat 3: Tab Switching Detection & Immediate Disqualification on >2 warnings
+  useEffect(() => {
+    if (!isQuizActive || quizSession.isSubmitted || isDisqualified) return;
+
+    const handleTabSwitchEvent = () => {
+      const now = Date.now();
+      // Debounce window blur and visibilitychange occurring simultaneously
+      if (now - lastTabSwitchViolationRef.current < 2000) {
+        return;
+      }
+      lastTabSwitchViolationRef.current = now;
+
+      setTabSwitchWarnings((prev) => {
+        const next = prev + 1;
+        if (next > 2) {
+          // Exceeded 2 warnings -> immediate disqualification with score 0
+          setIsDisqualified(true);
+          setIsQuizActive(false);
+          const reason = 'Exceeded maximum permitted tab-switching infractions (&gt; 2 warnings). Disqualified with score 0.';
+          setDisqualificationReason(reason);
+          submitDisqualifiedQuizSession(reason);
+          return next;
+        } else {
+          setActiveTabWarningModal(next);
+          return next;
+        }
+      });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden || document.visibilityState === 'hidden') {
+        handleTabSwitchEvent();
+      }
+    };
+
+    const handleWindowBlur = () => {
+      handleTabSwitchEvent();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, [isQuizActive, quizSession.isSubmitted, isDisqualified, submitDisqualifiedQuizSession]);
+
   // Pure countdown ticker: ticks every 1000ms and decrements questionSecondsLeft towards 0
   useEffect(() => {
     if (
@@ -343,13 +515,66 @@ export const QuizPage: React.FC = () => {
     }
   }, [countdownValue, activeCompetition, questionTimeLimit, startQuizSession, addToast]);
 
-  const handleSelectQuestionIndex = useCallback(
+    const handleSelectQuestionIndex = useCallback(
     (idx: number) => {
-      recordQuestionTime(quizSession.currentQuestionIndex);
-      setCurrentQuestionIndex(idx);
+      if (idx <= quizSession.currentQuestionIndex) {
+        addToast('Locked Question', 'Strict Forward Progression: You cannot return to previous questions.', 'alert');
+      } else {
+        addToast('Sequential Progression', 'Questions must be answered sequentially. Use "Next" to advance.', 'alert');
+      }
     },
-    [quizSession.currentQuestionIndex, recordQuestionTime, setCurrentQuestionIndex]
+    [quizSession.currentQuestionIndex, addToast]
   );
+
+
+  // Proctoring Disqualification View: candidate scored 0
+  if (isDisqualified) {
+    return (
+      <div className="mx-auto max-w-2xl py-12 px-4 sm:px-6">
+        <div className="rounded-2xl border border-[#FF365B]/60 bg-[#0C1017] p-8 text-center space-y-6 shadow-2xl">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl border border-[#FF365B]/40 bg-[#FF365B]/15 text-[#FF365B]">
+            <ShieldAlert className="h-10 w-10" />
+          </div>
+          <div>
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#FF365B]">
+              PROCTORING ENFORCEMENT ACTION
+            </span>
+            <h1 className="mt-2 font-display text-2xl sm:text-3xl font-bold text-[#F0F3F7]">
+              EXAMINATION TERMINATED · CANDIDATE DISQUALIFIED
+            </h1>
+            <p className="mt-2 text-xs text-[#929DAC] leading-relaxed max-w-md mx-auto">
+              {disqualificationReason || 'Exceeded maximum permitted window/tab switching infractions (> 2 warnings).'}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-[#FF365B]/30 bg-[#FF365B]/5 p-6 space-y-2 font-mono">
+            <div className="text-xs text-[#929DAC] uppercase tracking-wider">OFFICIAL SCORE RECORDED</div>
+            <div className="text-5xl font-black text-[#FF365B] tracking-tight">0 PTS</div>
+            <p className="text-[11px] text-[#929DAC] pt-2">
+              Status: Disqualified. Result permanently logged to scoreboard.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-[#252D38]">
+            <button
+              type="button"
+              onClick={() => navigate('/leaderboard')}
+              className="w-full sm:w-auto rounded-lg border border-[#252D38] bg-[#111722] px-6 py-2.5 font-mono text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] transition-colors cursor-pointer"
+            >
+              View Leaderboard
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="w-full sm:w-auto rounded-lg bg-[#B6FF3B] px-6 py-2.5 font-mono text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer"
+            >
+              Return to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Guard 1: User must be signed in with Google or tournament credentials
   if (!currentUser) {
@@ -529,7 +754,64 @@ export const QuizPage: React.FC = () => {
 
   // Active Quiz Environment (Renders ONLY after 3-2-1 countdown finishes)
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 select-none">
+      {/* Tab Switch Warning Modal Dialog */}
+      {activeTabWarningModal !== null && (
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#07090D]/95 p-4 backdrop-blur-md"
+        >
+          <div className="relative w-full max-w-lg rounded-2xl border border-[#FF365B]/60 bg-[#0C1017] p-6 shadow-2xl">
+            <div className="flex items-center gap-3 border-b border-[#252D38] pb-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#FF365B]/40 bg-[#FF365B]/15 text-[#FF365B]">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#FF365B]">
+                  PROCTORING INFRACTION DETECTED
+                </span>
+                <h3 className="font-display text-lg font-bold text-[#F0F3F7]">
+                  {activeTabWarningModal === 1
+                    ? 'WARNING 1 OF 2: TAB SWITCHING DETECTED'
+                    : 'CRITICAL FINAL WARNING (2 OF 2): LAST CHANCE'}
+                </h3>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-3 font-mono text-xs">
+              <div className="rounded-lg border border-[#FF365B]/30 bg-[#FF365B]/5 p-3.5 text-[#F0F3F7] leading-relaxed">
+                {activeTabWarningModal === 1 ? (
+                  <>
+                    You navigated away from the exam window. Tab switching, minimizing the browser, or opening other applications is strictly prohibited.
+                    <div className="mt-2 text-[#E6B450] font-semibold">
+                      You have 1 warning remaining. A 3rd infraction will immediately terminate the exam with a score of 0.
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    CRITICAL: You have navigated away from the exam tab 2 times. This is your LAST AND FINAL WARNING.
+                    <div className="mt-2 text-[#FF365B] font-bold">
+                      Any further tab switch (&gt; 2 warnings) will ON THE SPOT DISQUALIFY YOU, lock your quiz, and record your score as ZERO (0) on the scoreboard.
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setActiveTabWarningModal(null)}
+                className="inline-flex items-center gap-2 rounded-lg bg-[#B6FF3B] px-5 py-2.5 font-mono text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer"
+              >
+                <span>I Understand & Acknowledge (Return to Question)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Focused Quiz Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-lg border border-[#252D38] bg-[#0C1017] p-5">
         <div className="flex items-center gap-3">
@@ -765,20 +1047,12 @@ export const QuizPage: React.FC = () => {
                 })}
               </div>
 
-              {/* Previous & Next Navigation */}
+              {/* Forward-Only Navigation (Previous strictly disabled to prevent timer reset) */}
               <div className="flex items-center justify-between border-t border-[#252D38] pt-5">
-                <button
-                  type="button"
-                  disabled={quizSession.currentQuestionIndex <= 0}
-                  onClick={() => {
-                    recordQuestionTime(quizSession.currentQuestionIndex);
-                    setCurrentQuestionIndex(quizSession.currentQuestionIndex - 1);
-                  }}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] disabled:opacity-40 cursor-pointer"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span>Previous</span>
-                </button>
+                <div className="inline-flex items-center gap-2 rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 font-mono text-[11px] text-[#929DAC]">
+                  <Lock className="h-3.5 w-3.5 text-[#E6B450]" />
+                  <span>Strict Forward Progression · Returning Disabled</span>
+                </div>
 
                 {quizSession.currentQuestionIndex >= questions.length - 1 ? (
                   <button

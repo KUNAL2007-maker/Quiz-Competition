@@ -72,6 +72,7 @@ interface AppContextValue {
   toggleMarkForReview: (questionId: string) => void;
   setCurrentQuestionIndex: (index: number) => void;
   submitQuizSession: (customTimeTakenSec?: number) => Promise<void>;
+  submitDisqualifiedQuizSession: (reason?: string) => Promise<void>;
   resetQuizSession: () => void;
 
   // Operator Profile
@@ -1005,6 +1006,139 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [questions, quizSession, currentUser, selectedCompetition, profile, isSubmitting, addToast]);
 
+  const submitDisqualifiedQuizSession = useCallback(
+    async (reason: string = 'Disqualified for proctoring violations (> 2 tab switch warnings)') => {
+      setIsSubmitting(true);
+      try {
+        setQuizSession((prev) => ({
+          ...prev,
+          isSubmitted: true,
+          submittedAt: new Date().toISOString(),
+        }));
+
+        const activeCompId = selectedCompetition?.id || quizSession.competitionId;
+        const activeCompTitle =
+          selectedCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Quiz Competition';
+        const totalQ = questions.length || 30;
+
+        if (currentUser && activeCompId) {
+          const resultId = `${currentUser.uid}_${activeCompId}`;
+          try {
+            await setDoc(doc(db, 'results', resultId), {
+              ownerId: currentUser.uid,
+              competitionId: activeCompId,
+              competitionName: activeCompTitle.slice(0, 120),
+              finalScore: 0,
+              maxScore: totalQ * 100,
+              accuracyPercent: 0,
+              correctCount: 0,
+              incorrectCount: totalQ,
+              unwrittenCount: totalQ,
+              wrongAnswerCount: 0,
+              timeTakenSeconds: 86400,
+              createdAt: serverTimestamp(),
+            });
+          } catch (error) {
+            handleFirestoreError(error, OperationType.CREATE, `results/${resultId}`);
+          }
+
+          const targetComp = competitions.find((c) => c.id === activeCompId);
+          const isPractice =
+            Boolean(targetComp && targetComp.title.toLowerCase().includes('practice')) ||
+            activeCompId.toLowerCase().includes('practice');
+
+          const entryId = `${currentUser.uid}_${activeCompId}`;
+          const cleanDisplayName = (profile.displayName || currentUser.displayName || 'Operator').trim().slice(0, 64);
+
+          if (!isPractice) {
+            try {
+              await setDoc(doc(db, 'leaderboard', entryId), {
+                ownerId: currentUser.uid,
+                competitionId: activeCompId,
+                displayName: cleanDisplayName,
+                ...(profile.username ? { username: profile.username.trim().slice(0, 24) } : {}),
+                ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl.slice(0, 500) } : {}),
+                score: 0,
+                completionStatus: 'Completed',
+                accuracyPercent: 0,
+                completionTimeSeconds: 86400,
+                createdAt: serverTimestamp(),
+              });
+            } catch (error) {
+              handleFirestoreError(error, OperationType.CREATE, `leaderboard/${entryId}`);
+            }
+          }
+
+          const disqualifiedResultItem: CompetitionResult = {
+            id: resultId,
+            competitionId: activeCompId,
+            competitionName: activeCompTitle,
+            completedAt: new Date().toISOString(),
+            finalScore: 0,
+            maxScore: totalQ * 100,
+            accuracyPercent: 0,
+            correctCount: 0,
+            incorrectCount: totalQ,
+            unwrittenCount: totalQ,
+            wrongAnswerCount: 0,
+            timeTakenSeconds: 86400,
+          };
+
+          setResults((prev) => {
+            const remaining = prev.filter((r) => r.competitionId !== activeCompId);
+            const nextList = [disqualifiedResultItem, ...remaining];
+            try {
+              if (typeof window !== 'undefined') {
+                window.localStorage.setItem('nullorigin_user_results', JSON.stringify(nextList));
+                window.localStorage.setItem('aegis_cipher_user_results', JSON.stringify(nextList));
+                if (currentUser) {
+                  window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(nextList));
+                  window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
+                  if (!isPractice) {
+                    window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
+                  }
+                  window.localStorage.setItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`, reason);
+                }
+              }
+            } catch {}
+            return nextList;
+          });
+
+          if (!isPractice) {
+            setLeaderboard((prev) => {
+              const filtered = prev.filter((l) => l.participantId !== entryId);
+              const dqEntry: LeaderboardEntry = {
+                rank: prev.length + 1,
+                participantId: entryId,
+                competitionId: activeCompId,
+                createdAt: new Date().toISOString(),
+                displayName: cleanDisplayName,
+                score: 0,
+                completionStatus: 'Completed',
+                accuracyPercent: 0,
+                completionTimeSeconds: 86400,
+                isCurrentUser: true,
+              };
+              return [...filtered, dqEntry]
+                .sort((a, b) => b.score - a.score || (a.completionTimeSeconds ?? 0) - (b.completionTimeSeconds ?? 0))
+                .map((item, idx) => ({ ...item, rank: idx + 1 }));
+            });
+          }
+        }
+
+        addToast(
+          'Candidate Disqualified',
+          'Exam terminated due to proctoring violation. Score recorded as 0.',
+          'alert'
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [questions.length, selectedCompetition, quizSession, currentUser, competitions, profile, addToast]
+  );
+
+
   const resetQuizSession = useCallback(() => {
     setQuizSession(DEFAULT_QUIZ_SESSION);
     try {
@@ -1164,6 +1298,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleMarkForReview,
         setCurrentQuestionIndex,
         submitQuizSession,
+        submitDisqualifiedQuizSession,
         resetQuizSession,
         profile,
         updateProfile,

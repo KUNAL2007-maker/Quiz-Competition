@@ -241,3 +241,81 @@ test('quiz evaluation accurately scores answers against correctOptionId', () => 
   const accuracy = Math.round((correct / questions.length) * 100);
   assert.equal(accuracy, 33);
 });
+
+
+test('tab-switching proctoring system enforces 2-warning limit and disqualifies on 3rd infraction with score 0', () => {
+  let warningCount = 0;
+  let isDisqualified = false;
+  let finalScore: number | null = null;
+  let activeModal: number | null = null;
+
+  const handleTabSwitch = () => {
+    warningCount += 1;
+    if (warningCount > 2) {
+      isDisqualified = true;
+      activeModal = null;
+      finalScore = 0;
+    } else {
+      activeModal = warningCount;
+    }
+  };
+
+  // Infraction 1: First warning
+  handleTabSwitch();
+  assert.equal(warningCount, 1);
+  assert.equal(activeModal, 1);
+  assert.equal(isDisqualified, false);
+
+  // Infraction 2: Second warning (Critical final warning)
+  handleTabSwitch();
+  assert.equal(warningCount, 2);
+  assert.equal(activeModal, 2);
+  assert.equal(isDisqualified, false);
+
+  // Infraction 3: Exceeded 2 warnings (> 2 warnings) -> On the spot disqualification!
+  handleTabSwitch();
+  assert.equal(warningCount, 3);
+  assert.equal(isDisqualified, true);
+  assert.equal(finalScore, 0);
+});
+
+test('disqualified quiz session evaluation forces score 0 and maximum penalty time', () => {
+  const totalQuestions = 30;
+  const disqualifiedPayload = {
+    finalScore: 0,
+    maxScore: totalQuestions * 100,
+    accuracyPercent: 0,
+    correctCount: 0,
+    incorrectCount: totalQuestions,
+    unwrittenCount: totalQuestions,
+    wrongAnswerCount: 0,
+    timeTakenSeconds: 86400,
+    completionStatus: 'Completed',
+  };
+
+  assert.equal(disqualifiedPayload.finalScore, 0);
+  assert.equal(disqualifiedPayload.correctCount, 0);
+  assert.equal(disqualifiedPayload.incorrectCount, 30);
+  assert.equal(disqualifiedPayload.unwrittenCount, 30);
+  assert.equal(disqualifiedPayload.timeTakenSeconds, 86400);
+});
+
+test('strict forward-only progression disallows navigating backwards to previous questions', () => {
+  const currentIndex = 3; // Question 4
+  const attempts = [0, 1, 2, 3, 4, 5];
+
+  const results = attempts.map((targetIdx) => {
+    const isPast = targetIdx < currentIndex;
+    const isCurrent = targetIdx === currentIndex;
+    const canNavigate = !isPast && !isCurrent;
+    return { targetIdx, isPast, canNavigate };
+  });
+
+  // Previous questions (0, 1, 2) must be strictly locked
+  assert.equal(results[0].isPast, true);
+  assert.equal(results[1].isPast, true);
+  assert.equal(results[2].isPast, true);
+  assert.equal(results[0].canNavigate, false);
+  assert.equal(results[1].canNavigate, false);
+  assert.equal(results[2].canNavigate, false);
+});

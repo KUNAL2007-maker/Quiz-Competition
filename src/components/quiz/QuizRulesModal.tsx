@@ -67,6 +67,53 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
             </div>
           </div>
 
+          {/* Anti-Cheat: Tab Switching & Proctoring Strike System */}
+          <div className="rounded-xl border border-[#FF365B]/40 bg-[#FF365B]/10 p-4 flex items-start gap-3.5">
+            <div className="mt-0.5 rounded-lg border border-[#FF365B]/50 bg-[#FF365B]/20 p-2 text-[#FF365B] shrink-0">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-mono text-xs font-bold uppercase text-[#FF365B] tracking-wide">
+                2. Tab Switching Policy (Strict 2-Warning Limit)
+              </h3>
+              <p className="text-xs text-[#929DAC] leading-relaxed">
+                Leaving the exam window, switching tabs, minimizing the browser, or opening secondary applications will immediately trigger a proctoring alert. You are permitted a maximum of 2 warnings. If you violate this rule more than twice (3rd strike), <strong className="text-[#FF365B]">you will be disqualified ON THE SPOT and your score recorded as ZERO (0)</strong> on the leaderboard.
+              </p>
+            </div>
+          </div>
+
+          {/* Forward-Only Progression & Anti-Copy / Anti-Screenshot */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-4 flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg border border-[#E6B450]/40 bg-[#E6B450]/10 p-2 text-[#E6B450] shrink-0">
+                <Lock className="h-4 w-4" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-mono text-xs font-semibold text-[#E6B450]">
+                  Strict Forward Progression
+                </h4>
+                <p className="text-[11px] text-[#929DAC] leading-relaxed">
+                  Questions are strictly sequential. Once submitted or when the 30s timer expires, you <strong className="text-[#F0F3F7]">cannot go back</strong> to previous questions.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-4 flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg border border-[#00E5FF]/40 bg-[#00E5FF]/10 p-2 text-[#00E5FF] shrink-0">
+                <AlertTriangle className="h-4 w-4" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-mono text-xs font-semibold text-[#00E5FF]">
+                  No Copy / Screenshots
+                </h4>
+                <p className="text-[11px] text-[#929DAC] leading-relaxed">
+                  Copying, cutting, pasting, right-click context menu, and screenshots (<strong className="text-[#F0F3F7]">PrintScreen, Win+Shift+S</strong>) are disabled and monitored.
+                </p>
+              </div>
+            </div>
+          </div>
+
+
           <button
             type="button"
             onClick={onCancel}
