@@ -32,12 +32,13 @@ export const Footer: React.FC = () => {
             Privacy Policy
           </Link>
           <span className="text-[#252D38]">|</span>
-          <Link
-            to="/competitions"
-            className="text-[#929DAC] hover:text-[#F0F3F7] transition-colors"
+          <a
+            href="mailto:contact@nullorigin.live"
+            className="text-[#929DAC] hover:text-[#B6FF3B] transition-colors"
+            title="contact@nullorigin.live"
           >
-            Competitions
-          </Link>
+            Support
+          </a>
         </div>
 
         {/* Copyright */}
