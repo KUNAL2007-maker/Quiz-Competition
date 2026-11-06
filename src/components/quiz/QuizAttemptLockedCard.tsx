@@ -10,6 +10,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { CompetitionResult, LeaderboardEntry } from '../../types';
+import { formatDurationSeconds } from '../../utils/timerLogic';
 
 interface QuizAttemptLockedCardProps {
   competitionTitle?: string;
@@ -57,7 +58,7 @@ export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
             <span className="font-mono text-xs font-semibold text-[#36F58A]">VERIFIED STANDING</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 font-mono">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
             <div className="rounded-lg bg-[#07090D] p-3 border border-[#252D38]">
               <span className="block text-[10px] text-[#929DAC]">FINAL SCORE</span>
               <span className="text-base sm:text-lg font-bold text-[#B6FF3B]">
@@ -78,7 +79,18 @@ export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
               <div className="rounded-lg bg-[#07090D] p-3 border border-[#252D38]">
                 <span className="block text-[10px] text-[#929DAC]">TIME TAKEN</span>
                 <span className="text-base sm:text-lg font-bold text-[#F0F3F7]">
-                  {timeTakenSec}s
+                  {formatDurationSeconds(timeTakenSec)}
+                </span>
+              </div>
+            )}
+
+            {(result?.correctCount !== undefined || result?.incorrectCount !== undefined) && (
+              <div className="rounded-lg bg-[#07090D] p-3 border border-[#252D38]">
+                <span className="block text-[10px] text-[#929DAC]">ANSWERS</span>
+                <span className="text-xs sm:text-sm font-bold text-[#F0F3F7] block mt-0.5">
+                  <span className="text-[#36F58A]">{result?.correctCount ?? 0} Correct</span>
+                  <span className="text-[#929DAC] mx-1">·</span>
+                  <span className="text-[#FF365B]">{result?.incorrectCount ?? 0} Wrong</span>
                 </span>
               </div>
             )}

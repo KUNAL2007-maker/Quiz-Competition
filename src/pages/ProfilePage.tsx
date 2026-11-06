@@ -17,7 +17,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { validateOperatorProfileInput } from '../utils/timerLogic';
+import { validateOperatorProfileInput, formatDurationSeconds } from '../utils/timerLogic';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 
 export const ProfilePage: React.FC = () => {
@@ -640,7 +640,7 @@ export const ProfilePage: React.FC = () => {
                   </div>
 
                   {/* Metrics Row */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div className="rounded-md border border-[#252D38] bg-[#111722] p-3 text-center">
                       <span className="block font-mono text-base font-bold text-[#36F58A] tabular-nums">
                         {item.finalScore} / {item.maxScore}
@@ -650,23 +650,30 @@ export const ProfilePage: React.FC = () => {
 
                     <div className="rounded-md border border-[#252D38] bg-[#111722] p-3 text-center">
                       <span className="block font-mono text-base font-bold text-[#B6FF3B] tabular-nums">
-                        {item.accuracyPercent !== undefined ? `${item.accuracyPercent}%` : '100%'}
+                        {item.accuracyPercent !== undefined ? `${item.accuracyPercent}%` : '—'}
                       </span>
                       <span className="font-mono text-[10px] text-[#929DAC]">ACCURACY</span>
                     </div>
 
                     <div className="rounded-md border border-[#252D38] bg-[#111722] p-3 text-center">
                       <span className="block font-mono text-base font-bold text-[#F0F3F7] tabular-nums">
-                        {item.timeTakenSeconds !== undefined ? `${item.timeTakenSeconds}s` : '—'}
+                        {item.timeTakenSeconds !== undefined ? formatDurationSeconds(item.timeTakenSeconds) : '—'}
                       </span>
                       <span className="font-mono text-[10px] text-[#929DAC]">TIME TAKEN</span>
                     </div>
 
                     <div className="rounded-md border border-[#252D38] bg-[#111722] p-3 text-center">
-                      <span className="block font-mono text-base font-bold text-[#00E5FF] tabular-nums">
+                      <span className="block font-mono text-base font-bold text-[#36F58A] tabular-nums">
                         {item.correctCount !== undefined ? item.correctCount : '—'}
                       </span>
-                      <span className="font-mono text-[10px] text-[#929DAC]">CORRECT ANSWERS</span>
+                      <span className="font-mono text-[10px] text-[#929DAC]">CORRECT</span>
+                    </div>
+
+                    <div className="rounded-md border border-[#252D38] bg-[#111722] p-3 text-center">
+                      <span className="block font-mono text-base font-bold text-[#FF365B] tabular-nums">
+                        {item.incorrectCount !== undefined ? item.incorrectCount : '—'}
+                      </span>
+                      <span className="font-mono text-[10px] text-[#929DAC]">WRONG</span>
                     </div>
                   </div>
 
