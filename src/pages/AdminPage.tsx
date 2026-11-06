@@ -92,7 +92,6 @@ export const AdminPage: React.FC = () => {
   const [compTitle, setCompTitle] = useState('');
   const [compDescription, setCompDescription] = useState('');
   const [compStatus, setCompStatus] = useState<'live' | 'upcoming'>('live');
-  const [compDifficulty, setCompDifficulty] = useState<Competition['difficulty']>('Field Operator');
   const [compDurationMinutes, setCompDurationMinutes] = useState(15);
   const [perQuestionTimer, setPerQuestionTimer] = useState<number>(15); // Default 15s per question
   const [isCreatingComp, setIsCreatingComp] = useState(false);
@@ -274,17 +273,15 @@ export const AdminPage: React.FC = () => {
         ? new Date(compStartTime).toISOString()
         : new Date(Date.now() + 3600000).toISOString();
 
-      const newCompData = {
-        title: compTitle.trim().slice(0, 120),
-        description: compDescription.trim().slice(0, 1000) || 'Official cybersecurity competition round.',
-        status: compStatus,
-        difficulty: compDifficulty,
-        durationMinutes: Number(compDurationMinutes) || 15,
-        perQuestionTimerSeconds: Number(perQuestionTimer) || 15,
-        accessType: 'Open Clearance',
-        startTime: compStatus === 'upcoming' ? scheduledStartIso : new Date().toISOString(),
-        createdAt: serverTimestamp(),
-      };
+        const newCompData = {
+          title: compTitle.trim().slice(0, 120),
+          description: compDescription.trim().slice(0, 1000) || 'Official cybersecurity competition round.',
+          status: compStatus,
+          durationMinutes: Number(compDurationMinutes) || 15,
+          perQuestionTimerSeconds: Number(perQuestionTimer) || 15,
+          startTime: compStatus === 'upcoming' ? scheduledStartIso : new Date().toISOString(),
+          createdAt: serverTimestamp(),
+        };
 
       await setDoc(doc(db, 'competitions', compId), newCompData);
 
@@ -639,23 +636,6 @@ export const AdminPage: React.FC = () => {
                 >
                   <option value="live">Live (Active Now)</option>
                   <option value="upcoming">Upcoming (Scheduled Tournament)</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="comp-diff" className="block font-mono text-xs text-[#929DAC] mb-1">
-                  DIFFICULTY
-                </label>
-                <select
-                  id="comp-diff"
-                  value={compDifficulty}
-                  onChange={(e) => setCompDifficulty(e.target.value as any)}
-                  className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 text-xs text-[#F0F3F7] focus:border-[#B6FF3B] focus:outline-none cursor-pointer"
-                >
-                  <option value="Field Operator">Field Operator</option>
-                  <option value="Senior Analyst">Senior Analyst</option>
-                  <option value="Zero-Day Specialist">Zero-Day Specialist</option>
-                  <option value="Classified">Classified</option>
                 </select>
               </div>
 

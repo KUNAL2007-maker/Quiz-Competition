@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ShieldAlert, SlidersHorizontal, X, Clock, Play, Lock } from 'lucide-react';
+import { Search, ShieldAlert, X, Clock, Play, Lock } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { CompetitionCard } from '../components/competition/CompetitionCard';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
@@ -26,7 +26,6 @@ export const CompetitionsPage: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
   const [upcomingModalComp, setUpcomingModalComp] = useState<Competition | null>(null);
   const [isModalUnlocked, setIsModalUnlocked] = useState(false);
 
@@ -68,32 +67,8 @@ export const CompetitionsPage: React.FC = () => {
     return ids;
   }, [currentUser, results, leaderboard, quizSession?.isSubmitted, quizSession?.competitionId]);
 
-  // Combined list ensuring completed competitions with records are always included
-  const allDisplayCompetitions = useMemo(() => {
-    const list = [...competitions];
-    const existingIds = new Set(list.map((c) => c.id));
-
-    // Synthesize any completed competition that has results or is marked completed
-    results.forEach((res) => {
-      if (res.competitionId && !existingIds.has(res.competitionId)) {
-        list.push({
-          id: res.competitionId,
-          title: res.competitionName || 'Cybersecurity Quiz Competition',
-          description: 'Official tournament attempt completed by operator.',
-          difficulty: 'Senior Analyst',
-          timeLimitMinutes: 15,
-          totalQuestions: (res.correctCount ?? 0) + (res.incorrectCount ?? 0) || 5,
-          totalPoints: res.maxScore || 100,
-          status: 'completed',
-          tags: ['Completed', 'Verified'],
-          passingScore: 60,
-          participantCount: 1,
-        });
-        existingIds.add(res.competitionId);
-      }
-    });
-    return list;
-  }, [competitions, results]);
+  // Display only real, active competitions from Firestore
+  const allDisplayCompetitions = competitions;
 
   const statusTabs: Array<{ id: StatusFilter; label: string; count: number }> = useMemo(() => {
     const allCount = allDisplayCompetitions.length;
@@ -150,9 +125,6 @@ export const CompetitionsPage: React.FC = () => {
         }
       }
 
-      if (difficultyFilter !== 'all' && comp.difficulty !== difficultyFilter) {
-        return false;
-      }
       if (
         searchQuery.trim() !== '' &&
         !comp.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -162,14 +134,13 @@ export const CompetitionsPage: React.FC = () => {
       }
       return true;
     });
-  }, [allDisplayCompetitions, statusFilter, difficultyFilter, searchQuery, completedCompetitionIds]);
+  }, [allDisplayCompetitions, statusFilter, searchQuery, completedCompetitionIds]);
 
   const hasActiveFilters =
-    statusFilter !== 'all' || difficultyFilter !== 'all' || searchQuery.trim() !== '';
+    statusFilter !== 'all' || searchQuery.trim() !== '';
 
   const handleResetFilters = () => {
     setStatusFilter('all');
-    setDifficultyFilter('all');
     setSearchQuery('');
   };
 
@@ -309,25 +280,6 @@ export const CompetitionsPage: React.FC = () => {
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4 text-[#929DAC] shrink-0" aria-hidden="true" />
-            <label htmlFor="difficulty-select" className="sr-only">
-              Difficulty Clearance
-            </label>
-            <select
-              id="difficulty-select"
-              value={difficultyFilter}
-              onChange={(e) => setDifficultyFilter(e.target.value)}
-              className="rounded-md border border-[#252D38] bg-[#07090D] px-3 py-1.5 text-xs text-[#F0F3F7] focus:border-[#B6FF3B] focus:outline-none cursor-pointer"
-            >
-              <option value="all">All Clearances</option>
-              <option value="Field Operator">Field Operator</option>
-              <option value="Senior Analyst">Senior Analyst</option>
-              <option value="Zero-Day Specialist">Zero-Day Specialist</option>
-              <option value="Classified">Classified</option>
-            </select>
           </div>
         </div>
       </div>

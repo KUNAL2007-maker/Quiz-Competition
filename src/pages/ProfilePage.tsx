@@ -713,9 +713,6 @@ export const ProfilePage: React.FC = () => {
                       >
                         {comp.status === 'live' ? 'LIVE NOW' : 'PENDING / SCHEDULED'}
                       </span>
-                      {comp.difficulty && (
-                        <span className="text-[#929DAC]">· {comp.difficulty}</span>
-                      )}
                     </div>
 
                     <h4 className="font-display text-base font-semibold text-[#F0F3F7]">

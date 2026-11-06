@@ -88,19 +88,6 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
               COMPLETED
             </span>
           )}
-
-          {competition.difficulty && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>{competition.difficulty}</span>
-            </>
-          )}
-          {competition.accessType && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>{competition.accessType}</span>
-            </>
-          )}
         </div>
 
         <h3 className="font-display text-lg font-bold text-[#F0F3F7] group-hover:text-[#B6FF3B] transition-colors">
@@ -182,7 +169,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
             <Lock className="h-3.5 w-3.5" />
             <span>
               {countdown && countdown.isValid && !countdown.isExpired
-                ? `Starts in ${formatPad(countdown.minutes)}m ${formatPad(countdown.seconds)}s`
+                ? `Starts in ${countdown.days > 0 ? `${countdown.days}d ` : ''}${countdown.hours > 0 ? `${formatPad(countdown.hours)}h ` : ''}${formatPad(countdown.minutes)}m ${formatPad(countdown.seconds)}s`
                 : 'View Countdown'}
             </span>
           </button>
