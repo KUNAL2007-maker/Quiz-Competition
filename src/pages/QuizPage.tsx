@@ -31,6 +31,7 @@ export const QuizPage: React.FC = () => {
   const navigate = useNavigate();
   const {
     currentUser,
+    isAuthReady,
     profile,
     selectedCompetition,
     competitions,
@@ -727,6 +728,23 @@ export const QuizPage: React.FC = () => {
               Return to Dashboard
             </button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Wait for Firebase auth state to resolve: currentUser starts as null while
+  // the session restores, and must not be mistaken for "signed out".
+  if (!isAuthReady) {
+    return (
+      <div className="mx-auto max-w-lg py-12 text-center space-y-6">
+        <div className="space-y-2">
+          <h1 className="font-display text-2xl font-bold text-[#F0F3F7]">
+            Checking sign-in...
+          </h1>
+          <p className="text-xs text-[#929DAC] leading-relaxed max-w-sm mx-auto">
+            Please wait while we verify your session.
+          </p>
         </div>
       </div>
     );
