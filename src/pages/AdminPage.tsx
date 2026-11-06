@@ -47,7 +47,7 @@ export const AdminPage: React.FC = () => {
   const [compDescription, setCompDescription] = useState('');
   const [compStatus, setCompStatus] = useState<'live' | 'upcoming'>('live');
   const [compDurationMinutes, setCompDurationMinutes] = useState(15);
-  const [perQuestionTimer, setPerQuestionTimer] = useState<number>(15); // Default 15s per question
+  const [perQuestionTimer, setPerQuestionTimer] = useState<number>(30); // Default 30s per question
   const [isCreatingComp, setIsCreatingComp] = useState(false);
 
   // Scheduled Start Time for Upcoming Competitions (default: 1 hour ahead)
@@ -69,7 +69,7 @@ export const AdminPage: React.FC = () => {
   const [qCategory, setQCategory] = useState('Cryptography');
   const [qPoints, setQPoints] = useState(100);
   const [qCodeSnippet, setQCodeSnippet] = useState('');
-  const [qTimeLimit, setQTimeLimit] = useState(15); // Per question timer setting (default 15s)
+  const [qTimeLimit, setQTimeLimit] = useState(30); // Per question timer setting (default 30s)
   const [qOptA, setQOptA] = useState('');
   const [qOptB, setQOptB] = useState('');
   const [qOptC, setQOptC] = useState('');

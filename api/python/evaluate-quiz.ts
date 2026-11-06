@@ -32,7 +32,7 @@ export default function handler(req: any, res: any) {
   let answeredCount = 0;
   let reviewCount = 0;
   let correctCount = 0;
-  let incorrectCount = 0;
+  let wrongAnswerCount = 0;
   let finalScore = 0;
   let maxScore = 0;
   const topicTotals: Record<string, [number, number]> = {};
@@ -62,13 +62,15 @@ export default function handler(req: any, res: any) {
           finalScore += points;
           topicTotals[category][0] += points;
         } else {
-          incorrectCount += 1;
+          wrongAnswerCount += 1;
         }
       }
     }
   }
 
-  const unansweredCount = Math.max(0, totalQuestions - answeredCount);
+  const unwrittenCount = Math.max(0, totalQuestions - answeredCount);
+  // Total incorrect includes both chosen wrong answers and unwritten/timed-out questions
+  const incorrectCount = wrongAnswerCount + unwrittenCount;
   const accuracyPercent =
     totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
@@ -80,7 +82,9 @@ export default function handler(req: any, res: any) {
   return res.status(200).json({
     totalQuestions,
     answeredCount,
-    unansweredCount,
+    unansweredCount: unwrittenCount,
+    unwrittenCount,
+    wrongAnswerCount,
     markedForReviewCount: reviewCount,
     correctCount,
     incorrectCount,

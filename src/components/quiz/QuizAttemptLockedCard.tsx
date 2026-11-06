@@ -92,6 +92,11 @@ export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
                   <span className="text-[#929DAC] mx-1">·</span>
                   <span className="text-[#FF365B]">{result?.incorrectCount ?? 0} Wrong</span>
                 </span>
+                {Boolean(result?.unwrittenCount) && (
+                  <span className="block font-mono text-[9px] text-[#929DAC] mt-0.5">
+                    ({result?.unwrittenCount} unwritten / timed out)
+                  </span>
+                )}
               </div>
             )}
           </div>

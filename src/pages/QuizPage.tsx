@@ -185,21 +185,31 @@ export const QuizPage: React.FC = () => {
   const isNearDeadline =
     timerState.isValid && !timerState.isExpired && timerState.totalMs <= 5 * 60 * 1000;
 
-  // Per-Question countdown timer setting: defaults to 15s if not customized by admin
+  // Per-Question countdown timer setting: defaults to 30s if not customized by admin
   const questionTimeLimit =
     currentQuestion?.timeLimitSeconds ??
     activeCompetition?.perQuestionTimerSeconds ??
-    15;
+    30;
 
   const [questionSecondsLeft, setQuestionSecondsLeft] = useState<number>(questionTimeLimit);
 
-  // Reset per-question countdown whenever navigating questions or limit changes
+  // Reset per-question countdown whenever navigating questions or question limit changes
   useEffect(() => {
     if (!isQuizActive) return;
-    setQuestionSecondsLeft(questionTimeLimit);
-  }, [isQuizActive, quizSession.currentQuestionIndex, questionTimeLimit]);
+    const currentQ = questions[quizSession.currentQuestionIndex];
+    const limit =
+      currentQ?.timeLimitSeconds ??
+      activeCompetition?.perQuestionTimerSeconds ??
+      30;
+    setQuestionSecondsLeft(limit);
+  }, [
+    isQuizActive,
+    quizSession.currentQuestionIndex,
+    questions,
+    activeCompetition?.perQuestionTimerSeconds,
+  ]);
 
-  // Per-question auto-countdown and auto-advance: ticks ONLY when isQuizActive is true
+  // Pure countdown ticker: ticks every 1000ms and decrements questionSecondsLeft towards 0
   useEffect(() => {
     if (
       !isQuizActive ||
@@ -211,42 +221,52 @@ export const QuizPage: React.FC = () => {
     }
 
     const intervalId = window.setInterval(() => {
-      setQuestionSecondsLeft((prev) => {
-        if (prev <= 1) {
-          if (quizSession.currentQuestionIndex < questions.length - 1) {
-            setCurrentQuestionIndex(quizSession.currentQuestionIndex + 1);
-            addToast(
-              'Question Timer Elapsed',
-              `Time limit of ${questionTimeLimit}s expired. Proceeding to question ${
-                quizSession.currentQuestionIndex + 2
-              }.`,
-              'alert'
-            );
-          } else {
-            handleDirectSubmit();
-            addToast(
-              'Final Question Timer Elapsed',
-              `Time limit of ${questionTimeLimit}s reached for the final question. Directly submitting quiz...`,
-              'alert'
-            );
-          }
-          return questionTimeLimit;
-        }
-        return prev - 1;
-      });
+      setQuestionSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
     return () => window.clearInterval(intervalId);
+  }, [isQuizActive, quizSession.isSubmitted, questions.length, currentQuestion]);
+
+  // Synchronous auto-advance effect when questionSecondsLeft hits 0
+  useEffect(() => {
+    if (
+      !isQuizActive ||
+      quizSession.isSubmitted ||
+      questions.length === 0 ||
+      !currentQuestion
+    ) {
+      return;
+    }
+
+    if (questionSecondsLeft === 0) {
+      const currIdx = quizSession.currentQuestionIndex;
+      const totalQ = questions.length;
+
+      if (currIdx < totalQ - 1) {
+        // Move to the next question cleanly without intrusive toasts
+        const nextIdx = currIdx + 1;
+        setCurrentQuestionIndex(nextIdx);
+        const nextQ = questions[nextIdx];
+        const nextLimit =
+          nextQ?.timeLimitSeconds ??
+          activeCompetition?.perQuestionTimerSeconds ??
+          30;
+        setQuestionSecondsLeft(nextLimit);
+      } else {
+        // Final question timer reached 0: direct submit
+        handleDirectSubmit();
+      }
+    }
   }, [
+    questionSecondsLeft,
     isQuizActive,
     quizSession.isSubmitted,
     quizSession.currentQuestionIndex,
-    questions.length,
+    questions,
     currentQuestion,
-    questionTimeLimit,
+    activeCompetition?.perQuestionTimerSeconds,
     setCurrentQuestionIndex,
     handleDirectSubmit,
-    addToast,
   ]);
 
   // Animated 3-2-1 Countdown Timer Effect (Requirement 3)

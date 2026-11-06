@@ -196,11 +196,11 @@ def evaluate_quiz_submission(
                     incorrect_count += 1
 
     unanswered_count = max(0, total_questions - answered_count)
-    graded_total = correct_count + incorrect_count
+    total_incorrect = incorrect_count + unanswered_count
     accuracy_percent = (
-        int(round((correct_count / float(graded_total)) * 100))
-        if graded_total > 0
-        else int(round((answered_count / float(total_questions)) * 100))
+        int(round((correct_count / float(total_questions)) * 100))
+        if total_questions > 0
+        else 0
     )
 
     topic_breakdown = []
@@ -212,9 +212,11 @@ def evaluate_quiz_submission(
         "totalQuestions": total_questions,
         "answeredCount": answered_count,
         "unansweredCount": unanswered_count,
+        "unwrittenCount": unanswered_count,
+        "wrongAnswerCount": incorrect_count,
         "markedForReviewCount": review_count,
         "correctCount": correct_count,
-        "incorrectCount": incorrect_count,
+        "incorrectCount": total_incorrect,
         "finalScore": final_score,
         "maxScore": max_score,
         "accuracyPercent": accuracy_percent,

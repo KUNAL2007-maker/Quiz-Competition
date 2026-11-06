@@ -303,7 +303,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             difficulty: data.difficulty,
             accessType: data.accessType,
             perQuestionTimerSeconds:
-              typeof data.perQuestionTimerSeconds === 'number' ? data.perQuestionTimerSeconds : 15,
+              typeof data.perQuestionTimerSeconds === 'number' ? data.perQuestionTimerSeconds : 30,
           };
         });
         setCompetitions(items);
@@ -494,6 +494,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               typeof data.correctCount === 'number' ? data.correctCount : undefined,
             incorrectCount:
               typeof data.incorrectCount === 'number' ? data.incorrectCount : undefined,
+            unwrittenCount:
+              typeof data.unwrittenCount === 'number' ? data.unwrittenCount : undefined,
+            wrongAnswerCount:
+              typeof data.wrongAnswerCount === 'number' ? data.wrongAnswerCount : undefined,
           };
         });
         setResults((prev) => {
@@ -718,7 +722,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const startQuizSession = useCallback((comp: Competition) => {
     setSelectedCompetition(comp);
-    const durationMin = comp.durationMinutes || 30;
+    const questionCount = comp.quizFormat?.totalQuestions || 30;
+    const minMinutesNeeded = Math.ceil((questionCount * 30) / 60) + 15;
+    const durationMin = Math.max(comp.durationMinutes || 30, minMinutesNeeded);
     const computedDeadline = Date.now() + durationMin * 60 * 1000;
 
     const newSession: QuizSessionState = {
@@ -794,6 +800,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         accuracyPercent: 0,
         correctCount: 0,
         incorrectCount: 0,
+        unwrittenCount: 0,
+        wrongAnswerCount: 0,
       };
 
       try {
@@ -815,7 +823,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         let earned = 0;
         let totalPossible = 0;
         let correct = 0;
-        let incorrect = 0;
+        let wrongAnswers = 0;
+        let unwritten = 0;
         for (const q of questions) {
           const pts = typeof q.points === 'number' ? q.points : 100;
           totalPossible += pts;
@@ -825,10 +834,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               earned += pts;
               correct += 1;
             } else {
-              incorrect += 1;
+              wrongAnswers += 1;
             }
           } else {
-            incorrect += 1;
+            // Unwritten / timed out without answer: 0 pts, counted as unwritten & wrong
+            unwritten += 1;
           }
         }
         evaluated = {
@@ -836,7 +846,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           maxScore: totalPossible,
           accuracyPercent: questions.length > 0 ? Math.round((correct / questions.length) * 100) : 0,
           correctCount: correct,
-          incorrectCount: incorrect,
+          incorrectCount: wrongAnswers + unwritten,
+          unwrittenCount: unwritten,
+          wrongAnswerCount: wrongAnswers,
         };
       }
 
@@ -861,6 +873,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             accuracyPercent: Number(evaluated.accuracyPercent || 0),
             correctCount: Number(evaluated.correctCount || 0),
             incorrectCount: Number(evaluated.incorrectCount || 0),
+            unwrittenCount: Number(evaluated.unwrittenCount || 0),
+            wrongAnswerCount: Number(evaluated.wrongAnswerCount || 0),
             timeTakenSeconds: timeTakenSec,
             createdAt: serverTimestamp(),
           });
@@ -922,6 +936,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           accuracyPercent: Number(evaluated.accuracyPercent || 0),
           correctCount: Number(evaluated.correctCount || 0),
           incorrectCount: Number(evaluated.incorrectCount || 0),
+          unwrittenCount: Number(evaluated.unwrittenCount || 0),
+          wrongAnswerCount: Number(evaluated.wrongAnswerCount || 0),
           timeTakenSeconds: timeTakenSec,
         };
 

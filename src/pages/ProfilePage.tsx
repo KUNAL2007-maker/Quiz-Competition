@@ -155,6 +155,7 @@ export const ProfilePage: React.FC = () => {
       timeTakenSeconds?: number;
       correctCount?: number;
       incorrectCount?: number;
+      unwrittenCount?: number;
       rank?: number;
     }> = [];
     const validCompIds = new Set(competitions.map((c) => c.id));
@@ -183,6 +184,7 @@ export const ProfilePage: React.FC = () => {
         timeTakenSeconds: res.timeTakenSeconds,
         correctCount: res.correctCount,
         incorrectCount: res.incorrectCount,
+        unwrittenCount: res.unwrittenCount,
         rank: matchLeaderboard?.rank || 1,
       });
     });
@@ -673,7 +675,9 @@ export const ProfilePage: React.FC = () => {
                       <span className="block font-mono text-base font-bold text-[#FF365B] tabular-nums">
                         {item.incorrectCount !== undefined ? item.incorrectCount : '—'}
                       </span>
-                      <span className="font-mono text-[10px] text-[#929DAC]">WRONG</span>
+                      <span className="font-mono text-[10px] text-[#929DAC]">
+                        WRONG{Boolean(item.unwrittenCount) ? ` (${item.unwrittenCount} unwritten)` : ''}
+                      </span>
                     </div>
                   </div>
 

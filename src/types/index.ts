@@ -103,6 +103,8 @@ export interface CompetitionResult {
   timeTakenSeconds?: number;
   correctCount?: number;
   incorrectCount?: number;
+  unwrittenCount?: number;
+  wrongAnswerCount?: number;
   topicBreakdown?: Array<{
     topic: string;
     scorePercent: number;
