@@ -85,6 +85,9 @@ export const AdminPage: React.FC = () => {
   const [rulesPermissionError, setRulesPermissionError] = useState<string | null>(null);
   const [isTestingConn, setIsTestingConn] = useState(false);
   const [rulesCopied, setRulesCopied] = useState(false);
+  const [isResettingAll, setIsResettingAll] = useState(false);
+  const [isSettingLive, setIsSettingLive] = useState(false);
+  const [isSyncingQuestions, setIsSyncingQuestions] = useState(false);
 
   // Private Winner Contact Directory (Synced securely from admin-only collection)
   const [winnerContacts, setWinnerContacts] = useState<Record<string, { whatsappNumber?: string; email?: string }>>({});
@@ -167,6 +170,124 @@ export const AdminPage: React.FC = () => {
       addToast('Record Purged', 'Leaderboard record removed from directory.', 'default');
     } catch (err) {
       addToast('Deletion Error', err instanceof Error ? err.message : 'Unable to remove record.', 'alert');
+    }
+  };
+
+  const handleResetAllTournamentData = async () => {
+    if (
+      !window.confirm(
+        'Are you sure you want to RESET EVERYTHING? This will delete all leaderboard rankings, competitor quiz results, and winner contact records for a clean realtime test.'
+      )
+    ) {
+      return;
+    }
+    setIsResettingAll(true);
+    try {
+      // 1. Purge leaderboard collection
+      const lbSnap = await getDocs(collection(db, 'leaderboard'));
+      for (const d of lbSnap.docs) {
+        await deleteDoc(d.ref);
+      }
+      // 2. Purge results collection
+      const resSnap = await getDocs(collection(db, 'results'));
+      for (const d of resSnap.docs) {
+        await deleteDoc(d.ref);
+      }
+      // 3. Purge winner_contacts collection
+      const wcSnap = await getDocs(collection(db, 'winner_contacts'));
+      for (const d of wcSnap.docs) {
+        await deleteDoc(d.ref);
+      }
+      // 4. Clear local completed attempt flags in browser
+      if (typeof window !== 'undefined') {
+        const toRemove: string[] = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k && k.startsWith('completed_comp_')) {
+            toRemove.push(k);
+          }
+        }
+        toRemove.forEach((k) => window.localStorage.removeItem(k));
+      }
+      addToast(
+        'Database Reset Complete',
+        'All leaderboard entries, quiz results, and winner records purged. Fresh state ready for testing!',
+        'success'
+      );
+    } catch (err) {
+      addToast('Reset Error', err instanceof Error ? err.message : 'Failed to purge database.', 'alert');
+    } finally {
+      setIsResettingAll(false);
+    }
+  };
+
+  const handleSetCyberQuizLive = async () => {
+    const target = cyberComp || competitions.find((c) => c.id === targetCompId) || competitions[0];
+    if (!target) {
+      addToast('Error', 'Tournament document not found.', 'alert');
+      return;
+    }
+    setIsSettingLive(true);
+    try {
+      await setDoc(
+        doc(db, 'competitions', target.id),
+        {
+          ...target,
+          status: 'live',
+          startTime: new Date().toISOString(),
+          isLiveNow: true,
+        },
+        { merge: true }
+      );
+      addToast(
+        'Cyber Quiz 2026 is LIVE',
+        'Tournament status set to LIVE with no countdown lock! Open for all operators to test in real-time.',
+        'success'
+      );
+    } catch (err) {
+      addToast('Update Failed', err instanceof Error ? err.message : 'Could not set competition to live.', 'alert');
+    } finally {
+      setIsSettingLive(false);
+    }
+  };
+
+  const handleSync30Questions = async () => {
+    const target = cyberComp || competitions.find((c) => c.id === targetCompId) || competitions[0];
+    if (!target) {
+      addToast('Error', 'Tournament document not found.', 'alert');
+      return;
+    }
+    setIsSyncingQuestions(true);
+    try {
+      // 1. Purge existing questions in competitions/{target.id}/questions
+      const qSnap = await getDocs(collection(db, `competitions/${target.id}/questions`));
+      for (const qDoc of qSnap.docs) {
+        await deleteDoc(qDoc.ref);
+      }
+      // 2. Upload the 30 new one-liner questions
+      for (let i = 0; i < cyberQuizQuestions.length; i++) {
+        const item = cyberQuizQuestions[i];
+        const qId = `q_cq2026_${String(i).padStart(2, '0')}`;
+        await setDoc(doc(db, `competitions/${target.id}/questions`, qId), {
+          competitionId: target.id,
+          index: i,
+          category: item.category || 'Cyber Security',
+          points: item.points || 100,
+          prompt: item.prompt,
+          options: item.options,
+          correctOptionId: item.correctOptionId,
+          timeLimitSeconds: item.timeLimitSeconds || 30,
+        });
+      }
+      addToast(
+        '30 Questions Uploaded',
+        'Successfully loaded all 30 new one-liner questions into Cyber Quiz 2026!',
+        'success'
+      );
+    } catch (err) {
+      addToast('Upload Error', err instanceof Error ? err.message : 'Could not upload questions.', 'alert');
+    } finally {
+      setIsSyncingQuestions(false);
     }
   };
 
@@ -588,6 +709,85 @@ export const AdminPage: React.FC = () => {
             </ol>
           </div>
         )}
+      </section>
+
+      {/* Real-time Testing & Reset Control Suite */}
+      <section className="rounded-xl border border-[#B6FF3B]/40 bg-[#0C1017] p-5 space-y-4 shadow-xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#252D38] pb-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-[#B6FF3B] animate-pulse" />
+              <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#B6FF3B]">
+                Real-Time Testing & Platform Reset Suite
+              </h2>
+            </div>
+            <p className="text-xs text-[#929DAC]">
+              Reset platform state, update questions, and keep tournament open for real-time live testing.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span
+              className={`font-mono text-[11px] font-semibold px-2.5 py-1 rounded border ${
+                cyberComp?.status === 'live'
+                  ? 'bg-[#36F58A]/10 text-[#36F58A] border-[#36F58A]/40'
+                  : 'bg-[#00E5FF]/10 text-[#00E5FF] border-[#00E5FF]/40'
+              }`}
+            >
+              Cyber Quiz 2026: {cyberComp?.status === 'live' ? 'OPEN / LIVE (No Timer Lock)' : 'UPCOMING (Locked)'}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          {/* Action 1: Set Live / Keep Open */}
+          <button
+            type="button"
+            onClick={handleSetCyberQuizLive}
+            disabled={isSettingLive}
+            className="flex flex-col items-start gap-1 p-3.5 rounded-lg border border-[#36F58A]/40 bg-[#36F58A]/5 hover:bg-[#36F58A]/10 transition-colors cursor-pointer text-left disabled:opacity-50"
+          >
+            <div className="flex items-center gap-2 text-[#36F58A] font-bold text-xs">
+              <Play className="h-4 w-4 fill-current" />
+              <span>{isSettingLive ? 'Updating...' : '1. Keep Open / Set LIVE'}</span>
+            </div>
+            <p className="text-[11px] text-[#929DAC]">
+              Removes upcoming countdown lock. Sets tournament to LIVE so anyone can enter and test immediately.
+            </p>
+          </button>
+
+          {/* Action 2: Upload 30 Questions */}
+          <button
+            type="button"
+            onClick={handleSync30Questions}
+            disabled={isSyncingQuestions}
+            className="flex flex-col items-start gap-1 p-3.5 rounded-lg border border-[#00E5FF]/40 bg-[#00E5FF]/5 hover:bg-[#00E5FF]/10 transition-colors cursor-pointer text-left disabled:opacity-50"
+          >
+            <div className="flex items-center gap-2 text-[#00E5FF] font-bold text-xs">
+              <Upload className="h-4 w-4" />
+              <span>{isSyncingQuestions ? 'Uploading...' : '2. Load 30 New Questions'}</span>
+            </div>
+            <p className="text-[11px] text-[#929DAC]">
+              Replaces Cyber Quiz 2026 with the 30 new one-liners (Easy Q1-10, Med Q11-22, Hard Q23-30).
+            </p>
+          </button>
+
+          {/* Action 3: Reset Everything */}
+          <button
+            type="button"
+            onClick={handleResetAllTournamentData}
+            disabled={isResettingAll}
+            className="flex flex-col items-start gap-1 p-3.5 rounded-lg border border-[#FF365B]/40 bg-[#FF365B]/5 hover:bg-[#FF365B]/10 transition-colors cursor-pointer text-left disabled:opacity-50"
+          >
+            <div className="flex items-center gap-2 text-[#FF365B] font-bold text-xs">
+              <Trash2 className="h-4 w-4" />
+              <span>{isResettingAll ? 'Purging...' : '3. Reset Everything (Purge)'}</span>
+            </div>
+            <p className="text-[11px] text-[#929DAC]">
+              Purges all leaderboard rankings, quiz results, and winner contacts. Fresh clean slate for testing.
+            </p>
+          </button>
+        </div>
       </section>
 
       {/* Grid: Create Competition & Manage Existing */}
@@ -1260,6 +1460,7 @@ export const AdminPage: React.FC = () => {
           </div>
         )}
       </section>
+
       {/* Delete Competition Confirmation Modal */}
       <ModalDialog
         isOpen={!!compToDelete}
