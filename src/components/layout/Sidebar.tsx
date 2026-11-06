@@ -91,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
               <line x1="12" y1="22" x2="12" y2="15.5" />
               <polyline points="22 8.5 12 15.5 2 8.5" />
             </svg>
-            <span>AEGIS CIPHER</span>
+            <span>NULL ORIGIN</span>
           </NavLink>
 
           <button
@@ -152,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
         ) : (
           <div className="rounded-md bg-[#07090D] border border-[#252D38] p-3">
             <p className="font-mono text-[11px] text-[#B6FF3B]">
-              AEGIS CIPHER
+              NULL ORIGIN
             </p>
             <p className="mt-1 text-xs text-[#929DAC]/80 leading-relaxed">
               Official Cybersecurity Quiz Competition Platform.

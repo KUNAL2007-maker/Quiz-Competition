@@ -137,7 +137,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   },
 };
 
-const QUIZ_STORAGE_KEY = 'aegis_quiz_session_v1';
+const QUIZ_STORAGE_KEY = 'nullorigin_quiz_session_v1';
 
 const DEFAULT_QUIZ_SESSION: QuizSessionState = {
   competitionId: null,
@@ -169,7 +169,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [results, setResults] = useState<CompetitionResult[]>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const saved = window.localStorage.getItem('aegis_cipher_user_results');
+        const saved =
+          window.localStorage.getItem('nullorigin_user_results') ||
+          window.localStorage.getItem('aegis_cipher_user_results');
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed)) return parsed;
@@ -194,7 +196,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [quizSession, setQuizSession] = useState<QuizSessionState>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const saved = window.sessionStorage.getItem(QUIZ_STORAGE_KEY);
+        const saved =
+          window.sessionStorage.getItem(QUIZ_STORAGE_KEY) ||
+          window.sessionStorage.getItem('aegis_quiz_session_v1');
         if (saved) {
           return { ...DEFAULT_QUIZ_SESSION, ...JSON.parse(saved) };
         }
@@ -490,8 +494,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const merged = Array.from(map.values());
           try {
             if (typeof window !== 'undefined') {
+              window.localStorage.setItem('nullorigin_user_results', JSON.stringify(merged));
               window.localStorage.setItem('aegis_cipher_user_results', JSON.stringify(merged));
               if (currentUser) {
+                window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(merged));
                 window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(merged));
               }
             }
@@ -894,8 +900,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const nextList = [newResultItem, ...remaining];
           try {
             if (typeof window !== 'undefined') {
+              window.localStorage.setItem('nullorigin_user_results', JSON.stringify(nextList));
               window.localStorage.setItem('aegis_cipher_user_results', JSON.stringify(nextList));
               if (currentUser) {
+                window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(nextList));
                 window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
                 window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
               }

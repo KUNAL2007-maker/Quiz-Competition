@@ -61,7 +61,7 @@ async function startServer() {
   app.get('/health', (_req, res) => {
     res.json({
       status: 'ok',
-      service: 'aegis-cipher-quiz-competition',
+      service: 'null-origin-quiz-competition',
       nodeEnv: process.env.NODE_ENV || 'development',
       nodeVersion: process.version,
       timestamp: new Date().toISOString(),
@@ -123,7 +123,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Aegis Gateway] Server running on http://0.0.0.0:${PORT}`);
+    console.log(`[Null Origin Gateway] Server running on http://0.0.0.0:${PORT}`);
   });
 }
 

@@ -1187,7 +1187,7 @@ export const AdminPage: React.FC = () => {
                         <div className="inline-flex items-center gap-2">
                           {cleanPhone && (
                             <a
-                              href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(entry.displayName)},%20congratulations%20on%20your%20performance%20in%20the%20Aegis%20Cipher%20Cybersecurity%20Competition!`}
+                              href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(entry.displayName)},%20congratulations%20on%20your%20performance%20in%20the%20Null%20Origin%20Cybersecurity%20Competition!`}
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center gap-1.5 rounded bg-[#36F58A]/15 border border-[#36F58A]/50 px-2.5 py-1 text-[11px] font-semibold text-[#36F58A] hover:bg-[#36F58A]/25 transition-colors cursor-pointer"
@@ -1199,7 +1199,7 @@ export const AdminPage: React.FC = () => {
                           )}
                           {entry.email && (
                             <a
-                              href={`mailto:${entry.email}?subject=Aegis%20Cipher%20Quiz%20Tournament%20Award&body=Dear%20${encodeURIComponent(entry.displayName)},%0A%0ACongratulations%20on%20your%20result%20in%20our%20cybersecurity%20quiz%20competition!`}
+                              href={`mailto:${entry.email}?subject=Null%20Origin%20Quiz%20Tournament%20Award&body=Dear%20${encodeURIComponent(entry.displayName)},%0A%0ACongratulations%20on%20your%20result%20in%20our%20cybersecurity%20quiz%20competition!`}
                               className="inline-flex items-center gap-1.5 rounded bg-[#111722] border border-[#252D38] px-2.5 py-1 text-[11px] font-medium text-[#F0F3F7] hover:border-[#B6FF3B] transition-colors cursor-pointer"
                               title="Send Email"
                             >

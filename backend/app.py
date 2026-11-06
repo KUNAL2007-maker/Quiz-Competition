@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Aegis Cipher Network — Python Backend Logic & HTTP Engine
+Null Origin — Python Backend Logic & HTTP Engine
 Provides pure, deterministic competition countdown math, quiz assessment evaluation,
 operator callsign validation, leaderboard ranking computation, and an HTTP JSON API
 server (port 5001) proxied by the Node/Vite gateway.
@@ -340,7 +340,7 @@ class AegisPythonAPIHandler(BaseHTTPRequestHandler):
 
 def run_server(port: int = 5001) -> None:
     server = HTTPServer(("127.0.0.1", port), AegisPythonAPIHandler)
-    print(f"[Aegis Python Engine] Listening on http://127.0.0.1:{port}", flush=True)
+    print(f"[Null Origin Python Engine] Listening on http://127.0.0.1:{port}", flush=True)
     server.serve_forever()
 
 

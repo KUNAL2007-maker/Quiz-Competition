@@ -1,4 +1,4 @@
-# Aegis Cipher — Quiz Competition Platform
+# Null Origin — Quiz Competition Platform
 
 A high-performance cybersecurity quiz competition and tournament management platform built with React, Vite, Express, and Firebase Firestore, ready for zero-latency deployment on Vercel.
 

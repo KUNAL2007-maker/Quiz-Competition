@@ -40,7 +40,7 @@ export const PrivacyPolicyPage: React.FC = () => {
             <h2>1. Overview & Scope</h2>
           </div>
           <p>
-            Welcome to <strong className="text-[#F0F3F7]">Aegis Cipher Quiz Competition</strong> ("we", "our", or "us"). 
+            Welcome to <strong className="text-[#F0F3F7]">Null Origin Quiz Competition</strong> ("we", "our", or "us"). 
             We provide an online cybersecurity tournament and skill evaluation platform. This Privacy Policy outlines our transparent policies regarding the collection, use, and disclosure of personal data when you use our website, authenticate using Google or email accounts, and participate in timed cybersecurity quizzes.
           </p>
           <p>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Unit tests for Aegis Cipher Network Python backend logic (backend/app.py).
+Unit tests for Null Origin Python backend logic (backend/app.py).
 """
 
 import unittest

@@ -25,7 +25,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/profile': 'Operator Identity Dossier',
   '/login': 'Operator Identity & Authentication',
   '/admin': 'Admin Tournament & Quiz Console',
-  '/about': 'About Aegis Cipher',
+  '/about': 'About Null Origin',
   '/privacy': 'Privacy Policy & Data Security',
 };
 

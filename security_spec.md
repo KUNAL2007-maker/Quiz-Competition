@@ -1,4 +1,4 @@
-# Security Specification — Aegis Cipher Network
+# Security Specification — Null Origin
 
 ## 1. Data Invariants
 1. **Default Deny**: All unlisted paths are strictly denied (`allow read, write: if false;`).

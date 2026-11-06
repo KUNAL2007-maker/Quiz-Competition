@@ -9,7 +9,7 @@ export const Footer: React.FC = () => {
         {/* Brand & Hosting Notice */}
         <div className="flex items-center gap-2">
           <Shield className="h-4 w-4 text-[#B6FF3B] shrink-0" />
-          <span className="font-display font-medium text-[#F0F3F7]">AEGIS CIPHER</span>
+          <span className="font-display font-medium text-[#F0F3F7]">NULL ORIGIN</span>
           <span>·</span>
           <span className="font-mono text-[11px] text-[#929DAC]/80">
             Hosted securely via Google Cloud & Firebase
@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
 
         {/* Copyright */}
         <div className="text-[10px] text-[#929DAC]/60 font-mono">
-          © 2026 Aegis Cipher. All rights reserved.
+          © 2026 Null Origin. All rights reserved.
         </div>
       </div>
     </footer>

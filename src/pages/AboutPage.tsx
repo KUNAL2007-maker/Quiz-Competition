@@ -24,7 +24,7 @@ export const AboutPage: React.FC = () => {
           <span>CYBERSECURITY TOURNAMENT PLATFORM</span>
         </div>
         <h1 className="mt-3 font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#F0F3F7]">
-          About Aegis Cipher
+          About Null Origin
         </h1>
         <p className="mt-2 text-sm text-[#929DAC] max-w-2xl leading-relaxed">
           The premier competitive cybersecurity quiz competition platform engineered to test, rank, and reward elite offensive and defensive security operators.
