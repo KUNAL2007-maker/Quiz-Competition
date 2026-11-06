@@ -10,6 +10,7 @@ import {
   Bot,
   CheckCircle2,
   ArrowRight,
+  RotateCcw,
   X,
 } from 'lucide-react';
 import { Competition, OperatorProfile } from '../../types';
@@ -20,6 +21,7 @@ interface QuizRulesModalProps {
   profile: OperatorProfile;
   currentUserEmail?: string | null;
   isAdmin?: boolean;
+  onResetAdminSession?: () => void;
   onConfirmStart: () => void;
   onCancel: () => void;
 }
@@ -30,6 +32,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
   profile,
   currentUserEmail,
   isAdmin = false,
+  onResetAdminSession,
   onConfirmStart,
   onCancel,
 }) => {
@@ -133,16 +136,23 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
         </div>
 
         {isAdmin && (
-          <div className="mt-3 rounded-lg border border-[#B6FF3B]/50 bg-[#B6FF3B]/10 p-3 flex items-center justify-between gap-2">
+          <div className="mt-3 rounded-lg border border-[#B6FF3B]/50 bg-[#B6FF3B]/10 p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <ShieldAlert className="h-4 w-4 text-[#B6FF3B] shrink-0" />
               <span className="font-mono text-xs font-bold text-[#B6FF3B]">
-                ADMIN TEST MODE · UNRESTRICTED VERIFICATION ACCESS
+                ADMIN TEST MODE · UNRESTRICTED ACCESS
               </span>
             </div>
-            <span className="font-mono text-[10px] text-[#929DAC]">
-              Repeatable Attempts Permitted
-            </span>
+            {onResetAdminSession && (
+              <button
+                type="button"
+                onClick={onResetAdminSession}
+                className="inline-flex items-center gap-1.5 rounded-md border border-[#B6FF3B]/50 bg-[#07090D] px-3 py-1 font-mono text-xs font-semibold text-[#B6FF3B] hover:bg-[#B6FF3B]/20 cursor-pointer shadow-sm transition-colors"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>Reset Everything (Clean Attempt)</span>
+              </button>
+            )}
           </div>
         )}
 

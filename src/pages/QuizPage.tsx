@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom';
 import {
   Terminal,
+  RotateCcw,
   ShieldAlert,
   Flag,
   ChevronLeft,
@@ -46,6 +47,7 @@ export const QuizPage: React.FC = () => {
     setCurrentQuestionIndex,
     submitQuizSession,
     submitDisqualifiedQuizSession,
+    resetAdminTestSession,
     addToast,
   } = useAppContext();
 
@@ -555,6 +557,25 @@ export const QuizPage: React.FC = () => {
             </p>
           </div>
 
+          {isAdmin && (
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  await resetAdminTestSession();
+                  setIsDisqualified(false);
+                  setDisqualificationReason('');
+                  setTabSwitchWarnings(0);
+                  setIsQuizActive(false);
+                  setCountdownValue(null);
+                }}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-[#B6FF3B] bg-[#B6FF3B]/20 px-6 py-2.5 font-mono text-xs font-bold text-[#B6FF3B] hover:bg-[#B6FF3B]/30 cursor-pointer shadow-lg"
+              >
+                <RotateCcw className="h-4 w-4" />
+                <span>Admin Reset Disqualification & Retake Test</span>
+              </button>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-[#252D38]">
             <button
               type="button"
@@ -744,6 +765,7 @@ export const QuizPage: React.FC = () => {
             profile={profile}
             currentUserEmail={currentUser.email}
             isAdmin={isAdmin}
+            onResetAdminSession={resetAdminTestSession}
             onConfirmStart={() => setCountdownValue(3)}
             onCancel={() => navigate('/competitions')}
           />
@@ -837,6 +859,23 @@ export const QuizPage: React.FC = () => {
 
         {/* Quiz Progress & Real Target Deadline Timer */}
         <div className="flex flex-wrap items-center gap-4">
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={async () => {
+                await resetAdminTestSession();
+                setIsDisqualified(false);
+                setTabSwitchWarnings(0);
+                setIsQuizActive(false);
+                setCountdownValue(null);
+              }}
+              title="Admin: Reset quiz session and restart from Q1"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#B6FF3B]/40 bg-[#07090D] px-2.5 py-1.5 font-mono text-[11px] font-semibold text-[#B6FF3B] hover:bg-[#B6FF3B]/10 cursor-pointer transition-colors"
+            >
+              <RotateCcw className="h-3 w-3" />
+              <span>Reset Test</span>
+            </button>
+          )}
           <div className="rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-2">
             <span className="block font-mono text-[10px] text-[#929DAC]">
               PROGRESS

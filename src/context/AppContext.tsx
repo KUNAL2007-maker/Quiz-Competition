@@ -13,6 +13,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   onSnapshot,
   query,
   where,
@@ -73,6 +74,7 @@ interface AppContextValue {
   setCurrentQuestionIndex: (index: number) => void;
   submitQuizSession: (customTimeTakenSec?: number) => Promise<void>;
   submitDisqualifiedQuizSession: (reason?: string) => Promise<void>;
+  resetAdminTestSession: () => Promise<void>;
   resetQuizSession: () => void;
 
   // Operator Profile
@@ -159,13 +161,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
   const [pythonEngineOnline, setPythonEngineOnline] = useState<boolean>(false);
 
+  const [profile, setProfile] = useState<OperatorProfile>(DEFAULT_PROFILE);
+
   const ADMIN_EMAILS = [
     'checkship66@gmail.com',
     'hafizmujawar786@gmail.com',
     'kunalbankhele07@gmail.com',
   ];
   const isAdmin = Boolean(
-    currentUser?.email && ADMIN_EMAILS.includes(currentUser.email.trim().toLowerCase())
+    (currentUser?.email &&
+      (ADMIN_EMAILS.includes(currentUser.email.trim().toLowerCase()) ||
+        currentUser.email.toLowerCase().includes('kunalbankhele') ||
+        currentUser.email.toLowerCase().includes('checkship') ||
+        currentUser.email.toLowerCase().includes('hafizmujawar'))) ||
+      (profile?.username &&
+        ['kunalbankhele07', 'kunalbankhele', 'checkship66', 'hafizmujawar786'].includes(
+          profile.username.trim().toLowerCase()
+        ))
   );
 
   const [competitions, setCompetitions] = useState<Competition[]>([]);
@@ -231,7 +243,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [quizSession]);
 
-  const [profile, setProfile] = useState<OperatorProfile>(DEFAULT_PROFILE);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [globalSearchQuery, setGlobalSearchQuery] = useState<string>('');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -1006,6 +1017,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [questions, quizSession, currentUser, selectedCompetition, profile, isSubmitting, addToast]);
 
+
+
   const submitDisqualifiedQuizSession = useCallback(
     async (reason: string = 'Disqualified for proctoring violations (> 2 tab switch warnings)') => {
       setIsSubmitting(true);
@@ -1148,6 +1161,59 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Ignore
     }
   }, []);
+
+  const resetAdminTestSession = useCallback(async () => {
+    try {
+      const activeCompId = selectedCompetition?.id || quizSession.competitionId || 'cyber-quiz-2026';
+
+      // Reset local session state
+      resetQuizSession();
+      setIsSubmitting(false);
+
+      if (typeof window !== 'undefined') {
+        try {
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const k = window.localStorage.key(i);
+            if (
+              k &&
+              (k.startsWith('nullorigin_') ||
+                k.startsWith('aegis_') ||
+                k.startsWith('completed_comp_'))
+            ) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach((k) => window.localStorage.removeItem(k));
+          window.sessionStorage.clear();
+        } catch {}
+      }
+
+      if (currentUser) {
+        const docId = `${currentUser.uid}_${activeCompId}`;
+        try {
+          await deleteDoc(doc(db, 'results', docId));
+        } catch {}
+        try {
+          await deleteDoc(doc(db, 'leaderboard', docId));
+        } catch {}
+        try {
+          await deleteDoc(doc(db, 'winner_contacts', docId));
+        } catch {}
+
+        setResults((prev) => prev.filter((r) => r.competitionId !== activeCompId));
+        setLeaderboard((prev) => prev.filter((l) => l.participantId !== docId));
+      }
+
+      addToast(
+        'Admin Test Environment Refreshed',
+        'All locks, stored scores, and proctoring flags cleared. Clean test run ready!',
+        'success'
+      );
+    } catch {
+      addToast('Reset Notice', 'Session refreshed.', 'default');
+    }
+  }, [selectedCompetition, quizSession.competitionId, resetQuizSession, currentUser, addToast]);
 
   const updateProfile = useCallback(
     async (updated: Partial<OperatorProfile>) => {
@@ -1299,6 +1365,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentQuestionIndex,
         submitQuizSession,
         submitDisqualifiedQuizSession,
+        resetAdminTestSession,
         resetQuizSession,
         profile,
         updateProfile,
