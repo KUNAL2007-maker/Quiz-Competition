@@ -264,7 +264,7 @@ export const SettingsPage: React.FC = () => {
 
             <p className="text-xs text-[#929DAC] leading-relaxed">
               {currentUser
-                ? `Authenticated via Google as ${currentUser.email || currentUser.uid}. Profile updates and quiz results are validated by the Python engine and persisted to Firestore.`
+                ? 'Authenticated via Google account. Profile updates and quiz results are validated by the Python engine and persisted to Firestore.'
                 : 'Connected to Firebase Authentication, Firestore Database, and the Python API validation gateway. All data collections start empty with zero demo data.'}
             </p>
           </div>

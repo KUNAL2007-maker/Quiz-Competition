@@ -309,7 +309,7 @@ export const AdminPage: React.FC = () => {
         </p>
         {currentUser ? (
           <p className="text-xs font-mono text-[#FF365B]">
-            Currently signed in as: {currentUser.email} (Insufficient Clearance)
+            Currently signed in with insufficient clearance
           </p>
         ) : (
           <p className="text-xs font-mono text-[#929DAC]">
@@ -595,7 +595,7 @@ export const AdminPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center rounded bg-[#B6FF3B]/10 border border-[#B6FF3B]/40 px-2 py-0.5 font-mono text-[11px] font-bold text-[#B6FF3B]">
-              SUPERUSER ACCESS · {currentUser?.email || 'Authorized Administrator'}
+              SUPERUSER ACCESS · Authorized Administrator
             </span>
           </div>
           <h1 className="mt-2 font-display text-2xl sm:text-3xl font-bold text-[#F0F3F7]">

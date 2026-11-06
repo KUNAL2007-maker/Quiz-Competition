@@ -320,7 +320,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                     }}
                     className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-xs text-[#FF365B] hover:bg-[#0C1017] cursor-pointer"
                   >
-                    <span>Sign Out ({currentUser.email || 'Operator'})</span>
+                    <span>Sign Out</span>
                   </button>
                 ) : (
                   <button

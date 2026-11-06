@@ -357,19 +357,19 @@ export const ProfilePage: React.FC = () => {
                 {profile.whatsappNumber ? (
                   <span className="inline-flex items-center gap-1.5 text-[#36F58A]">
                     <Phone className="h-3.5 w-3.5" />
-                    <span>WhatsApp: {profile.whatsappNumber}</span>
+                    <span>WhatsApp: Registered & Verified (Hidden)</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-[#FF365B]">
+                  <span className="inline-flex items-center gap-1.5 text-[#929DAC]">
                     <Phone className="h-3.5 w-3.5" />
-                    <span>WhatsApp: Not provided (Required)</span>
+                    <span>WhatsApp: Not provided</span>
                   </span>
                 )}
 
                 {(currentUser?.email || profile.email) && (
                   <span className="inline-flex items-center gap-1.5 text-[#929DAC]">
                     <Mail className="h-3.5 w-3.5" />
-                    <span>Email: {currentUser?.email || profile.email}</span>
+                    <span>Email: Verified Account (Hidden)</span>
                   </span>
                 )}
               </div>
@@ -497,7 +497,7 @@ export const ProfilePage: React.FC = () => {
                     type="email"
                     readOnly
                     disabled
-                    value={currentUser?.email || profile.email || 'unassigned@operator'}
+                    value={currentUser?.email ? (currentUser.email.slice(0, 3) + '••••@••••.com') : 'Account Connected'}
                     className="w-full rounded-md border border-[#252D38] bg-[#07090D]/50 px-3.5 py-2 text-sm text-[#929DAC] cursor-not-allowed"
                   />
                   <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#929DAC]/50" />

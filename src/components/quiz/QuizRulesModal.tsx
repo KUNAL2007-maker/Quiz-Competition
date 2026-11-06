@@ -16,7 +16,6 @@ interface QuizRulesModalProps {
   isOpen: boolean;
   competition: Competition | null;
   profile: OperatorProfile;
-  currentUserEmail?: string | null;
   isAdmin?: boolean;
   onResetAdminSession?: () => void;
   onConfirmStart: () => void;
@@ -27,7 +26,6 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
   isOpen,
   competition,
   profile,
-  currentUserEmail,
   isAdmin = false,
   onResetAdminSession,
   onConfirmStart,

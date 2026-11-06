@@ -763,7 +763,6 @@ export const QuizPage: React.FC = () => {
             isOpen={true}
             competition={activeCompetition}
             profile={profile}
-            currentUserEmail={currentUser.email}
             isAdmin={isAdmin}
             onResetAdminSession={resetAdminTestSession}
             onConfirmStart={() => setCountdownValue(3)}

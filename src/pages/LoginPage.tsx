@@ -108,7 +108,7 @@ export const LoginPage: React.FC = () => {
               </span>
             </div>
             <span className="rounded bg-[#111722] border border-[#252D38] px-2 py-0.5 font-mono text-[11px] text-[#929DAC]">
-              {currentUser.email}
+              {currentUser.email ? (currentUser.email.slice(0, 3) + '••••@••••.com') : 'Connected'}
             </span>
           </div>
 
@@ -130,7 +130,7 @@ export const LoginPage: React.FC = () => {
                 {currentUser.displayName || 'Competitor'}
               </h2>
               <p className="font-mono text-xs text-[#929DAC] truncate">
-                {currentUser.email}
+                {currentUser.email ? (currentUser.email.slice(0, 3) + '••••@••••.com') : 'Connected'}
               </p>
               {isAdmin && (
                 <span className="mt-1 inline-block rounded bg-[#B6FF3B]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#B6FF3B]">
