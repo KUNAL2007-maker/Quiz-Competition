@@ -167,7 +167,7 @@ export const AdminPage: React.FC = () => {
           Restricted Command Console
         </h1>
         <p className="text-sm text-[#929DAC] leading-relaxed">
-          Access to the quiz upload and tournament administration interface requires verified authorization for <span className="font-mono text-[#B6FF3B]">checkship66@gmail.com</span> or <span className="font-mono text-[#B6FF3B]">hafizmujawar786@gmail.com</span>.
+          Access to the quiz upload and tournament administration interface requires verified administrator authorization.
         </p>
         {currentUser ? (
           <p className="text-xs font-mono text-[#FF365B]">
