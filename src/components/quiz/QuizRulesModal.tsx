@@ -6,9 +6,7 @@ import {
   Hourglass,
   Lock,
   Phone,
-  Mail,
   Bot,
-  CheckCircle2,
   ArrowRight,
   RotateCcw,
   X,
@@ -50,15 +48,15 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
       aria-labelledby="rules-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#07090D]/90 p-4 sm:p-6 backdrop-blur-md overflow-y-auto"
     >
-      <div className="relative w-full max-w-2xl rounded-2xl border border-[#252D38] bg-[#0C1017] p-6 sm:p-8 shadow-2xl my-8">
-        {/* Top Warning Banner */}
-        <div className="flex items-start justify-between gap-4 border-b border-[#252D38] pb-5">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-[#252D38] bg-[#0C1017] p-6 sm:p-8 shadow-2xl my-auto">
+        {/* Header Bar */}
+        <div className="flex items-start justify-between gap-4 border-b border-[#252D38] pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#FF365B]/40 bg-[#FF365B]/10 text-[#FF365B]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#FF365B]/40 bg-[#FF365B]/10 text-[#FF365B] shrink-0">
               <AlertTriangle className="h-6 w-6" />
             </div>
             <div>
-              <span className="font-mono text-[11px] font-bold tracking-wider text-[#FF365B] uppercase">
+              <span className="font-mono text-[10px] sm:text-[11px] font-bold tracking-wider text-[#FF365B] uppercase block">
                 CRITICAL OPERATIONAL RULES & CODE OF CONDUCT
               </span>
               <h2
@@ -70,71 +68,25 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
             </div>
           </div>
 
-          {/* Anti-Cheat: Tab Switching & Proctoring Strike System */}
-          <div className="rounded-xl border border-[#FF365B]/40 bg-[#FF365B]/10 p-4 flex items-start gap-3.5">
-            <div className="mt-0.5 rounded-lg border border-[#FF365B]/50 bg-[#FF365B]/20 p-2 text-[#FF365B] shrink-0">
-              <ShieldAlert className="h-5 w-5" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-mono text-xs font-bold uppercase text-[#FF365B] tracking-wide">
-                2. Tab Switching Policy (Strict 2-Warning Limit)
-              </h3>
-              <p className="text-xs text-[#929DAC] leading-relaxed">
-                Leaving the exam window, switching tabs, minimizing the browser, or opening secondary applications will immediately trigger a proctoring alert. You are permitted a maximum of 2 warnings. If you violate this rule more than twice (3rd strike), <strong className="text-[#FF365B]">you will be disqualified ON THE SPOT and your score recorded as ZERO (0)</strong> on the leaderboard.
-              </p>
-            </div>
-          </div>
-
-          {/* Forward-Only Progression & Anti-Copy / Anti-Screenshot */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-4 flex items-start gap-3">
-              <div className="mt-0.5 rounded-lg border border-[#E6B450]/40 bg-[#E6B450]/10 p-2 text-[#E6B450] shrink-0">
-                <Lock className="h-4 w-4" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#E6B450]">
-                  Strict Forward Progression
-                </h4>
-                <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  Questions are strictly sequential. Once submitted or when the 30s timer expires, you <strong className="text-[#F0F3F7]">cannot go back</strong> to previous questions.
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-4 flex items-start gap-3">
-              <div className="mt-0.5 rounded-lg border border-[#00E5FF]/40 bg-[#00E5FF]/10 p-2 text-[#00E5FF] shrink-0">
-                <AlertTriangle className="h-4 w-4" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#00E5FF]">
-                  No Copy / Screenshots
-                </h4>
-                <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  Copying, cutting, pasting, right-click context menu, and screenshots (<strong className="text-[#F0F3F7]">PrintScreen, Win+Shift+S</strong>) are disabled and monitored.
-                </p>
-              </div>
-            </div>
-          </div>
-
-
           <button
             type="button"
             onClick={onCancel}
             aria-label="Close rules dialog"
-            className="rounded-md border border-[#252D38] bg-[#111722] p-1.5 text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+            className="rounded-md border border-[#252D38] bg-[#111722] p-1.5 text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer shrink-0"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Competition Context */}
-        <div className="mt-4 rounded-lg border border-[#B6FF3B]/30 bg-[#B6FF3B]/5 p-3.5 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
+        {/* Target Tournament Badge */}
+        <div className="mt-4 rounded-lg border border-[#B6FF3B]/30 bg-[#B6FF3B]/5 p-3 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
           <span className="text-[#929DAC]">Target Tournament:</span>
           <span className="font-semibold text-[#B6FF3B]">
-            {competition?.title || 'Official Cybersecurity Quiz Competition'}
+            {competition?.title || 'Cyber Quiz 2026'}
           </span>
         </div>
 
+        {/* Admin Test Controls */}
         {isAdmin && (
           <div className="mt-3 rounded-lg border border-[#B6FF3B]/50 bg-[#B6FF3B]/10 p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -156,103 +108,135 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
           </div>
         )}
 
-        {/* Rules Cards Grid */}
-        <div className="mt-5 space-y-3.5 max-h-[50vh] overflow-y-auto pr-1">
-          {/* Rule 1: Zero AI */}
-          <div className="rounded-xl border border-[#FF365B]/30 bg-[#FF365B]/5 p-4 flex items-start gap-3.5">
-            <div className="mt-0.5 rounded-lg border border-[#FF365B]/40 bg-[#FF365B]/10 p-2 text-[#FF365B] shrink-0">
-              <Bot className="h-5 w-5" />
+        {/* Scrollable Rules Cards Grid */}
+        <div className="mt-4 space-y-3 max-h-[50vh] overflow-y-auto pr-1">
+          {/* Rule 1: Tab-Switching Strict Strike Policy (Critical Red Banner) */}
+          <div className="rounded-xl border border-[#FF365B]/50 bg-[#FF365B]/10 p-4 flex items-start gap-3.5">
+            <div className="mt-0.5 rounded-lg border border-[#FF365B]/60 bg-[#FF365B]/20 p-2 text-[#FF365B] shrink-0">
+              <ShieldAlert className="h-5 w-5" />
             </div>
             <div className="space-y-1">
               <h3 className="font-mono text-xs font-bold uppercase text-[#FF365B] tracking-wide">
-                1. Strict Zero-AI & No External Assistance Policy
+                1. Tab-Switching Violation & Strike System (Max 2 Warnings)
               </h3>
               <p className="text-xs text-[#929DAC] leading-relaxed">
-                The use of <strong className="text-[#F0F3F7]">ChatGPT, Claude, Gemini, Copilot, DeepSeek, or any AI tool</strong> is strictly forbidden. Searching Google, consulting notes, using secondary devices, or switching tabs during the quiz is monitored by anti-cheat controls. Any detected violation will lead to immediate disqualification and a permanent ban.
+                Leaving the exam window, switching tabs, minimizing the browser, or opening secondary applications will immediately trigger a proctoring infraction. You are allowed a maximum of <strong className="text-[#F0F3F7]">2 warnings</strong>. A 3rd infraction (&gt; 2 warnings) will <strong className="text-[#FF365B]">IMMEDIATELY TERMINATE YOUR EXAM ON THE SPOT and record your score as ZERO (0 PTS)</strong> on the official leaderboard.
               </p>
             </div>
           </div>
 
-          {/* Rule 2: Timers */}
+          {/* Rule 2 & 3: Forward Progression & Timer */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-4 flex items-start gap-3">
-              <div className="mt-0.5 rounded-lg border border-[#00E5FF]/40 bg-[#00E5FF]/10 p-2 text-[#00E5FF] shrink-0">
-                <Clock className="h-4 w-4" />
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-3.5 flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg border border-[#E6B450]/40 bg-[#E6B450]/10 p-2 text-[#E6B450] shrink-0">
+                <Lock className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#00E5FF]">
-                  Total Time: {durationMin} Mins
+                <h4 className="font-mono text-xs font-semibold text-[#E6B450]">
+                  2. Strict Forward-Only
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  The entire tournament has a hard limit of {durationMin} minutes. The quiz locks and submits automatically when time expires.
+                  Questions are strictly sequential. Once submitted or when the 30s timer expires, you <strong className="text-[#F0F3F7]">cannot go back</strong> to previous questions.
                 </p>
               </div>
             </div>
 
-            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-4 flex items-start gap-3">
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-3.5 flex items-start gap-3">
               <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
                 <Hourglass className="h-4 w-4" />
               </div>
               <div className="space-y-1">
                 <h4 className="font-mono text-xs font-semibold text-[#B6FF3B]">
-                  Per-Question: {perQuestionSec}s
+                  3. {perQuestionSec}s Per Question
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  Each question has an individual {perQuestionSec}-second timer. When it reaches 0s, the terminal auto-advances to the next question.
+                  Each question has a strict {perQuestionSec}-second countdown. When it hits 0s, the terminal auto-advances to the next question.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Rule 3: Single Attempt */}
-          <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-4 flex items-start gap-3">
-            <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
-              <Lock className="h-4 w-4" />
+          {/* Rule 4 & 5: Anti-Copy & Zero AI */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-3.5 flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg border border-[#00E5FF]/40 bg-[#00E5FF]/10 p-2 text-[#00E5FF] shrink-0">
+                <AlertTriangle className="h-4 w-4" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-mono text-xs font-semibold text-[#00E5FF]">
+                  4. Anti-Copy & Screenshot Block
+                </h4>
+                <p className="text-[11px] text-[#929DAC] leading-relaxed">
+                  Copying, cutting, pasting, right-click, and screenshots (<strong className="text-[#F0F3F7]">PrintScreen, Win+Shift+S</strong>) are disabled and monitored.
+                </p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
-                3. Strictly One Attempt Only
-              </h4>
-              <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                You are granted <strong className="text-[#B6FF3B]">only ONE attempt</strong> at this competition. Once started, refreshing the browser or leaving the quiz will not grant a second chance. All scores are permanent on the leaderboard.
-              </p>
+
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-3.5 flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg border border-[#FF365B]/40 bg-[#FF365B]/10 p-2 text-[#FF365B] shrink-0">
+                <Bot className="h-4 w-4" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-mono text-xs font-semibold text-[#FF365B]">
+                  5. Zero AI Assistance
+                </h4>
+                <p className="text-[11px] text-[#929DAC] leading-relaxed">
+                  The use of <strong className="text-[#F0F3F7]">ChatGPT, Claude, Gemini, Copilot, or any AI tool</strong> is strictly forbidden and causes instant disqualification.
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Rule 4: Verification of Winners */}
-          <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-4 flex items-start gap-3">
-            <div className="mt-0.5 rounded-lg border border-[#252D38] bg-[#07090D] p-2 text-[#929DAC] shrink-0">
-              <Phone className="h-4 w-4 text-[#B6FF3B]" />
+          {/* Rule 6 & 7: One Attempt & Winner Verification */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-3.5 flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
+                <Clock className="h-4 w-4" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
+                  6. Strictly One Attempt
+                </h4>
+                <p className="text-[11px] text-[#929DAC] leading-relaxed">
+                  You are granted only <strong className="text-[#B6FF3B]">ONE attempt</strong>. Refreshing or leaving the exam locks your score permanently on the leaderboard.
+                </p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
-                4. Winner Verification
-              </h4>
-              <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                Tournament administrators will contact winners using your registered details: WhatsApp (<span className="font-mono text-[#F0F3F7]">{profile.whatsappNumber || 'Registered phone'}</span>) and Email (<span className="font-mono text-[#F0F3F7]">{profile.email || currentUserEmail || 'Registered email'}</span>).
-              </p>
+
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 p-3.5 flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg border border-[#252D38] bg-[#07090D] p-2 text-[#929DAC] shrink-0">
+                <Phone className="h-4 w-4 text-[#B6FF3B]" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
+                  7. Winner Verification
+                </h4>
+                <p className="text-[11px] text-[#929DAC] leading-relaxed">
+                  Admins verify winners via WhatsApp (<span className="font-mono text-[#F0F3F7]">{profile.whatsappNumber || 'Registered phone'}</span>) and registered Email.
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Mandatory Agreement Checkbox */}
-        <div className="mt-5 border-t border-[#252D38] pt-5">
-          <label className="flex items-start gap-3 rounded-xl border border-[#252D38] bg-[#07090D] p-4 cursor-pointer hover:border-[#B6FF3B]/60 transition-colors">
+        <div className="mt-4 border-t border-[#252D38] pt-4">
+          <label className="flex items-start gap-3 rounded-xl border border-[#252D38] bg-[#07090D] p-3.5 cursor-pointer hover:border-[#B6FF3B]/60 transition-colors">
             <input
               type="checkbox"
               id="rules-checkbox"
               checked={hasAgreed}
               onChange={(e) => setHasAgreed(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-[#252D38] bg-[#111722] text-[#B6FF3B] focus:ring-[#B6FF3B] cursor-pointer"
+              className="mt-0.5 h-4 w-4 rounded border-[#252D38] bg-[#111722] text-[#B6FF3B] focus:ring-[#B6FF3B] cursor-pointer shrink-0"
             />
             <span className="text-xs text-[#F0F3F7] leading-relaxed select-none">
-              I have read, understood, and accept all the rules above. I pledge not to use AI, search engines, or external help, and I acknowledge that I have strictly <strong>ONE attempt</strong> for this competition.
+              I have read, understood, and accept all the rules above. I pledge not to use AI, search engines, or switch tabs, and I acknowledge that exceeding 2 warnings results in immediate score 0 disqualification.
             </span>
           </label>
         </div>
 
         {/* Action Controls */}
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#252D38] pt-5">
+        <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#252D38] pt-4">
           <button
             type="button"
             onClick={onCancel}
