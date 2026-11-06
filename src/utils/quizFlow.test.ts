@@ -60,7 +60,7 @@ test('upcoming competition converts to live when target start timer is reached',
   // 1. Future competition stays upcoming
   const futureComp = {
     id: 'comp_1',
-    status: 'upcoming' as const,
+    status: 'upcoming' as string,
     startTime: futureStartTime,
   };
   const isFutureLive =
@@ -71,7 +71,7 @@ test('upcoming competition converts to live when target start timer is reached',
   // 2. Timer elapsed competition automatically converts to live
   const elapsedComp = {
     id: 'comp_2',
-    status: 'upcoming' as const,
+    status: 'upcoming' as string,
     startTime: pastStartTime,
   };
   const isElapsedLive =

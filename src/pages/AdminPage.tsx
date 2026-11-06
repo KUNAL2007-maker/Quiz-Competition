@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -160,7 +160,7 @@ export const AdminPage: React.FC = () => {
       } catch {
         // ignore
       }
-      addToast('Record Purged', 'Leaderboard record removed from directory.', 'info');
+      addToast('Record Purged', 'Leaderboard record removed from directory.', 'default');
     } catch (err) {
       addToast('Deletion Error', err instanceof Error ? err.message : 'Unable to remove record.', 'alert');
     }
