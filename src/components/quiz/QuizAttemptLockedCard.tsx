@@ -8,6 +8,7 @@ import {
   Clock,
   ArrowRight,
   ShieldAlert,
+  RotateCcw,
 } from 'lucide-react';
 import { CompetitionResult, LeaderboardEntry } from '../../types';
 import { formatDurationSeconds } from '../../utils/timerLogic';
@@ -16,12 +17,16 @@ interface QuizAttemptLockedCardProps {
   competitionTitle?: string;
   result?: CompetitionResult | null;
   leaderboardEntry?: LeaderboardEntry | null;
+  isAdmin?: boolean;
+  onResetAdminSession?: () => void;
 }
 
 export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
   competitionTitle,
   result,
   leaderboardEntry,
+  isAdmin,
+  onResetAdminSession,
 }) => {
   const navigate = useNavigate();
 
@@ -121,6 +126,19 @@ export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
             Browse Other Tournaments
           </button>
         </div>
+
+        {isAdmin && onResetAdminSession && (
+          <div className="pt-3 border-t border-[#252D38]">
+            <button
+              type="button"
+              onClick={onResetAdminSession}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 px-5 py-2 font-mono text-xs font-semibold text-[#B6FF3B] hover:bg-[#B6FF3B]/20 transition-colors cursor-pointer"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Admin Reset Test (Clean New Attempt)</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

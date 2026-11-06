@@ -102,9 +102,6 @@ export const QuizPage: React.FC = () => {
   }, [competitions, activeCompId]);
 
   const hasAlreadyAttempted = useMemo(() => {
-    // Admin testing bypass: allows repeatable verification of questions and timing
-    if (isAdmin) return false;
-
     // Practice simulations allow repeatable calibration and training
     if (isPracticeQuiz) return false;
 
@@ -138,7 +135,6 @@ export const QuizPage: React.FC = () => {
     }
     return false;
   }, [
-    isAdmin,
     isPracticeQuiz,
     previousResult,
     previousLeaderboardEntry,
@@ -779,6 +775,22 @@ export const QuizPage: React.FC = () => {
         competitionTitle={activeCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Quiz Competition'}
         result={previousResult}
         leaderboardEntry={previousLeaderboardEntry}
+        isAdmin={isAdmin}
+        onResetAdminSession={async () => {
+          await resetAdminTestSession();
+          setIsDisqualified(false);
+          setDisqualificationReason('');
+          setTabSwitchWarnings(0);
+          setActiveTabWarningModal(null);
+          setIsQuizActive(false);
+          setCountdownValue(null);
+          try {
+            if (activeCompId) {
+              window.sessionStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+              window.localStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+            }
+          } catch {}
+        }}
       />
     );
   }

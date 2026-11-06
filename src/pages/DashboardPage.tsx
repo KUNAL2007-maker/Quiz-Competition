@@ -41,13 +41,25 @@ export const DashboardPage: React.FC = () => {
     if (quizSession?.isSubmitted && quizSession?.competitionId) {
       ids.add(quizSession.competitionId);
     }
-    if (typeof window !== 'undefined' && currentUser) {
+    if (typeof window !== 'undefined') {
       try {
-        const prefix = `completed_comp_${currentUser.uid}_`;
-        for (let i = 0; i < window.localStorage.length; i++) {
-          const key = window.localStorage.key(i);
-          if (key && key.startsWith(prefix)) {
-            ids.add(key.replace(prefix, ''));
+        if (currentUser) {
+          const prefix = `completed_comp_${currentUser.uid}_`;
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const key = window.localStorage.key(i);
+            if (key && key.startsWith(prefix)) {
+              ids.add(key.replace(prefix, ''));
+            }
+          }
+        }
+        if (currentUser?.email) {
+          const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+          const emailPrefix = `completed_email_${cleanEmail}_`;
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const key = window.localStorage.key(i);
+            if (key && key.startsWith(emailPrefix)) {
+              ids.add(key.replace(emailPrefix, ''));
+            }
           }
         }
       } catch {
@@ -216,8 +228,10 @@ export const DashboardPage: React.FC = () => {
                 competition={comp}
                 isCompleted={completedCompetitionIds.has(comp.id)}
                 onSelect={(selected) => {
-                  if (completedCompetitionIds.has(selected.id)) {
-                    navigate('/leaderboard');
+                  const isPractice = selected.title.toLowerCase().includes('practice');
+                  if (!isPractice && completedCompetitionIds.has(selected.id)) {
+                    selectCompetition(selected);
+                    navigate('/quiz');
                     return;
                   }
 

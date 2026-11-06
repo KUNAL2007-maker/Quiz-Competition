@@ -52,14 +52,26 @@ export const CompetitionsPage: React.FC = () => {
     if (quizSession?.isSubmitted && quizSession?.competitionId) {
       ids.add(quizSession.competitionId);
     }
-    // 4. From local storage cache
-    if (typeof window !== 'undefined' && currentUser) {
+    // 4. From local storage cache (UID and Email)
+    if (typeof window !== 'undefined') {
       try {
-        const prefix = `completed_comp_${currentUser.uid}_`;
-        for (let i = 0; i < window.localStorage.length; i++) {
-          const key = window.localStorage.key(i);
-          if (key && key.startsWith(prefix)) {
-            ids.add(key.replace(prefix, ''));
+        if (currentUser) {
+          const prefix = `completed_comp_${currentUser.uid}_`;
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const key = window.localStorage.key(i);
+            if (key && key.startsWith(prefix)) {
+              ids.add(key.replace(prefix, ''));
+            }
+          }
+        }
+        if (currentUser?.email) {
+          const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+          const emailPrefix = `completed_email_${cleanEmail}_`;
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const key = window.localStorage.key(i);
+            if (key && key.startsWith(emailPrefix)) {
+              ids.add(key.replace(emailPrefix, ''));
+            }
           }
         }
       } catch {
@@ -157,6 +169,13 @@ export const CompetitionsPage: React.FC = () => {
         navigate('/login?redirect=/quiz');
         return;
       }
+      const isPractice = comp.title.toLowerCase().includes('practice');
+      // Strictly one attempt: if already completed, navigate to locked view
+      if (!isPractice && completedCompetitionIds.has(comp.id)) {
+        selectCompetition(comp);
+        navigate('/quiz');
+        return;
+      }
       if (!isAdmin && !profile.isProfileComplete) {
         addToast(
           'Profile 100% Completion Required',
@@ -170,15 +189,16 @@ export const CompetitionsPage: React.FC = () => {
       selectCompetition(comp);
       navigate('/quiz');
     },
-    [currentUser, profile.isProfileComplete, selectCompetition, resetQuizSession, navigate, addToast, isAdmin]
+    [currentUser, profile.isProfileComplete, selectCompetition, resetQuizSession, navigate, addToast, isAdmin, completedCompetitionIds]
   );
 
   const handleSelectCompetition = useCallback(
     (comp: Competition) => {
       const isPractice = comp.title.toLowerCase().includes('practice');
-      // 1. If already completed attempt (for official competitions only, bypass for admin or live mode)
-      if (!isPractice && !isAdmin && comp.status !== 'live' && completedCompetitionIds.has(comp.id)) {
-        navigate('/leaderboard');
+      // 1. Strictly ONE attempt only: once completed, no second attempt is allowed!
+      if (!isPractice && completedCompetitionIds.has(comp.id)) {
+        selectCompetition(comp);
+        navigate('/quiz');
         return;
       }
 
@@ -199,7 +219,7 @@ export const CompetitionsPage: React.FC = () => {
       setIsModalUnlocked(false);
       setUpcomingModalComp(comp);
     },
-    [completedCompetitionIds, handleEnterLiveQuiz, navigate, isAdmin]
+    [completedCompetitionIds, handleEnterLiveQuiz, selectCompetition, navigate, isAdmin]
   );
 
   return (

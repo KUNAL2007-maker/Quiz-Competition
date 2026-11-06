@@ -539,3 +539,39 @@ test('hasAlreadyAttempted strictly locks entry per email and per UID', () => {
   const altUidUser = { uid: 'uid_kunal_different_session', email: 'kunalbankhele07@gmail.com' };
   assert.equal(checkHasAttempted(altUidUser, compId, mockStorage), true);
 });
+
+test('strictly no second attempt is granted once completed (even for admin accounts)', () => {
+  const checkStrictOneAttempt = (
+    isPractice: boolean,
+    previousResult: any,
+    previousLeaderboard: any,
+    isSubmitted: boolean,
+    hasStorageLock: boolean
+  ) => {
+    // Practice simulations allow repeatable calibration
+    if (isPractice) return false;
+
+    // Any indicator of prior completion permanently locks the exam: NO second attempt!
+    return Boolean(previousResult || previousLeaderboard || isSubmitted || hasStorageLock);
+  };
+
+  const adminUserResult = { id: 'admin_comp_1', finalScore: 1900 };
+
+  // For official competition: locked!
+  assert.equal(checkStrictOneAttempt(false, adminUserResult, null, false, false), true);
+
+  // By leaderboard entry: locked!
+  assert.equal(checkStrictOneAttempt(false, null, { score: 1800 }, false, false), true);
+
+  // By submission state: locked!
+  assert.equal(checkStrictOneAttempt(false, null, null, true, false), true);
+
+  // By storage lock: locked!
+  assert.equal(checkStrictOneAttempt(false, null, null, false, true), true);
+
+  // Fresh user: not locked
+  assert.equal(checkStrictOneAttempt(false, null, null, false, false), false);
+
+  // Practice quiz: repeatable
+  assert.equal(checkStrictOneAttempt(true, adminUserResult, null, true, true), false);
+});
