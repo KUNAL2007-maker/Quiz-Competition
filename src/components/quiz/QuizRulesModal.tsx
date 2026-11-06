@@ -19,6 +19,7 @@ interface QuizRulesModalProps {
   competition: Competition | null;
   profile: OperatorProfile;
   currentUserEmail?: string | null;
+  isAdmin?: boolean;
   onConfirmStart: () => void;
   onCancel: () => void;
 }
@@ -28,10 +29,11 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
   competition,
   profile,
   currentUserEmail,
+  isAdmin = false,
   onConfirmStart,
   onCancel,
 }) => {
-  const [hasAgreed, setHasAgreed] = useState(false);
+  const [hasAgreed, setHasAgreed] = useState(isAdmin);
 
   if (!isOpen) return null;
 
@@ -82,6 +84,20 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
             {competition?.title || 'Official Cybersecurity Quiz Competition'}
           </span>
         </div>
+
+        {isAdmin && (
+          <div className="mt-3 rounded-lg border border-[#B6FF3B]/50 bg-[#B6FF3B]/10 p-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-[#B6FF3B] shrink-0" />
+              <span className="font-mono text-xs font-bold text-[#B6FF3B]">
+                ADMIN TEST MODE · UNRESTRICTED VERIFICATION ACCESS
+              </span>
+            </div>
+            <span className="font-mono text-[10px] text-[#929DAC]">
+              Repeatable Attempts Permitted
+            </span>
+          </div>
+        )}
 
         {/* Rules Cards Grid */}
         <div className="mt-5 space-y-3.5 max-h-[50vh] overflow-y-auto pr-1">

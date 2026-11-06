@@ -8,14 +8,16 @@ interface CompetitionCardProps {
   competition: Competition;
   isCompleted?: boolean;
   onSelect: (competition: Competition) => void;
+  onEnterDirectly?: (competition: Competition) => void;
 }
 
 export const CompetitionCard: React.FC<CompetitionCardProps> = ({
   competition,
   isCompleted,
   onSelect,
+  onEnterDirectly,
 }) => {
-  const { transitionCompetitionToLive } = useAppContext();
+  const { transitionCompetitionToLive, isAdmin } = useAppContext();
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
   const isPractice = competition.title.toLowerCase().includes('practice');
@@ -164,18 +166,38 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
             <span>Enter Quiz Directly</span>
           </button>
         ) : isUpcoming ? (
-          <button
-            type="button"
-            onClick={() => onSelect(competition)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#00E5FF]/40 px-3.5 py-1.5 text-xs font-semibold text-[#00E5FF] transition-colors hover:bg-[#00E5FF]/10 whitespace-nowrap shrink-0 cursor-pointer"
-          >
-            <Lock className="h-3.5 w-3.5" />
-            <span>
-              {countdown && countdown.isValid && !countdown.isExpired
-                ? `Starts in ${countdown.days > 0 ? `${countdown.days}d ` : ''}${countdown.hours > 0 ? `${formatPad(countdown.hours)}h ` : ''}${formatPad(countdown.minutes)}m ${formatPad(countdown.seconds)}s`
-                : 'View Countdown'}
-            </span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onEnterDirectly) {
+                    onEnterDirectly(competition);
+                  } else {
+                    onSelect(competition);
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#B6FF3B] px-3.5 py-1.5 text-xs font-bold text-[#07090D] transition-colors hover:bg-[#c8ff66] whitespace-nowrap shrink-0 cursor-pointer shadow-md"
+                title="Admin direct testing mode"
+              >
+                <Play className="h-3.5 w-3.5 fill-current" />
+                <span>Test Quiz (Admin)</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => onSelect(competition)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#00E5FF]/40 px-3.5 py-1.5 text-xs font-semibold text-[#00E5FF] transition-colors hover:bg-[#00E5FF]/10 whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <Lock className="h-3.5 w-3.5" />
+              <span>
+                {countdown && countdown.isValid && !countdown.isExpired
+                  ? `Starts in ${countdown.days > 0 ? `${countdown.days}d ` : ''}${countdown.hours > 0 ? `${formatPad(countdown.hours)}h ` : ''}${formatPad(countdown.minutes)}m ${formatPad(countdown.seconds)}s`
+                  : 'View Countdown'}
+              </span>
+            </button>
+          </div>
         ) : (
           <button
             type="button"

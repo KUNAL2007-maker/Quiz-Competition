@@ -36,6 +36,7 @@ export const QuizPage: React.FC = () => {
     isSubmitting,
     results,
     leaderboard,
+    isAdmin,
     selectCompetition,
     transitionCompetitionToLive,
     startQuizSession,
@@ -88,6 +89,9 @@ export const QuizPage: React.FC = () => {
   }, [competitions, activeCompId]);
 
   const hasAlreadyAttempted = useMemo(() => {
+    // Admin testing bypass: allows repeatable verification of questions and timing
+    if (isAdmin) return false;
+
     // Practice simulations allow repeatable calibration and training
     if (isPracticeQuiz) return false;
 
@@ -347,6 +351,7 @@ export const QuizPage: React.FC = () => {
 
   // Guard 2.5: Tournament Not Started Yet (Locked Until Start Time - Timer Shown Directly)
   const isCompetitionStarted =
+    isAdmin ||
     !activeCompetition ||
     activeCompetition.status === 'live' ||
     (activeCompetition.startTime
@@ -411,7 +416,7 @@ export const QuizPage: React.FC = () => {
 
   // Guard 3: Mandatory Profile Completion (100% Required)
   // Timers DO NOT start while entering details!
-  if (!profile.isProfileComplete) {
+  if (!isAdmin && !profile.isProfileComplete) {
     return (
       <div className="mx-auto max-w-xl py-12 text-center space-y-6">
         <div className="rounded-2xl border border-[#FFB800]/40 bg-[#0C1017] p-8 text-center space-y-5 shadow-2xl">
@@ -464,6 +469,7 @@ export const QuizPage: React.FC = () => {
             competition={activeCompetition}
             profile={profile}
             currentUserEmail={currentUser.email}
+            isAdmin={isAdmin}
             onConfirmStart={() => setCountdownValue(3)}
             onCancel={() => navigate('/competitions')}
           />

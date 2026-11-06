@@ -109,8 +109,12 @@ export const AdminPage: React.FC = () => {
     }
   }, [isAdmin]);
 
+  const cyberComp = useMemo(
+    () => competitions.find((c) => c.title.toLowerCase().includes('cyber quiz 2026')),
+    [competitions]
+  );
+
   const filteredLeaderboard = useMemo(() => {
-    const cyberComp = competitions.find((c) => c.title.toLowerCase().includes('cyber quiz 2026'));
     const cyberCompId = cyberComp?.id;
     return leaderboard
       .filter((entry) => {
@@ -478,13 +482,30 @@ export const AdminPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate('/competitions')}
-          className="rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] hover:text-[#B6FF3B] transition-colors cursor-pointer self-start md:self-auto"
-        >
-          View Public Directory
-        </button>
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+          {cyberComp && (
+            <button
+              type="button"
+              onClick={() => {
+                selectCompetition(cyberComp);
+                navigate('/quiz');
+              }}
+              className="inline-flex items-center gap-1.5 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer shadow-md"
+              title="Test Cyber Quiz 2026 in admin test mode"
+            >
+              <Play className="h-3.5 w-3.5 fill-current" />
+              <span>Test Cyber Quiz 2026</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => navigate('/competitions')}
+            className="rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] hover:text-[#B6FF3B] transition-colors cursor-pointer"
+          >
+            View Public Directory
+          </button>
+        </div>
       </div>
 
       {/* Cloud Firestore Security Rules Diagnostic Banner */}
@@ -819,6 +840,18 @@ export const AdminPage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            selectCompetition(c);
+                            navigate('/quiz');
+                          }}
+                          className="px-2 py-0.5 rounded font-mono text-[10px] font-semibold bg-[#B6FF3B]/10 text-[#B6FF3B] border border-[#B6FF3B]/40 hover:bg-[#B6FF3B] hover:text-[#07090D] transition-colors cursor-pointer flex items-center gap-1"
+                          title={`Directly enter and test ${c.title}`}
+                        >
+                          <Play className="h-3 w-3 fill-current" />
+                          <span>Test</span>
+                        </button>
                         <button
                           type="button"
                           onClick={() => {

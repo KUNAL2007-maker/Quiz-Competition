@@ -19,6 +19,7 @@ export const CompetitionsPage: React.FC = () => {
     quizSession,
     currentUser,
     profile,
+    isAdmin,
     selectCompetition,
     transitionCompetitionToLive,
     addToast,
@@ -155,7 +156,7 @@ export const CompetitionsPage: React.FC = () => {
         navigate('/login?redirect=/quiz');
         return;
       }
-      if (!profile.isProfileComplete) {
+      if (!isAdmin && !profile.isProfileComplete) {
         addToast(
           'Profile 100% Completion Required',
           'You must complete your profile (Full Legal Name & WhatsApp contact number) before entering any quiz.',
@@ -167,20 +168,21 @@ export const CompetitionsPage: React.FC = () => {
       selectCompetition(comp);
       navigate('/quiz');
     },
-    [currentUser, profile.isProfileComplete, selectCompetition, navigate, addToast]
+    [currentUser, profile.isProfileComplete, selectCompetition, navigate, addToast, isAdmin]
   );
 
   const handleSelectCompetition = useCallback(
     (comp: Competition) => {
       const isPractice = comp.title.toLowerCase().includes('practice');
-      // 1. If already completed attempt (for official competitions only)
-      if (!isPractice && completedCompetitionIds.has(comp.id)) {
+      // 1. If already completed attempt (for official competitions only, bypass for admin)
+      if (!isPractice && !isAdmin && completedCompetitionIds.has(comp.id)) {
         navigate('/leaderboard');
         return;
       }
 
-      // 2. Check if live now
+      // 2. Check if live now OR admin testing mode
       const isLive =
+        isAdmin ||
         comp.status === 'live' ||
         (comp.startTime &&
           new Date(comp.startTime).getTime() <= Date.now() &&
@@ -195,7 +197,7 @@ export const CompetitionsPage: React.FC = () => {
       setIsModalUnlocked(false);
       setUpcomingModalComp(comp);
     },
-    [completedCompetitionIds, handleEnterLiveQuiz, navigate]
+    [completedCompetitionIds, handleEnterLiveQuiz, navigate, isAdmin]
   );
 
   return (
@@ -341,6 +343,7 @@ export const CompetitionsPage: React.FC = () => {
               competition={comp}
               isCompleted={completedCompetitionIds.has(comp.id)}
               onSelect={handleSelectCompetition}
+              onEnterDirectly={handleEnterLiveQuiz}
             />
           ))}
         </div>
@@ -378,6 +381,21 @@ export const CompetitionsPage: React.FC = () => {
               >
                 Close
               </button>
+
+              {isAdmin && upcomingModalComp && !isModalUnlocked && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const comp = upcomingModalComp;
+                    setUpcomingModalComp(null);
+                    handleEnterLiveQuiz(comp);
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer shadow-md"
+                >
+                  <Play className="h-3.5 w-3.5 fill-current" />
+                  <span>Enter Quiz (Admin Test Mode)</span>
+                </button>
+              )}
 
               {isModalUnlocked && upcomingModalComp && (
                 <button
