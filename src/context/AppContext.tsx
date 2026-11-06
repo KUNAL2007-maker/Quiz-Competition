@@ -847,38 +847,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           handleFirestoreError(error, OperationType.CREATE, `results/${resultId}`);
         }
 
+        const targetComp = competitions.find((c) => c.id === activeCompId);
+        const isPractice =
+          Boolean(targetComp && targetComp.title.toLowerCase().includes('practice')) ||
+          activeCompId.toLowerCase().includes('practice');
+
         const entryId = `${currentUser.uid}_${activeCompId}`;
         const cleanDisplayName = (profile.displayName || currentUser.displayName || 'Operator').trim().slice(0, 64);
-        try {
-          await setDoc(doc(db, 'leaderboard', entryId), {
-            ownerId: currentUser.uid,
-            competitionId: activeCompId,
-            displayName: cleanDisplayName,
-            ...(profile.username ? { username: profile.username.trim().slice(0, 24) } : {}),
-            ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl.slice(0, 500) } : {}),
-            score: Number(evaluated.finalScore || 0),
-            completionStatus: 'Completed',
-            accuracyPercent: Number(evaluated.accuracyPercent || 0),
-            completionTimeSeconds: timeTakenSec,
-            createdAt: serverTimestamp(),
-          });
-        } catch (error) {
-          handleFirestoreError(error, OperationType.CREATE, `leaderboard/${entryId}`);
-        }
 
-        // Securely store winner contact details in admin-protected winner_contacts collection
-        try {
-          await setDoc(doc(db, 'winner_contacts', entryId), {
-            ownerId: currentUser.uid,
-            competitionId: activeCompId,
-            displayName: cleanDisplayName,
-            ...(profile.whatsappNumber ? { whatsappNumber: profile.whatsappNumber.trim().slice(0, 32) } : {}),
-            ...(profile.email || currentUser.email ? { email: (profile.email || currentUser.email || '').trim().slice(0, 120) } : {}),
-            score: Number(evaluated.finalScore || 0),
-            createdAt: serverTimestamp(),
-          });
-        } catch (error) {
-          handleFirestoreError(error, OperationType.CREATE, `winner_contacts/${entryId}`);
+        // NEVER write practice quizzes to public leaderboard or winner contacts - only official tournaments (Cyber Quiz 2026)
+        if (!isPractice) {
+          try {
+            await setDoc(doc(db, 'leaderboard', entryId), {
+              ownerId: currentUser.uid,
+              competitionId: activeCompId,
+              displayName: cleanDisplayName,
+              ...(profile.username ? { username: profile.username.trim().slice(0, 24) } : {}),
+              ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl.slice(0, 500) } : {}),
+              score: Number(evaluated.finalScore || 0),
+              completionStatus: 'Completed',
+              accuracyPercent: Number(evaluated.accuracyPercent || 0),
+              completionTimeSeconds: timeTakenSec,
+              createdAt: serverTimestamp(),
+            });
+          } catch (error) {
+            handleFirestoreError(error, OperationType.CREATE, `leaderboard/${entryId}`);
+          }
+
+          // Securely store winner contact details in admin-protected winner_contacts collection
+          try {
+            await setDoc(doc(db, 'winner_contacts', entryId), {
+              ownerId: currentUser.uid,
+              competitionId: activeCompId,
+              displayName: cleanDisplayName,
+              ...(profile.whatsappNumber ? { whatsappNumber: profile.whatsappNumber.trim().slice(0, 32) } : {}),
+              ...(profile.email || currentUser.email ? { email: (profile.email || currentUser.email || '').trim().slice(0, 120) } : {}),
+              score: Number(evaluated.finalScore || 0),
+              createdAt: serverTimestamp(),
+            });
+          } catch (error) {
+            handleFirestoreError(error, OperationType.CREATE, `winner_contacts/${entryId}`);
+          }
         }
 
         // Immediately update local results and persist to localStorage
@@ -905,7 +914,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               if (currentUser) {
                 window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(nextList));
                 window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
-                window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
+                if (!isPractice) {
+                  window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
+                }
               }
             }
           } catch {
@@ -914,25 +925,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return nextList;
         });
 
-        // Immediately update leaderboard state with current user's entry
-        setLeaderboard((prev) => {
-          const filtered = prev.filter((l) => l.participantId !== entryId);
-          const myEntry: LeaderboardEntry = {
-            rank: 1,
-            participantId: entryId,
-            competitionId: activeCompId,
-            createdAt: new Date().toISOString(),
-            displayName: cleanDisplayName,
-            score: Number(evaluated.finalScore || 0),
-            completionStatus: 'Completed',
-            accuracyPercent: Number(evaluated.accuracyPercent || 0),
-            completionTimeSeconds: timeTakenSec,
-            isCurrentUser: true,
-          };
-          return [...filtered, myEntry]
-            .sort((a, b) => b.score - a.score)
-            .map((item, idx) => ({ ...item, rank: idx + 1 }));
-        });
+        // Immediately update leaderboard state with current user's entry (Cyber Quiz 2026 only, never practice quiz)
+        if (!isPractice) {
+          setLeaderboard((prev) => {
+            const filtered = prev.filter((l) => l.participantId !== entryId);
+            const myEntry: LeaderboardEntry = {
+              rank: 1,
+              participantId: entryId,
+              competitionId: activeCompId,
+              createdAt: new Date().toISOString(),
+              displayName: cleanDisplayName,
+              score: Number(evaluated.finalScore || 0),
+              completionStatus: 'Completed',
+              accuracyPercent: Number(evaluated.accuracyPercent || 0),
+              completionTimeSeconds: timeTakenSec,
+              isCurrentUser: true,
+            };
+            return [...filtered, myEntry]
+              .sort((a, b) => b.score - a.score)
+              .map((item, idx) => ({ ...item, rank: idx + 1 }));
+          });
+        }
       }
 
       addToast(

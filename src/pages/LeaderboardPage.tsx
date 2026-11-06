@@ -14,16 +14,30 @@ export const LeaderboardPage: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('overall');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Target exclusively Cyber Quiz 2026 for public live rankings (Requirement: do not show live ranking of practice quiz)
+  const cyberQuizComp = useMemo(() => {
+    return competitions.find((c) => c.title.toLowerCase().includes('cyber quiz 2026'));
+  }, [competitions]);
+
   const filteredEntries = useMemo(() => {
-    const validCompIds = new Set(competitions.map((c) => c.id));
+    const cyberCompId = cyberQuizComp?.id;
     return leaderboard
       .filter((entry) => {
         const entryCompId =
           entry.competitionId ||
           (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');
 
-        // Only include entries belonging to active existing competitions
-        if (entryCompId && !validCompIds.has(entryCompId)) {
+        // NEVER show live rankings of Practice Quiz - ONLY show live ranking of Cyber Quiz 2026
+        const targetComp = competitions.find((c) => c.id === entryCompId);
+        if (targetComp && targetComp.title.toLowerCase().includes('practice')) {
+          return false;
+        }
+        if (entryCompId && entryCompId.toLowerCase().includes('practice')) {
+          return false;
+        }
+
+        // When Cyber Quiz 2026 is present, strictly restrict to Cyber Quiz 2026
+        if (cyberCompId && entryCompId && entryCompId !== cyberCompId) {
           return false;
         }
 
@@ -101,7 +115,7 @@ export const LeaderboardPage: React.FC = () => {
             Live Leaderboard
           </h1>
           <p className="mt-2 text-sm text-[#929DAC] max-w-2xl">
-            Verified operator standings, completion statuses, accuracy metrics, and execution times across cybersecurity tournaments.
+            Verified operator standings, completion statuses, accuracy metrics, and execution times for Cyber Quiz 2026. Practice simulations are unranked.
           </p>
         </div>
       </div>
@@ -115,7 +129,7 @@ export const LeaderboardPage: React.FC = () => {
           <p className="mt-1 text-sm font-medium text-[#F0F3F7]">
             {currentUserEntry
               ? `Ranked #${currentUserEntry.rank} — ${currentUserEntry.score} Points`
-              : 'Your operator standing will appear here once you complete a ranked competition.'}
+              : 'Your operator standing will appear here once you complete the Cyber Quiz 2026 tournament round.'}
           </p>
         </div>
 
@@ -142,12 +156,14 @@ export const LeaderboardPage: React.FC = () => {
               onChange={(e) => setSelectedCompId(e.target.value)}
               className="rounded-md border border-[#252D38] bg-[#07090D] px-3 py-1.5 text-xs text-[#F0F3F7] focus:border-[#B6FF3B] focus:outline-none cursor-pointer"
             >
-              <option value="all">All Competitions</option>
-              {competitions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title}
-                </option>
-              ))}
+              <option value="all">Cyber Quiz 2026 (Live Standings)</option>
+              {competitions
+                .filter((c) => !c.title.toLowerCase().includes('practice'))
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title}
+                  </option>
+                ))}
             </select>
           </div>
 

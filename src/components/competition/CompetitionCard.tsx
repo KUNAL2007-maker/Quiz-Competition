@@ -18,6 +18,9 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
   const { transitionCompetitionToLive } = useAppContext();
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
+  const isPractice = competition.title.toLowerCase().includes('practice');
+  const effectiveIsCompleted = isCompleted && !isPractice;
+
   const isLive = useMemo(() => {
     if (competition.status === 'live') return true;
     if (competition.startTime) {
@@ -28,7 +31,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
   }, [competition.status, competition.startTime, nowMs]);
 
   const isUpcoming = useMemo(() => {
-    if (isCompleted || isLive || competition.status === 'completed') return false;
+    if (effectiveIsCompleted || isLive || competition.status === 'completed') return false;
     if (competition.status === 'upcoming') {
       if (competition.startTime) {
         const startMs = new Date(competition.startTime).getTime();
@@ -69,7 +72,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
       <div className="space-y-3">
         {/* Metadata kicker */}
         <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-[#929DAC]">
-          {isCompleted ? (
+          {effectiveIsCompleted ? (
             <span className="inline-flex items-center gap-1 rounded bg-[#36F58A]/15 border border-[#36F58A]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#36F58A]">
               <CheckCircle2 className="h-3 w-3" /> ATTEMPT COMPLETED
             </span>
@@ -142,7 +145,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
           )}
         </div>
 
-        {isCompleted ? (
+        {effectiveIsCompleted ? (
           <button
             type="button"
             onClick={() => onSelect(competition)}

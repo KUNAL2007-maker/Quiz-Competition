@@ -156,13 +156,16 @@ export const AdminPage: React.FC = () => {
   }, [isAdmin]);
 
   const filteredLeaderboard = useMemo(() => {
-    const validCompIds = new Set(competitions.map((c) => c.id));
+    const cyberComp = competitions.find((c) => c.title.toLowerCase().includes('cyber quiz 2026'));
+    const cyberCompId = cyberComp?.id;
     return leaderboard
       .filter((entry) => {
         const entryCompId =
           entry.competitionId ||
           (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');
-        return Boolean(entryCompId && validCompIds.has(entryCompId));
+        // Exclude practice quiz from rankings directory; only display Cyber Quiz 2026
+        if (cyberCompId) return entryCompId === cyberCompId;
+        return Boolean(entryCompId && !entryCompId.toLowerCase().includes('practice'));
       })
       .map((entry, idx) => ({
         ...entry,

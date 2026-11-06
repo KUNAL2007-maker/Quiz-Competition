@@ -79,7 +79,17 @@ export const QuizPage: React.FC = () => {
     );
   }, [currentUser, activeCompId, leaderboard]);
 
+  const isPracticeQuiz = useMemo(() => {
+    const comp = competitions.find((c) => c.id === activeCompId);
+    return Boolean(
+      comp?.title.toLowerCase().includes('practice') || activeCompId?.toLowerCase().includes('practice')
+    );
+  }, [competitions, activeCompId]);
+
   const hasAlreadyAttempted = useMemo(() => {
+    // Practice simulations allow repeatable calibration and training
+    if (isPracticeQuiz) return false;
+
     if (
       previousResult ||
       previousLeaderboardEntry ||
@@ -101,6 +111,7 @@ export const QuizPage: React.FC = () => {
     }
     return false;
   }, [
+    isPracticeQuiz,
     previousResult,
     previousLeaderboardEntry,
     quizSession.competitionId,

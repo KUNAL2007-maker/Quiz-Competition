@@ -64,8 +64,13 @@ export const CompetitionsPage: React.FC = () => {
         // Ignore local storage read errors
       }
     }
+    // Do not include practice quiz in lockout - practice simulation is open for repeatable training
+    const practiceCompIds = new Set(
+      competitions.filter((c) => c.title.toLowerCase().includes('practice')).map((c) => c.id)
+    );
+    practiceCompIds.forEach((pId) => ids.delete(pId));
     return ids;
-  }, [currentUser, results, leaderboard, quizSession?.isSubmitted, quizSession?.competitionId]);
+  }, [competitions, currentUser, results, leaderboard, quizSession?.isSubmitted, quizSession?.competitionId]);
 
   // Display only real, active competitions from Firestore
   const allDisplayCompetitions = competitions;
@@ -167,8 +172,9 @@ export const CompetitionsPage: React.FC = () => {
 
   const handleSelectCompetition = useCallback(
     (comp: Competition) => {
-      // 1. If already completed attempt
-      if (completedCompetitionIds.has(comp.id)) {
+      const isPractice = comp.title.toLowerCase().includes('practice');
+      // 1. If already completed attempt (for official competitions only)
+      if (!isPractice && completedCompetitionIds.has(comp.id)) {
         navigate('/leaderboard');
         return;
       }
