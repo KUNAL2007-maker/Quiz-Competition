@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Search, Radio, SlidersHorizontal, X } from 'lucide-react';
+import { Trophy, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 import { formatDurationSeconds } from '../utils/timerLogic';
@@ -84,7 +84,7 @@ export const LeaderboardPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Page Header & Honest Stream Indicator */}
+      {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#252D38] pb-6">
         <div>
           <p className="font-mono text-xs tracking-wider text-[#B6FF3B]">
@@ -96,19 +96,6 @@ export const LeaderboardPage: React.FC = () => {
           <p className="mt-2 text-sm text-[#929DAC] max-w-2xl">
             Verified operator standings, completion statuses, accuracy metrics, and execution times across cybersecurity tournaments.
           </p>
-        </div>
-
-        {/* Live Firestore Feed Status Indicator */}
-        <div className="flex items-center gap-2.5 rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-2 self-start md:self-auto">
-          <Radio className="h-4 w-4 text-[#36F58A]" aria-hidden="true" />
-          <div className="text-left">
-            <span className="block font-mono text-[10px] text-[#929DAC]">
-              REAL-TIME FEED STATUS
-            </span>
-            <span className="font-mono text-xs font-medium text-[#36F58A]">
-              Connected · Firebase Firestore
-            </span>
-          </div>
         </div>
       </div>
 
