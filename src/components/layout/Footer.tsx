@@ -6,14 +6,10 @@ export const Footer: React.FC = () => {
   return (
     <footer className="border-t border-[#252D38] bg-[#0C1017]/80 py-4 px-4 sm:px-8 mt-auto">
       <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#929DAC]">
-        {/* Brand & Hosting Notice */}
+        {/* Brand */}
         <div className="flex items-center gap-2">
           <Shield className="h-4 w-4 text-[#B6FF3B] shrink-0" />
           <span className="font-display font-medium text-[#F0F3F7]">NULL ORIGIN</span>
-          <span>·</span>
-          <span className="font-mono text-[11px] text-[#929DAC]/80">
-            Hosted securely via Google Cloud & Firebase
-          </span>
         </div>
 
         {/* Small Bottom Links */}
