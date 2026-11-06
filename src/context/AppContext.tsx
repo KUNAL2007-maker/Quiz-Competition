@@ -71,7 +71,7 @@ interface AppContextValue {
   selectQuizAnswer: (questionId: string, optionId: string) => void;
   toggleMarkForReview: (questionId: string) => void;
   setCurrentQuestionIndex: (index: number) => void;
-  submitQuizSession: () => Promise<void>;
+  submitQuizSession: (customTimeTakenSec?: number) => Promise<void>;
   resetQuizSession: () => void;
 
   // Operator Profile
@@ -393,8 +393,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Fast deterministic client-side sorting:
         // 1. Score (descending - highest score first)
         // 2. Tie-breaker (Requirement): completionTimeSeconds (ascending - faster completion time ranks higher!)
-        // 3. Tertiary tie-breaker: accuracyPercent (descending - higher accuracy first)
-        // 4. Quaternary tie-breaker: createdAt (ascending - earlier submission timestamp first)
+        // 3. Tie-breaker 2 (Requirement): createdAt (ascending - earlier submission timestamp first / who submit first must be winner)
+        // 4. Fallback: accuracyPercent (descending)
         rawEntries.sort((a, b) => {
           const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
           if (scoreDiff !== 0) return scoreDiff;
@@ -410,12 +410,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const timeDiff = timeA - timeB;
           if (timeDiff !== 0) return timeDiff;
 
-          const accDiff = Number(b.accuracyPercent || 0) - Number(a.accuracyPercent || 0);
-          if (accDiff !== 0) return accDiff;
-
           const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 9999999999999;
           const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 9999999999999;
-          return dateA - dateB;
+          const dateDiff = dateA - dateB;
+          if (dateDiff !== 0) return dateDiff;
+
+          const accDiff = Number(b.accuracyPercent || 0) - Number(a.accuracyPercent || 0);
+          return accDiff;
         });
 
         setLeaderboard(rawEntries.map((item, idx) => ({ ...item, rank: idx + 1 })));
@@ -779,7 +780,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   }, []);
 
-  const submitQuizSession = useCallback(async () => {
+  const submitQuizSession = useCallback(async (customTimeTakenSec?: number) => {
     if (quizSession.isSubmitted || isSubmitting) {
       return;
     }
@@ -791,7 +792,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const estStart = quizSession.deadlineTimestamp
         ? quizSession.deadlineTimestamp - durationMin * 60 * 1000
         : now - 60000;
-      const timeTakenSec = Math.max(1, Math.min(86400, Math.floor((now - estStart) / 1000)));
+      const timeTakenSec =
+        typeof customTimeTakenSec === 'number' && customTimeTakenSec > 0
+          ? Math.min(86400, Math.round(customTimeTakenSec))
+          : Math.max(1, Math.min(86400, Math.floor((now - estStart) / 1000)));
 
       // Evaluate submission through the Python backend logic engine
       let evaluated = {

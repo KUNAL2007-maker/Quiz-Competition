@@ -169,7 +169,10 @@ test('scoreboard tie-breaker: two individuals with identical scores are ranked b
     const timeDiff = timeA - timeB;
     if (timeDiff !== 0) return timeDiff;
 
-    return 0;
+    // 3. Tertiary (Requirement): If both are the same, who submitted first must be winner
+    const dateA = (a as any).createdAt ? new Date((a as any).createdAt).getTime() : 9999999999999;
+    const dateB = (b as any).createdAt ? new Date((b as any).createdAt).getTime() : 9999999999999;
+    return dateA - dateB;
   });
 
   // Dave should be #1 with 3000 pts
@@ -185,6 +188,20 @@ test('scoreboard tie-breaker: two individuals with identical scores are ranked b
 
   // Charlie is #4 with 2500 pts
   assert.equal(sorted[3].id, 'user_lowest');
+
+  // Tie-breaker 2: Same score AND same completion time -> earlier submission timestamp wins
+  const twinParticipants = [
+    { id: 'user_late', score: 2800, completionTimeSeconds: 215, createdAt: '2026-11-06T12:05:00.000Z' },
+    { id: 'user_first', score: 2800, completionTimeSeconds: 215, createdAt: '2026-11-06T12:01:00.000Z' },
+  ];
+  const sortedTwins = [...twinParticipants].sort((a, b) => {
+    const sDiff = b.score - a.score;
+    if (sDiff !== 0) return sDiff;
+    const tDiff = a.completionTimeSeconds - b.completionTimeSeconds;
+    if (tDiff !== 0) return tDiff;
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  });
+  assert.equal(sortedTwins[0].id, 'user_first'); // Earlier submitter wins!
 });
 
 test('quiz evaluation accurately scores answers against correctOptionId', () => {

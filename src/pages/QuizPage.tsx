@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Terminal,
@@ -137,11 +137,36 @@ export const QuizPage: React.FC = () => {
 
   const [nowMs, setNowMs] = useState(() => Date.now());
 
+  // Per-Question Completion Time Tracking (Neatly calculate completion time of each question and total them together at the end)
+  const questionStartTimeRef = useRef<number>(Date.now());
+  const questionTimesRef = useRef<Record<number, number>>({});
+
+  const recordQuestionTime = useCallback(
+    (qIndex: number) => {
+      const q = questions[qIndex];
+      const limit = q?.timeLimitSeconds ?? activeCompetition?.perQuestionTimerSeconds ?? 30;
+      const elapsed = Math.min(limit, Math.max(1, Math.round((Date.now() - questionStartTimeRef.current) / 1000)));
+      questionTimesRef.current[qIndex] = Math.min(limit, (questionTimesRef.current[qIndex] || 0) + elapsed);
+      questionStartTimeRef.current = Date.now();
+    },
+    [questions, activeCompetition?.perQuestionTimerSeconds]
+  );
+
   // Direct Quiz Submission Handler (No confirmation popup)
   const handleDirectSubmit = useCallback(async () => {
     if (isSubmitting || quizSession.isSubmitted) return;
     try {
-      await submitQuizSession();
+      // 1. Record time spent on current final question
+      recordQuestionTime(quizSession.currentQuestionIndex);
+
+      // 2. Neatly total the completion time of each question together
+      let totalCompletionTimeSec = 0;
+      for (let i = 0; i < questions.length; i++) {
+        totalCompletionTimeSec += questionTimesRef.current[i] || 0;
+      }
+      totalCompletionTimeSec = Math.max(1, totalCompletionTimeSec);
+
+      await submitQuizSession(totalCompletionTimeSec);
       navigate('/profile');
     } catch (err) {
       addToast(
@@ -150,7 +175,16 @@ export const QuizPage: React.FC = () => {
         'alert'
       );
     }
-  }, [isSubmitting, quizSession.isSubmitted, submitQuizSession, navigate, addToast]);
+  }, [
+    isSubmitting,
+    quizSession.isSubmitted,
+    quizSession.currentQuestionIndex,
+    questions.length,
+    recordQuestionTime,
+    submitQuizSession,
+    navigate,
+    addToast,
+  ]);
 
   // Countdown timer calculations
   const timerState = calculateCountdown(quizSession.deadlineTimestamp, nowMs);
@@ -245,6 +279,10 @@ export const QuizPage: React.FC = () => {
     if (questionSecondsLeft === 0) {
       const currIdx = quizSession.currentQuestionIndex;
       const totalQ = questions.length;
+      const currQ = questions[currIdx];
+      const currLimit = currQ?.timeLimitSeconds ?? activeCompetition?.perQuestionTimerSeconds ?? 30;
+      questionTimesRef.current[currIdx] = currLimit;
+      questionStartTimeRef.current = Date.now();
 
       if (currIdx < totalQ - 1) {
         // Move to the next question cleanly without intrusive toasts
@@ -291,6 +329,8 @@ export const QuizPage: React.FC = () => {
           startQuizSession(activeCompetition);
         }
         setIsQuizActive(true);
+        questionStartTimeRef.current = Date.now();
+        questionTimesRef.current = {};
         setQuestionSecondsLeft(questionTimeLimit);
         addToast(
           'Quiz Commenced',
@@ -301,6 +341,14 @@ export const QuizPage: React.FC = () => {
       return () => window.clearTimeout(timer);
     }
   }, [countdownValue, activeCompetition, questionTimeLimit, startQuizSession, addToast]);
+
+  const handleSelectQuestionIndex = useCallback(
+    (idx: number) => {
+      recordQuestionTime(quizSession.currentQuestionIndex);
+      setCurrentQuestionIndex(idx);
+    },
+    [quizSession.currentQuestionIndex, recordQuestionTime, setCurrentQuestionIndex]
+  );
 
   // Guard 1: User must be signed in with Google or tournament credentials
   if (!currentUser) {
@@ -721,9 +769,10 @@ export const QuizPage: React.FC = () => {
                 <button
                   type="button"
                   disabled={quizSession.currentQuestionIndex <= 0}
-                  onClick={() =>
-                    setCurrentQuestionIndex(quizSession.currentQuestionIndex - 1)
-                  }
+                  onClick={() => {
+                    recordQuestionTime(quizSession.currentQuestionIndex);
+                    setCurrentQuestionIndex(quizSession.currentQuestionIndex - 1);
+                  }}
                   className="inline-flex items-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] disabled:opacity-40 cursor-pointer"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -743,9 +792,10 @@ export const QuizPage: React.FC = () => {
                 ) : (
                   <button
                     type="button"
-                    onClick={() =>
-                      setCurrentQuestionIndex(quizSession.currentQuestionIndex + 1)
-                    }
+                    onClick={() => {
+                      recordQuestionTime(quizSession.currentQuestionIndex);
+                      setCurrentQuestionIndex(quizSession.currentQuestionIndex + 1);
+                    }}
                     className="inline-flex items-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] cursor-pointer"
                   >
                     <span>Next</span>
@@ -764,7 +814,7 @@ export const QuizPage: React.FC = () => {
             currentIndex={quizSession.currentQuestionIndex}
             selectedAnswers={quizSession.selectedAnswers}
             markedForReview={quizSession.markedForReview}
-            onSelectIndex={setCurrentQuestionIndex}
+            onSelectIndex={handleSelectQuestionIndex}
           />
 
           <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-5 space-y-3">

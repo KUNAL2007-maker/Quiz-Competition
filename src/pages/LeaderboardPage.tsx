@@ -112,14 +112,15 @@ export const LeaderboardPage: React.FC = () => {
         const timeDiff = timeA - timeB;
         if (timeDiff !== 0) return timeDiff;
 
-        // 3. Tertiary: Higher accuracy percent ranks first
-        const accDiff = Number(b.accuracyPercent || 0) - Number(a.accuracyPercent || 0);
-        if (accDiff !== 0) return accDiff;
-
-        // 4. Quaternary: Earlier submission timestamp ranks first
+        // 3. Tertiary (Requirement): If both are the same, who submitted first must be winner
         const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 9999999999999;
         const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 9999999999999;
-        return dateA - dateB;
+        const dateDiff = dateA - dateB;
+        if (dateDiff !== 0) return dateDiff;
+
+        // 4. Fallback: accuracy percent
+        const accDiff = Number(b.accuracyPercent || 0) - Number(a.accuracyPercent || 0);
+        return accDiff;
       })
       .map((entry, idx) => ({
         ...entry,

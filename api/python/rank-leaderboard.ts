@@ -27,11 +27,15 @@ export default function handler(req: any, res: any) {
     const timeDiff = timeA - timeB;
     if (timeDiff !== 0) return timeDiff;
 
-    // 3. Tertiary: Accuracy (Descending)
-    const accDiff = Number(b.accuracyPercent || 0) - Number(a.accuracyPercent || 0);
-    if (accDiff !== 0) return accDiff;
+    // 3. Tertiary (Requirement): If both are the same, who submitted first must be winner
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 9999999999999;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 9999999999999;
+    const dateDiff = dateA - dateB;
+    if (dateDiff !== 0) return dateDiff;
 
-    return 0;
+    // 4. Fallback: Accuracy (Descending)
+    const accDiff = Number(b.accuracyPercent || 0) - Number(a.accuracyPercent || 0);
+    return accDiff;
   });
 
   const ranked = sorted.map((item, idx) => ({

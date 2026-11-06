@@ -235,12 +235,14 @@ def compute_leaderboard_rankings(entries: List[Dict[str, Any]]) -> List[Dict[str
     if not entries:
         return []
 
-    def sort_key(item: Dict[str, Any]) -> Tuple[int, float, int]:
+    def sort_key(item: Dict[str, Any]) -> Tuple[int, int, float, float]:
         score = int(item.get("score", 0) or 0)
-        accuracy = float(item.get("accuracyPercent", 0.0) or 0.0)
         time_sec = item.get("completionTimeSeconds")
         safe_time = int(time_sec) if isinstance(time_sec, (int, float)) and time_sec >= 0 else 999999999
-        return (-score, -accuracy, safe_time)
+        created_val = item.get("createdAt")
+        safe_created = float(created_val) if isinstance(created_val, (int, float)) else 9999999999.0
+        accuracy = float(item.get("accuracyPercent", 0.0) or 0.0)
+        return (-score, safe_time, safe_created, -accuracy)
 
     sorted_items = sorted(entries, key=sort_key)
     ranked: List[Dict[str, Any]] = []
