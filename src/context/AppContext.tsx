@@ -169,15 +169,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     'kunalbankhele07@gmail.com',
   ];
   const isAdmin = Boolean(
-    (currentUser?.email &&
-      (ADMIN_EMAILS.includes(currentUser.email.trim().toLowerCase()) ||
-        currentUser.email.toLowerCase().includes('kunalbankhele') ||
-        currentUser.email.toLowerCase().includes('checkship') ||
-        currentUser.email.toLowerCase().includes('hafizmujawar'))) ||
-      (profile?.username &&
-        ['kunalbankhele07', 'kunalbankhele', 'checkship66', 'hafizmujawar786'].includes(
-          profile.username.trim().toLowerCase()
-        ))
+    currentUser?.email &&
+      ADMIN_EMAILS.includes(currentUser.email.trim().toLowerCase())
   );
 
   const [competitions, setCompetitions] = useState<Competition[]>([]);
@@ -222,14 +215,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } catch {
         // Ignore storage read errors
-      }
-      const params = new URLSearchParams(window.location.search);
-      const quizDeadline = params.get('quizDeadline');
-      if (quizDeadline && !Number.isNaN(Number(quizDeadline))) {
-        return {
-          ...DEFAULT_QUIZ_SESSION,
-          deadlineTimestamp: Number(quizDeadline),
-        };
       }
     }
     return DEFAULT_QUIZ_SESSION;
