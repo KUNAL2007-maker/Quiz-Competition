@@ -1187,7 +1187,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               k &&
               (k.startsWith('nullorigin_') ||
                 k.startsWith('aegis_') ||
-                k.startsWith('completed_comp_'))
+                k.startsWith('completed_comp_') ||
+                k.startsWith('completed_email_'))
             ) {
               keysToRemove.push(k);
             }

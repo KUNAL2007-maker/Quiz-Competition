@@ -149,26 +149,51 @@ export const QuizPage: React.FC = () => {
   ]);
 
 
-  // Anti-Cheat & Tab-Switching Proctoring States
-  const [tabSwitchWarnings, setTabSwitchWarnings] = useState<number>(0);
+  // Anti-Cheat & Tab-Switching Proctoring States (Persisted in storage so reloads cannot erase warnings)
+  const [tabSwitchWarnings, setTabSwitchWarnings] = useState<number>(() => {
+    if (typeof window !== 'undefined' && activeCompId) {
+      try {
+        const saved =
+          window.sessionStorage.getItem(`nullorigin_tab_warnings_${activeCompId}`) ||
+          window.localStorage.getItem(`nullorigin_tab_warnings_${activeCompId}`);
+        if (saved) return Math.min(3, Math.max(0, parseInt(saved, 10) || 0));
+      } catch {}
+    }
+    return 0;
+  });
   const [activeTabWarningModal, setActiveTabWarningModal] = useState<number | null>(null);
   const [isDisqualified, setIsDisqualified] = useState<boolean>(false);
   const [disqualificationReason, setDisqualificationReason] = useState<string>('');
   const lastTabSwitchViolationRef = useRef<number>(0);
 
-  // Check stored disqualification status on load
+  // Check stored disqualification status on load (UID & email)
   useEffect(() => {
-    if (currentUser && activeCompId) {
-      const dqReason = localStorage.getItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`);
-      if (dqReason) {
-        setIsDisqualified(true);
-        setDisqualificationReason(dqReason);
-      }
+    if (typeof window !== 'undefined' && currentUser && activeCompId) {
+      try {
+        let dqReason = window.localStorage.getItem(
+          `nullorigin_disqualified_${currentUser.uid}_${activeCompId}`
+        );
+        if (!dqReason && currentUser.email) {
+          const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+          dqReason = window.localStorage.getItem(
+            `nullorigin_disqualified_email_${cleanEmail}_${activeCompId}`
+          );
+        }
+        if (dqReason) {
+          setIsDisqualified(true);
+          setDisqualificationReason(dqReason);
+        }
+      } catch {}
     }
   }, [currentUser, activeCompId]);
 
-  // Active quiz session state: always false initially so every entrance consistently shows warnings then countdown!
-  const [isQuizActive, setIsQuizActive] = useState<boolean>(false);
+  // Active quiz session state: automatically resumes if active session already started and deadline not passed
+  const [isQuizActive, setIsQuizActive] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && quizSession.deadlineTimestamp && !quizSession.isSubmitted) {
+      return quizSession.deadlineTimestamp > Date.now();
+    }
+    return false;
+  });
 
   // Animated 3-2-1 Countdown State (Requirement 3)
   const [countdownValue, setCountdownValue] = useState<number | null>(null);
@@ -286,9 +311,35 @@ export const QuizPage: React.FC = () => {
   ]);
 
 
-  // Anti-Cheat 1: Block Copy, Cut, Paste, Drag, and Context Menu
+  // Audio alert tone generator on proctoring infractions
+  const playWarningBeep = useCallback(() => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(520, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.25);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch {}
+  }, []);
+
+  // Anti-Cheat 1: Strict Copy, Cut, Paste, Text Selection, Context Menu & Drag Blocking
   useEffect(() => {
     if (!isQuizActive || quizSession.isSubmitted || isDisqualified) return;
+
+    // Apply global unselectable styles to document while quiz is active
+    const originalUserSelect = document.body.style.userSelect;
+    const originalWebkitUserSelect = (document.body.style as any).webkitUserSelect;
+    document.body.style.userSelect = 'none';
+    (document.body.style as any).webkitUserSelect = 'none';
 
     const preventCopyCutPaste = (e: ClipboardEvent) => {
       e.preventDefault();
@@ -300,6 +351,10 @@ export const QuizPage: React.FC = () => {
       addToast('Action Blocked', 'Right-click context menu is disabled during the examination.', 'alert');
     };
 
+    const preventSelectStart = (e: Event) => {
+      e.preventDefault();
+    };
+
     const preventDrag = (e: DragEvent) => {
       e.preventDefault();
     };
@@ -308,13 +363,17 @@ export const QuizPage: React.FC = () => {
     document.addEventListener('cut', preventCopyCutPaste);
     document.addEventListener('paste', preventCopyCutPaste);
     document.addEventListener('contextmenu', preventContextMenu);
+    document.addEventListener('selectstart', preventSelectStart);
     document.addEventListener('dragstart', preventDrag);
 
     return () => {
+      document.body.style.userSelect = originalUserSelect;
+      (document.body.style as any).webkitUserSelect = originalWebkitUserSelect;
       document.removeEventListener('copy', preventCopyCutPaste);
       document.removeEventListener('cut', preventCopyCutPaste);
       document.removeEventListener('paste', preventCopyCutPaste);
       document.removeEventListener('contextmenu', preventContextMenu);
+      document.removeEventListener('selectstart', preventSelectStart);
       document.removeEventListener('dragstart', preventDrag);
     };
   }, [isQuizActive, quizSession.isSubmitted, isDisqualified, addToast]);
@@ -388,27 +447,46 @@ export const QuizPage: React.FC = () => {
     };
   }, [isQuizActive, quizSession.isSubmitted, isDisqualified, addToast]);
 
-  // Anti-Cheat 3: Tab Switching Detection & Immediate Disqualification on >2 warnings
+  // Anti-Cheat 3: Multi-Layer Tab-Switching, Blur, Focus Loss & Heartbeat Proctoring
   useEffect(() => {
     if (!isQuizActive || quizSession.isSubmitted || isDisqualified) return;
 
-    const handleTabSwitchEvent = () => {
+    const handleTabSwitchEvent = (triggerReason = 'Tab switched or window lost focus') => {
+      // If warning modal is already on screen waiting for acknowledgment, do not double-increment
+      if (activeTabWarningModal !== null) return;
+
       const now = Date.now();
-      // Debounce window blur and visibilitychange occurring simultaneously
-      if (now - lastTabSwitchViolationRef.current < 2000) {
+      // Debounce events firing in rapid succession (1500ms window)
+      if (now - lastTabSwitchViolationRef.current < 1500) {
         return;
       }
       lastTabSwitchViolationRef.current = now;
 
+      playWarningBeep();
+
       setTabSwitchWarnings((prev) => {
         const next = prev + 1;
+        try {
+          if (typeof window !== 'undefined' && activeCompId) {
+            window.sessionStorage.setItem(`nullorigin_tab_warnings_${activeCompId}`, String(next));
+            window.localStorage.setItem(`nullorigin_tab_warnings_${activeCompId}`, String(next));
+          }
+        } catch {}
+
         if (next > 2) {
-          // Exceeded 2 warnings -> immediate disqualification with score 0
+          // Exceeded 2 warnings (3rd infraction) -> ON THE SPOT DISQUALIFICATION with score 0
           setIsDisqualified(true);
           setIsQuizActive(false);
-          const reason = 'Exceeded maximum permitted tab-switching infractions (&gt; 2 warnings). Disqualified with score 0.';
-          setDisqualificationReason(reason);
-          submitDisqualifiedQuizSession(reason);
+          const fullReason = `Exceeded maximum permitted proctoring infractions (> 2 warnings: ${triggerReason}). Disqualified on the spot with score 0.`;
+          setDisqualificationReason(fullReason);
+          submitDisqualifiedQuizSession(fullReason);
+          if (currentUser?.email) {
+            const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+            try {
+              window.localStorage.setItem(`nullorigin_disqualified_email_${cleanEmail}_${activeCompId}`, fullReason);
+              window.localStorage.setItem(`completed_email_${cleanEmail}_${activeCompId}`, 'true');
+            } catch {}
+          }
           return next;
         } else {
           setActiveTabWarningModal(next);
@@ -417,24 +495,62 @@ export const QuizPage: React.FC = () => {
       });
     };
 
+    // Layer 1: Document Visibility Change (Tab switch, minimize, app switch)
     const handleVisibilityChange = () => {
       if (document.hidden || document.visibilityState === 'hidden') {
-        handleTabSwitchEvent();
+        handleTabSwitchEvent('Tab switched, minimized, or moved to background');
       }
     };
 
+    // Layer 2: Window Blur (Focus leaves browser window, Alt+Tab, click secondary monitor, taskbar)
     const handleWindowBlur = () => {
-      handleTabSwitchEvent();
+      handleTabSwitchEvent('Browser window lost focus or secondary application opened');
+    };
+
+    // Layer 3: Focus Out (Losing focus to system dialog or other app)
+    const handleFocusOut = (e: FocusEvent) => {
+      if (!e.relatedTarget && (document.hidden || !document.hasFocus())) {
+        handleTabSwitchEvent('Window focus lost to external application');
+      }
+    };
+
+    // Layer 4: Heartbeat Proctoring Poll (Every 400ms) - Catches split screen, devtools, dual monitor, or swallowed events
+    const heartbeatTimer = window.setInterval(() => {
+      if (!isQuizActive || quizSession.isSubmitted || isDisqualified) return;
+      if (document.hidden || document.visibilityState === 'hidden' || !document.hasFocus()) {
+        handleTabSwitchEvent('Heartbeat proctoring: exam window was out of focus');
+      }
+    }, 400);
+
+    // Layer 5: Native beforeunload confirmation prompt
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = 'Warning: Leaving or reloading this exam window is strictly monitored.';
+      return e.returnValue;
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleWindowBlur);
+    window.addEventListener('focusout', handleFocusOut);
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleWindowBlur);
+      window.removeEventListener('focusout', handleFocusOut);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.clearInterval(heartbeatTimer);
     };
-  }, [isQuizActive, quizSession.isSubmitted, isDisqualified, submitDisqualifiedQuizSession]);
+  }, [
+    isQuizActive,
+    quizSession.isSubmitted,
+    isDisqualified,
+    activeTabWarningModal,
+    activeCompId,
+    currentUser,
+    playWarningBeep,
+    submitDisqualifiedQuizSession,
+  ]);
 
   // Pure countdown ticker: ticks every 1000ms and decrements questionSecondsLeft towards 0
   useEffect(() => {
@@ -582,8 +698,15 @@ export const QuizPage: React.FC = () => {
                   setIsDisqualified(false);
                   setDisqualificationReason('');
                   setTabSwitchWarnings(0);
+                  setActiveTabWarningModal(null);
                   setIsQuizActive(false);
                   setCountdownValue(null);
+                  try {
+                    if (activeCompId) {
+                      window.sessionStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+                      window.localStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+                    }
+                  } catch {}
                 }}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-[#B6FF3B] bg-[#B6FF3B]/20 px-6 py-2.5 font-mono text-xs font-bold text-[#B6FF3B] hover:bg-[#B6FF3B]/30 cursor-pointer shadow-lg"
               >
@@ -797,11 +920,11 @@ export const QuizPage: React.FC = () => {
         <div
           role="alertdialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#07090D]/95 p-4 backdrop-blur-md"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#07090D]/95 p-4 backdrop-blur-md"
         >
-          <div className="relative w-full max-w-lg rounded-2xl border border-[#FF365B]/60 bg-[#0C1017] p-6 shadow-2xl">
+          <div className="relative w-full max-w-lg rounded-2xl border border-[#FF365B]/60 bg-[#0C1017] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 border-b border-[#252D38] pb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#FF365B]/40 bg-[#FF365B]/15 text-[#FF365B]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#FF365B]/40 bg-[#FF365B]/15 text-[#FF365B] animate-pulse">
                 <AlertTriangle className="h-6 w-6" />
               </div>
               <div>
@@ -839,8 +962,14 @@ export const QuizPage: React.FC = () => {
             <div className="mt-6 flex justify-end">
               <button
                 type="button"
-                onClick={() => setActiveTabWarningModal(null)}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#B6FF3B] px-5 py-2.5 font-mono text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer"
+                onClick={() => {
+                  lastTabSwitchViolationRef.current = Date.now();
+                  setActiveTabWarningModal(null);
+                  try {
+                    window.focus();
+                  } catch {}
+                }}
+                className="inline-flex items-center gap-2 rounded-lg bg-[#B6FF3B] px-5 py-2.5 font-mono text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer shadow-lg"
               >
                 <span>I Understand & Acknowledge (Return to Question)</span>
               </button>

@@ -279,6 +279,44 @@ test('tab-switching proctoring system enforces 2-warning limit and disqualifies 
   assert.equal(finalScore, 0);
 });
 
+test('proctoring warning counter persists across browser reloads via client storage', () => {
+  const mockStorage: Record<string, string> = {};
+  const compId = 'cyber-quiz-2026';
+  const key = `nullorigin_tab_warnings_${compId}`;
+
+  // Step 1: Warning 1 issued
+  mockStorage[key] = '1';
+
+  // Step 2: Page reloaded -> warning count retrieved
+  const restoredWarnings = parseInt(mockStorage[key] || '0', 10);
+  assert.equal(restoredWarnings, 1);
+
+  // Step 3: Next infraction increments to 2
+  const nextWarnings = restoredWarnings + 1;
+  mockStorage[key] = String(nextWarnings);
+  assert.equal(parseInt(mockStorage[key], 10), 2);
+
+  // Step 4: 3rd infraction disqualifies
+  const finalWarnings = parseInt(mockStorage[key], 10) + 1;
+  const isDisqualified = finalWarnings > 2;
+  assert.equal(isDisqualified, true);
+});
+
+test('heartbeat proctoring detects hidden document or window blur even when events are missed', () => {
+  const evaluateHeartbeat = (isDocHidden: boolean, hasFocus: boolean) => {
+    return isDocHidden || !hasFocus;
+  };
+
+  // Normal focused state: no infraction
+  assert.equal(evaluateHeartbeat(false, true), false);
+
+  // User switched tabs: document is hidden
+  assert.equal(evaluateHeartbeat(true, false), true);
+
+  // User split-screen or secondary monitor: document not hidden but hasFocus is false
+  assert.equal(evaluateHeartbeat(false, false), true);
+});
+
 test('disqualified quiz session evaluation forces score 0 and maximum penalty time', () => {
   const totalQuestions = 30;
   const disqualifiedPayload = {
