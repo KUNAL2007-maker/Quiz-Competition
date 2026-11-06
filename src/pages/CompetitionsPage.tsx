@@ -264,7 +264,7 @@ export const CompetitionsPage: React.FC = () => {
                 key={tab.id}
                 type="button"
                 onClick={() => setStatusFilter(tab.id)}
-                className={`rounded px-3.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer inline-flex items-center gap-1.5 ${
+                className={`rounded px-3.5 py-2.5 min-h-11 text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer inline-flex items-center gap-1.5 ${
                   active
                     ? 'bg-[#B6FF3B] text-[#07090D] font-semibold'
                     : 'text-[#929DAC] hover:text-[#F0F3F7]'

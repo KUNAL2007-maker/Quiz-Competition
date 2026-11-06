@@ -144,7 +144,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/admin')}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#B6FF3B] px-4 py-2.5 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#B6FF3B] px-4 py-3 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer"
             >
               <KeyRound className="h-4 w-4" />
               <span>Open Admin Dashboard & Quiz Creator</span>
@@ -263,7 +263,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#B6FF3B] py-2.5 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors disabled:opacity-50 cursor-pointer shadow-md mt-2"
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#B6FF3B] py-3 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors disabled:opacity-50 cursor-pointer shadow-md mt-2"
             >
               {mode === 'signin' ? (
                 <>
@@ -326,7 +326,7 @@ export const LoginPage: React.FC = () => {
             type="button"
             disabled={isSubmitting}
             onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-3 rounded-lg border border-[#252D38] bg-[#111722] py-2.5 px-4 text-xs font-semibold text-[#F0F3F7] hover:border-[#B6FF3B] hover:bg-[#161E2C] transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+            className="w-full flex items-center justify-center gap-3 rounded-lg border border-[#252D38] bg-[#111722] py-3 px-4 text-xs font-semibold text-[#F0F3F7] hover:border-[#B6FF3B] hover:bg-[#161E2C] transition-all disabled:opacity-50 cursor-pointer shadow-sm"
           >
             <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
               <path

@@ -26,7 +26,7 @@ export const AppShell: React.FC = () => {
 
         <main
           className={`flex-1 ${
-            settings.appearance.compactDensity ? 'p-4 md:p-6' : 'p-6 md:p-8 lg:p-10'
+            settings.appearance.compactDensity ? 'p-4 md:p-6' : 'p-4 sm:p-6 md:p-8 lg:p-10'
           } max-w-[1400px] w-full mx-auto`}
         >
           <Outlet />

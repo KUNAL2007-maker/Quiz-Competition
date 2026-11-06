@@ -386,7 +386,7 @@ export const ProfilePage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleOpenEdit}
-                className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2.5 min-h-11 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <Edit3 className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Edit Profile</span>

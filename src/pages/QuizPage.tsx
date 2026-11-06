@@ -1105,7 +1105,7 @@ export const QuizPage: React.FC = () => {
               onSecondaryAction={() => navigate('/leaderboard')}
             />
           ) : (
-            <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6 md:p-8 space-y-6">
+            <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-4 sm:p-6 md:p-8 space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#252D38] pb-4">
                 <div className="flex items-center gap-2 font-mono text-xs text-[#929DAC]">
                   <span className="text-[#B6FF3B] font-semibold">
@@ -1244,8 +1244,8 @@ export const QuizPage: React.FC = () => {
               </div>
 
               {/* Forward-Only Navigation (Previous strictly disabled to prevent timer reset) */}
-              <div className="flex items-center justify-between border-t border-[#252D38] pt-5">
-                <div className="inline-flex items-center gap-2 rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 font-mono text-[11px] text-[#929DAC]">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-[#252D38] pt-5">
+                <div className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 font-mono text-xs sm:text-[11px] text-[#929DAC]">
                   <Lock className="h-3.5 w-3.5 text-[#E6B450]" />
                   <span>Strict Forward Progression · Returning Disabled</span>
                 </div>
@@ -1255,7 +1255,7 @@ export const QuizPage: React.FC = () => {
                     type="button"
                     disabled={isSubmitting || quizSession.isSubmitted}
                     onClick={handleDirectSubmit}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-[#B6FF3B] px-5 py-2 text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] disabled:opacity-40 cursor-pointer transition-colors shadow-md"
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-md bg-[#B6FF3B] px-5 py-2 text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] disabled:opacity-40 cursor-pointer transition-colors shadow-md"
                   >
                     <Send className="h-3.5 w-3.5" />
                     <span>{isSubmitting ? 'Submitting...' : 'Submit Quiz'}</span>
@@ -1267,7 +1267,7 @@ export const QuizPage: React.FC = () => {
                       recordQuestionTime(quizSession.currentQuestionIndex);
                       setCurrentQuestionIndex(quizSession.currentQuestionIndex + 1);
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] cursor-pointer"
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] cursor-pointer"
                   >
                     <span>Next</span>
                     <ChevronRight className="h-4 w-4" />

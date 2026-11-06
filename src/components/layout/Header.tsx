@@ -197,7 +197,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             }}
             aria-label="Notifications"
             aria-expanded={isNotifOpen}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-[#252D38] bg-[#111722] text-[#929DAC] transition-colors hover:border-[#929DAC]/50 hover:text-[#F0F3F7] focus-visible:outline-2 focus-visible:outline-[#B6FF3B] cursor-pointer"
+            className="flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-md border border-[#252D38] bg-[#111722] text-[#929DAC] transition-colors hover:border-[#929DAC]/50 hover:text-[#F0F3F7] focus-visible:outline-2 focus-visible:outline-[#B6FF3B] cursor-pointer"
           >
             <Bell className="h-4 w-4" />
           </button>
@@ -240,7 +240,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             }}
             aria-label="Operator profile menu"
             aria-expanded={isProfileOpen}
-            className="flex items-center gap-2.5 rounded-md border border-[#252D38] bg-[#111722] px-2.5 py-1.5 text-xs font-medium text-[#F0F3F7] transition-colors hover:border-[#929DAC]/50 focus-visible:outline-2 focus-visible:outline-[#B6FF3B] cursor-pointer"
+            className="flex items-center gap-2.5 rounded-md border border-[#252D38] bg-[#111722] px-2.5 py-2.5 sm:py-1.5 text-xs font-medium text-[#F0F3F7] transition-colors hover:border-[#929DAC]/50 focus-visible:outline-2 focus-visible:outline-[#B6FF3B] cursor-pointer"
           >
             <div className="flex h-6 w-6 items-center justify-center rounded bg-[#07090D] border border-[#252D38] text-[#B6FF3B]">
               <User className="h-3.5 w-3.5" aria-hidden="true" />

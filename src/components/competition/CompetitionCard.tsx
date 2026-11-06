@@ -151,7 +151,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
           <button
             type="button"
             onClick={() => onSelect(competition)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#36F58A]/40 px-3.5 py-1.5 text-xs font-semibold text-[#36F58A] transition-colors hover:bg-[#36F58A]/10 whitespace-nowrap shrink-0 cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#36F58A]/40 px-3.5 py-2.5 min-h-11 text-xs font-semibold text-[#36F58A] transition-colors hover:bg-[#36F58A]/10 whitespace-nowrap shrink-0 cursor-pointer"
           >
             <span>View Standings</span>
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -178,7 +178,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
                     onSelect(competition);
                   }
                 }}
-                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#B6FF3B] px-3.5 py-1.5 text-xs font-bold text-[#07090D] transition-colors hover:bg-[#c8ff66] whitespace-nowrap shrink-0 cursor-pointer shadow-md"
+                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#B6FF3B] px-3.5 py-2.5 min-h-11 text-xs font-bold text-[#07090D] transition-colors hover:bg-[#c8ff66] whitespace-nowrap shrink-0 cursor-pointer shadow-md"
                 title="Admin direct testing mode"
               >
                 <Play className="h-3.5 w-3.5 fill-current" />
@@ -188,7 +188,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
             <button
               type="button"
               onClick={() => onSelect(competition)}
-              className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#00E5FF]/40 px-3.5 py-1.5 text-xs font-semibold text-[#00E5FF] transition-colors hover:bg-[#00E5FF]/10 whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#00E5FF]/40 px-3.5 py-2.5 min-h-11 text-xs font-semibold text-[#00E5FF] transition-colors hover:bg-[#00E5FF]/10 whitespace-nowrap shrink-0 cursor-pointer"
             >
               <Lock className="h-3.5 w-3.5" />
               <span>
@@ -202,7 +202,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
           <button
             type="button"
             onClick={() => onSelect(competition)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#252D38] px-3.5 py-1.5 text-xs font-medium text-[#F0F3F7] transition-colors hover:border-[#B6FF3B] hover:text-[#B6FF3B] whitespace-nowrap shrink-0 cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#252D38] px-3.5 py-2.5 min-h-11 text-xs font-medium text-[#F0F3F7] transition-colors hover:border-[#B6FF3B] hover:text-[#B6FF3B] whitespace-nowrap shrink-0 cursor-pointer"
           >
             <span>View Details</span>
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

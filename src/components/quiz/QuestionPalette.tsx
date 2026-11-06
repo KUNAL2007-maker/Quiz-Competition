@@ -35,7 +35,7 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
       </div>
 
       {/* Accessible Legend */}
-      <div className="mb-4 grid grid-cols-3 gap-2 text-[11px] text-[#929DAC]">
+      <div className="mb-4 flex flex-wrap gap-x-3 gap-y-1.5 text-[11px] text-[#929DAC]">
         <div className="flex items-center gap-1.5">
           <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#B6FF3B] bg-[#B6FF3B]/15 font-mono text-[10px] font-bold text-[#B6FF3B]">
             •
