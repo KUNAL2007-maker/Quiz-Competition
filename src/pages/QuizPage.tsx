@@ -858,23 +858,6 @@ export const QuizPage: React.FC = () => {
 
         {/* Quiz Progress & Real Target Deadline Timer */}
         <div className="flex flex-wrap items-center gap-4">
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={async () => {
-                await resetAdminTestSession();
-                setIsDisqualified(false);
-                setTabSwitchWarnings(0);
-                setIsQuizActive(false);
-                setCountdownValue(null);
-              }}
-              title="Admin: Reset quiz session and restart from Q1"
-              className="inline-flex items-center gap-1.5 rounded-md border border-[#B6FF3B]/40 bg-[#07090D] px-2.5 py-1.5 font-mono text-[11px] font-semibold text-[#B6FF3B] hover:bg-[#B6FF3B]/10 cursor-pointer transition-colors"
-            >
-              <RotateCcw className="h-3 w-3" />
-              <span>Reset Test</span>
-            </button>
-          )}
           <div className="rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-2">
             <span className="block font-mono text-[10px] text-[#929DAC]">
               PROGRESS
