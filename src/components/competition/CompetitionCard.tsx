@@ -21,7 +21,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
   const isPractice = competition.title.toLowerCase().includes('practice');
-  const effectiveIsCompleted = isCompleted && !isPractice;
+  const effectiveIsCompleted = isCompleted && !isPractice && competition.status !== 'live';
 
   const isLive = useMemo(() => {
     if (competition.status === 'live') return true;

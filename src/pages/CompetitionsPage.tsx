@@ -21,6 +21,7 @@ export const CompetitionsPage: React.FC = () => {
     profile,
     isAdmin,
     selectCompetition,
+    resetQuizSession,
     transitionCompetitionToLive,
     addToast,
   } = useAppContext();
@@ -165,17 +166,18 @@ export const CompetitionsPage: React.FC = () => {
         navigate('/profile?required=1');
         return;
       }
+      resetQuizSession();
       selectCompetition(comp);
       navigate('/quiz');
     },
-    [currentUser, profile.isProfileComplete, selectCompetition, navigate, addToast, isAdmin]
+    [currentUser, profile.isProfileComplete, selectCompetition, resetQuizSession, navigate, addToast, isAdmin]
   );
 
   const handleSelectCompetition = useCallback(
     (comp: Competition) => {
       const isPractice = comp.title.toLowerCase().includes('practice');
-      // 1. If already completed attempt (for official competitions only, bypass for admin)
-      if (!isPractice && !isAdmin && completedCompetitionIds.has(comp.id)) {
+      // 1. If already completed attempt (for official competitions only, bypass for admin or live mode)
+      if (!isPractice && !isAdmin && comp.status !== 'live' && completedCompetitionIds.has(comp.id)) {
         navigate('/leaderboard');
         return;
       }

@@ -39,6 +39,7 @@ export const AdminPage: React.FC = () => {
     competitions,
     leaderboard,
     selectCompetition,
+    resetQuizSession,
     addToast,
   } = useAppContext();
 
@@ -610,6 +611,7 @@ export const AdminPage: React.FC = () => {
             <button
               type="button"
               onClick={() => {
+                resetQuizSession();
                 selectCompetition(cyberComp);
                 navigate('/quiz');
               }}
@@ -1045,6 +1047,7 @@ export const AdminPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => {
+                            resetQuizSession();
                             selectCompetition(c);
                             navigate('/quiz');
                           }}

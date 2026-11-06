@@ -33,12 +33,12 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
   onConfirmStart,
   onCancel,
 }) => {
-  const [hasAgreed, setHasAgreed] = useState(isAdmin);
+  const [hasAgreed, setHasAgreed] = useState(false);
 
   if (!isOpen) return null;
 
   const durationMin = competition?.durationMinutes || 15;
-  const perQuestionSec = competition?.perQuestionTimerSeconds || 15;
+  const perQuestionSec = competition?.perQuestionTimerSeconds || 30;
 
   return (
     <div

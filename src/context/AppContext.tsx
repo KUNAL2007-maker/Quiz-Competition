@@ -158,7 +158,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
   const [pythonEngineOnline, setPythonEngineOnline] = useState<boolean>(false);
 
-  const ADMIN_EMAILS = ['checkship66@gmail.com', 'hafizmujawar786@gmail.com'];
+  const ADMIN_EMAILS = [
+    'checkship66@gmail.com',
+    'hafizmujawar786@gmail.com',
+    'kunalbankhele07@gmail.com',
+  ];
   const isAdmin = Boolean(
     currentUser?.email && ADMIN_EMAILS.includes(currentUser.email.trim().toLowerCase())
   );
@@ -1005,6 +1009,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setQuizSession(DEFAULT_QUIZ_SESSION);
     try {
       window.sessionStorage.removeItem(QUIZ_STORAGE_KEY);
+      window.localStorage.removeItem(QUIZ_STORAGE_KEY);
     } catch {
       // Ignore
     }

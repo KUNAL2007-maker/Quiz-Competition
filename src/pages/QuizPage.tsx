@@ -95,6 +95,9 @@ export const QuizPage: React.FC = () => {
     // Practice simulations allow repeatable calibration and training
     if (isPracticeQuiz) return false;
 
+    // While competition is in live open mode for real-time testing, allow repeatable testing
+    if (activeCompetition?.status === 'live') return false;
+
     if (
       previousResult ||
       previousLeaderboardEntry ||
@@ -125,12 +128,8 @@ export const QuizPage: React.FC = () => {
     currentUser,
   ]);
 
-  // Active quiz session state: only true once 3-2-1 countdown finishes or if unexpired session resumed
-  const [isQuizActive, setIsQuizActive] = useState<boolean>(() => {
-    if (!quizSession.deadlineTimestamp || quizSession.isSubmitted) return false;
-    if (activeCompId && quizSession.competitionId !== activeCompId) return false;
-    return Date.now() < quizSession.deadlineTimestamp;
-  });
+  // Active quiz session state: always false initially so every entrance consistently shows warnings then countdown!
+  const [isQuizActive, setIsQuizActive] = useState<boolean>(false);
 
   // Animated 3-2-1 Countdown State (Requirement 3)
   const [countdownValue, setCountdownValue] = useState<number | null>(null);
@@ -329,12 +328,14 @@ export const QuizPage: React.FC = () => {
           startQuizSession(activeCompetition);
         }
         setIsQuizActive(true);
+        setCurrentQuestionIndex(0);
         questionStartTimeRef.current = Date.now();
         questionTimesRef.current = {};
-        setQuestionSecondsLeft(questionTimeLimit);
+        const firstLimit = questions[0]?.timeLimitSeconds ?? activeCompetition?.perQuestionTimerSeconds ?? 30;
+        setQuestionSecondsLeft(firstLimit);
         addToast(
           'Quiz Commenced',
-          `Quiz started with ${questionTimeLimit}s per-question timer. Good luck!`,
+          `Quiz started with ${firstLimit}s per-question timer. Good luck!`,
           'success'
         );
       }, 750);
