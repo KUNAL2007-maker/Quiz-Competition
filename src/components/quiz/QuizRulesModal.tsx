@@ -109,11 +109,11 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
         <div className="mt-4 space-y-3 max-h-[50vh] overflow-y-auto pr-1">
           {/* Rule 1: Tab-Switching Violation & Strike Policy */}
           <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#3A4656] transition-colors p-4 flex items-start gap-3.5">
-            <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
+            <div className="mt-0.5 rounded-lg border border-[#252D38] bg-[#111722] p-2 text-[#929DAC] shrink-0">
               <ShieldAlert className="h-5 w-5" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-mono text-xs font-bold uppercase text-[#B6FF3B] tracking-wide">
+              <h3 className="font-display text-xs font-bold uppercase text-[#F0F3F7] tracking-wide">
                 1. Tab-Switching Violation & Strike System (Max 2 Warnings)
               </h3>
               <p className="text-xs text-[#929DAC] leading-relaxed">
@@ -129,7 +129,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 <Lock className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
+                <h4 className="font-display text-xs font-bold text-[#F0F3F7]">
                   2. Strict Forward-Only
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -143,7 +143,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 <Hourglass className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
+                <h4 className="font-display text-xs font-bold text-[#F0F3F7]">
                   3. {perQuestionSec}s Per Question
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -160,7 +160,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 <AlertTriangle className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
+                <h4 className="font-display text-xs font-bold text-[#F0F3F7]">
                   4. Anti-Copy & Screenshot Block
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -174,7 +174,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 <Bot className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
+                <h4 className="font-display text-xs font-bold text-[#F0F3F7]">
                   5. Zero AI Assistance
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -190,7 +190,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
               <Clock className="h-4 w-4" />
             </div>
             <div className="space-y-1">
-              <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
+              <h4 className="font-display text-xs font-bold text-[#F0F3F7]">
                 6. Strictly One Attempt Per Email
               </h4>
               <p className="text-[11px] text-[#929DAC] leading-relaxed">
