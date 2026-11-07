@@ -96,9 +96,10 @@ export const AdminPage: React.FC = () => {
   // Schedule & Timer Control for an Existing Competition (finale: 8 Nov 12:00 PM, 15s/question)
   const [schedCompId, setSchedCompId] = useState<string>('');
   const [schedStartTime, setSchedStartTime] = useState<string>('2026-11-08T12:00');
+  const [schedEndTime, setSchedEndTime] = useState<string>('2026-11-07T14:00');
   const [schedPerQuestion, setSchedPerQuestion] = useState<number>(15);
   const [schedDuration, setSchedDuration] = useState<number>(15);
-  const [schedStatus, setSchedStatus] = useState<'upcoming' | 'live'>('upcoming');
+  const [schedStatus, setSchedStatus] = useState<'upcoming' | 'live' | 'completed'>('upcoming');
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
 
   // Private Winner Contact Directory (Synced securely from admin-only collection)
@@ -287,11 +288,13 @@ export const AdminPage: React.FC = () => {
       const startIso = schedStartTime
         ? new Date(schedStartTime).toISOString()
         : new Date().toISOString();
+      const endIso = schedEndTime ? new Date(schedEndTime).toISOString() : undefined;
       await setDoc(
         doc(db, 'competitions', targetId),
         {
           status: schedStatus,
           startTime: startIso,
+          ...(endIso ? { endTime: endIso } : {}),
           perQuestionTimerSeconds: Number(schedPerQuestion) || 15,
           durationMinutes: Number(schedDuration) || 15,
         },
@@ -299,7 +302,7 @@ export const AdminPage: React.FC = () => {
       );
       addToast(
         'Schedule Saved',
-        `Competition updated: ${schedStatus}, starts ${new Date(startIso).toLocaleString()}, ${schedPerQuestion}s per question.`,
+        `Competition updated: ${schedStatus}, starts ${new Date(startIso).toLocaleString()}${endIso ? `, ends ${new Date(endIso).toLocaleString()}` : ''}, ${schedPerQuestion}s per question.`,
         'success'
       );
     } catch (err) {
@@ -991,6 +994,17 @@ export const AdminPage: React.FC = () => {
           </div>
 
           <div>
+            <label htmlFor="sched-end" className="block font-mono text-xs text-[#929DAC] mb-1">END TIME</label>
+            <input
+              id="sched-end"
+              type="datetime-local"
+              value={schedEndTime}
+              onChange={(e) => setSchedEndTime(e.target.value)}
+              className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 font-mono text-xs text-[#00E5FF] focus:border-[#00E5FF] focus:outline-none"
+            />
+          </div>
+
+          <div>
             <label htmlFor="sched-perq" className="block font-mono text-xs text-[#929DAC] mb-1">SECONDS / QUESTION</label>
             <input
               id="sched-perq"
@@ -1026,6 +1040,7 @@ export const AdminPage: React.FC = () => {
             >
               <option value="upcoming">Upcoming (countdown lock)</option>
               <option value="live">Live (open now)</option>
+              <option value="completed">Completed (closed)</option>
             </select>
           </div>
         </div>

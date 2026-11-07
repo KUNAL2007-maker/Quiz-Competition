@@ -884,6 +884,53 @@ export const QuizPage: React.FC = () => {
     );
   }
 
+  // Guard 2.6: Tournament Ended (no new entries after the end time; students already
+  // mid-quiz are NOT kicked out — isQuizActive stays true for them)
+  if (!isAdmin && !isQuizActive && activeCompetition && activeCompetition.status === 'completed') {
+    return (
+      <div className="mx-auto max-w-2xl py-8 space-y-6">
+        <div className="rounded-xl border border-[#FF5C5C]/40 bg-[#0C1017] p-6 text-center space-y-4 shadow-xl">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-[#FF5C5C]/50 bg-[#FF5C5C]/10 text-[#FF5C5C]">
+            <Clock className="h-7 w-7" />
+          </div>
+          <div className="space-y-2">
+            <span className="rounded bg-[#FF5C5C]/20 px-3 py-1 font-mono text-xs font-bold text-[#FF5C5C] tracking-wider uppercase">
+              Competition Ended
+            </span>
+            <h1 className="mt-2 font-display text-2xl font-bold text-[#F0F3F7]">
+              {activeCompetition?.title || 'Cybersecurity Quiz Competition'}
+            </h1>
+            <p className="text-xs text-[#929DAC] leading-relaxed max-w-md mx-auto">
+              This competition ended at{' '}
+              <span className="font-mono text-[#FF5C5C]">
+                {activeCompetition?.endTime
+                  ? new Date(activeCompetition.endTime).toLocaleString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'the scheduled end time'}
+              </span>
+              . New entries are closed. Check the leaderboard for results.
+            </p>
+          </div>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => navigate('/competitions')}
+              className="inline-flex items-center gap-2 rounded-lg border border-[#252D38] bg-[#111722] px-6 py-2.5 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Return to Competitions Directory</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Guard 3: Mandatory Profile Completion (100% Required)
   // Timers DO NOT start while entering details!
   if (!isAdmin && !profile.isProfileComplete) {

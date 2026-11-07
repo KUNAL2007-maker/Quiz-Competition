@@ -290,9 +290,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const data = d.data();
           const rawStatus = (data.status as Competition['status']) || 'upcoming';
           const startMs = data.startTime ? new Date(data.startTime).getTime() : NaN;
+          const endMs = data.endTime ? new Date(data.endTime).getTime() : NaN;
           const isTimerDone =
             rawStatus === 'upcoming' && !Number.isNaN(startMs) && startMs <= now;
-          const effectiveStatus: Competition['status'] = isTimerDone ? 'live' : rawStatus;
+          const isPastEnd =
+            (rawStatus === 'live' || isTimerDone) &&
+            !Number.isNaN(endMs) &&
+            endMs <= now;
+          const effectiveStatus: Competition['status'] = isPastEnd
+            ? 'completed'
+            : isTimerDone
+              ? 'live'
+              : rawStatus;
 
           return {
             id: d.id,
@@ -300,6 +309,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             description: data.description ? String(data.description) : undefined,
             status: effectiveStatus,
             startTime: data.startTime ? String(data.startTime) : undefined,
+            endTime: data.endTime ? String(data.endTime) : undefined,
             durationMinutes:
               typeof data.durationMinutes === 'number' ? data.durationMinutes : undefined,
             difficulty: data.difficulty,
@@ -712,7 +722,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     []
   );
 
-  // Periodic 1-second check to convert any upcoming competition to live once its countdown expires
+  const transitionCompetitionToCompleted = useCallback(
+    async (competitionId: string) => {
+      // 1. Immediately update local state so UI switches from live to completed without delay
+      setCompetitions((prev) =>
+        prev.map((c) => (c.id === competitionId ? { ...c, status: 'completed' } : c))
+      );
+      setSelectedCompetition((prev) =>
+        prev && prev.id === competitionId ? { ...prev, status: 'completed' } : prev
+      );
+
+      // 2. Persist status update to Firestore
+      try {
+        const compRef = doc(db, 'competitions', competitionId);
+        await updateDoc(compRef, {
+          status: 'completed',
+          updatedAt: serverTimestamp(),
+        });
+      } catch {
+        // Local state is already updated; ignore if offline or permission boundary
+      }
+    },
+    []
+  );
+
+  // Periodic 1-second check to convert any upcoming competition to live once its countdown expires,
+  // and to close any live competition once its end time passes
   useEffect(() => {
     const checkTimers = () => {
       const now = Date.now();
@@ -723,12 +758,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             transitionCompetitionToLive(c.id);
           }
         }
+        if (c.status === 'live' && c.endTime) {
+          const endMs = new Date(c.endTime).getTime();
+          if (!Number.isNaN(endMs) && endMs <= now) {
+            transitionCompetitionToCompleted(c.id);
+          }
+        }
       });
     };
 
     const intervalId = setInterval(checkTimers, 1000);
     return () => clearInterval(intervalId);
-  }, [competitions, transitionCompetitionToLive]);
+  }, [competitions, transitionCompetitionToLive, transitionCompetitionToCompleted]);
 
   const startQuizSession = useCallback((comp: Competition) => {
     setSelectedCompetition(comp);

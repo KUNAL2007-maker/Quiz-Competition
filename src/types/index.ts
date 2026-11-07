@@ -7,6 +7,7 @@ export interface Competition {
   description?: string;
   status: CompetitionStatus;
   startTime?: string; // ISO 8601 timestamp
+  endTime?: string; // ISO 8601 timestamp — after this, the quiz stops accepting entries
   durationMinutes?: number;
   difficulty?: CompetitionDifficulty;
   participantCount?: number;
