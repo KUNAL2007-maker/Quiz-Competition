@@ -969,9 +969,16 @@ export const AdminPage: React.FC = () => {
                     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
                     setSchedStartTime(d.toISOString().slice(0, 16));
                   }
+                  if (c.endTime) {
+                    const e = new Date(c.endTime);
+                    e.setMinutes(e.getMinutes() - e.getTimezoneOffset());
+                    setSchedEndTime(e.toISOString().slice(0, 16));
+                  } else {
+                    setSchedEndTime('');
+                  }
                   setSchedPerQuestion(c.perQuestionTimerSeconds || 15);
                   setSchedDuration(c.durationMinutes || 15);
-                  setSchedStatus(c.status === 'live' ? 'live' : 'upcoming');
+                  setSchedStatus(c.status === 'live' ? 'live' : c.status === 'completed' ? 'completed' : 'upcoming');
                 }
               }}
               className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 text-xs text-[#F0F3F7] focus:border-[#00E5FF] focus:outline-none cursor-pointer"
