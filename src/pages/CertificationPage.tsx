@@ -15,9 +15,10 @@ import { db } from '../lib/firebase';
 import { useAppContext } from '../context/AppContext';
 import { jsPDF } from 'jspdf';
 import { certRegistry } from '../constants/certRegistry';
+import { CERT_TEMPLATE_DATA_URI } from '../constants/certTemplate';
 
 const REFERRAL_URL = 'https://agentrouter.org/register?aff=p772';
-const TEMPLATE_SRC = '/cert-template.png';
+const TEMPLATE_SRC = CERT_TEMPLATE_DATA_URI;
 const CERT_W = 2000;
 const CERT_H = 1414;
 const NAME_MAX_WIDTH = 1180;
