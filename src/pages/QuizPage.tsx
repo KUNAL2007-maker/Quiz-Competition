@@ -283,6 +283,13 @@ export const QuizPage: React.FC = () => {
   );
 
   const currentQuestion = questions[quizSession.currentQuestionIndex] || null;
+  // An option must be selected for the current question before Next / Submit
+  // can be used, so an accidental click cannot skip or submit it unanswered.
+  // (The per-question timer still auto-advances on expiry, so a student who
+  // does not know the answer can simply let the timer run out.)
+  const hasSelectedCurrentAnswer = Boolean(
+    currentQuestion && quizSession.selectedAnswers[currentQuestion.id]
+  );
   const isNearDeadline =
     timerState.isValid && !timerState.isExpired && timerState.totalMs <= 5 * 60 * 1000;
 
@@ -1145,7 +1152,7 @@ export const QuizPage: React.FC = () => {
             <button
               type="button"
               onClick={handleDirectSubmit}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !hasSelectedCurrentAnswer}
               className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2.5 text-xs font-semibold text-[#07090D] transition-colors hover:bg-[#c8ff66] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer shadow-md"
             >
               <Send className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1327,7 +1334,7 @@ export const QuizPage: React.FC = () => {
                 {quizSession.currentQuestionIndex >= questions.length - 1 ? (
                   <button
                     type="button"
-                    disabled={isSubmitting || quizSession.isSubmitted}
+                    disabled={isSubmitting || quizSession.isSubmitted || !hasSelectedCurrentAnswer}
                     onClick={handleDirectSubmit}
                     className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-md bg-[#B6FF3B] px-5 py-2 text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] disabled:opacity-40 cursor-pointer transition-colors shadow-md"
                   >
@@ -1337,11 +1344,12 @@ export const QuizPage: React.FC = () => {
                 ) : (
                   <button
                     type="button"
+                    disabled={!hasSelectedCurrentAnswer}
                     onClick={() => {
                       recordQuestionTime(quizSession.currentQuestionIndex);
                       setCurrentQuestionIndex(quizSession.currentQuestionIndex + 1);
                     }}
-                    className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] cursor-pointer"
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] disabled:opacity-40 cursor-pointer"
                   >
                     <span>Next</span>
                     <ChevronRight className="h-4 w-4" />
