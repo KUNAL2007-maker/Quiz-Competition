@@ -25,6 +25,7 @@ import { doc, setDoc, deleteDoc, getDocs, serverTimestamp, collection, onSnapsho
 import { db, firebaseConfig } from '../lib/firebase';
 import { FIRESTORE_RULES_SOURCE } from '../constants/firestoreRules';
 import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
+import practiceQuizQuestions from '../constants/practiceQuizQuestions.json';
 import { useAppContext } from '../context/AppContext';
 import { Competition, QuizQuestion } from '../types';
 import { ModalDialog } from '../components/ui/ModalDialog';
@@ -89,6 +90,7 @@ export const AdminPage: React.FC = () => {
   const [isResettingAll, setIsResettingAll] = useState(false);
   const [isSettingLive, setIsSettingLive] = useState(false);
   const [isSyncingQuestions, setIsSyncingQuestions] = useState(false);
+  const [isSyncingPractice, setIsSyncingPractice] = useState(false);
 
   // Schedule & Timer Control for an Existing Competition (finale: 8 Nov 12:00 PM, 15s/question)
   const [schedCompId, setSchedCompId] = useState<string>('');
@@ -341,6 +343,48 @@ export const AdminPage: React.FC = () => {
       addToast('Upload Error', err instanceof Error ? err.message : 'Could not upload questions.', 'alert');
     } finally {
       setIsSyncingQuestions(false);
+    }
+  };
+
+  const handleSyncPracticeQuestions = async () => {
+    const target =
+      competitions.find((c) => c.title.toLowerCase().includes('practice')) ||
+      competitions.find((c) => c.id.toLowerCase().includes('practice'));
+    if (!target) {
+      addToast('Error', 'Practice Quiz competition not found.', 'alert');
+      return;
+    }
+    setIsSyncingPractice(true);
+    try {
+      // 1. Purge existing practice questions
+      const qSnap = await getDocs(collection(db, `competitions/${target.id}/questions`));
+      for (const qDoc of qSnap.docs) {
+        await deleteDoc(qDoc.ref);
+      }
+      // 2. Upload the 30 practice questions (different from the Cyber Quiz bank)
+      for (let i = 0; i < practiceQuizQuestions.length; i++) {
+        const item = practiceQuizQuestions[i];
+        const qId = `q_practice_${String(i).padStart(2, '0')}`;
+        await setDoc(doc(db, `competitions/${target.id}/questions`, qId), {
+          competitionId: target.id,
+          index: i,
+          category: item.category || 'Practice',
+          points: item.points || 100,
+          prompt: item.prompt,
+          options: item.options,
+          correctOptionId: item.correctOptionId,
+          timeLimitSeconds: item.timeLimitSeconds || 15,
+        });
+      }
+      addToast(
+        'Practice Questions Loaded',
+        'Successfully loaded 30 practice questions — different from the Cyber Quiz bank, same flow, never on the scoreboard.',
+        'success'
+      );
+    } catch (err) {
+      addToast('Upload Error', err instanceof Error ? err.message : 'Could not upload practice questions.', 'alert');
+    } finally {
+      setIsSyncingPractice(false);
     }
   };
 
@@ -793,7 +837,7 @@ export const AdminPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
           {/* Action 1: Set Live / Keep Open */}
           <button
             type="button"
@@ -839,6 +883,22 @@ export const AdminPage: React.FC = () => {
             </div>
             <p className="text-[11px] text-[#929DAC]">
               Purges all leaderboard rankings, quiz results, and winner contacts. Fresh clean slate for testing.
+            </p>
+          </button>
+
+          {/* Action 4: Load Practice Questions */}
+          <button
+            type="button"
+            onClick={handleSyncPracticeQuestions}
+            disabled={isSyncingPractice}
+            className="flex flex-col items-start gap-1 p-3.5 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/5 hover:bg-[#B6FF3B]/10 transition-colors cursor-pointer text-left disabled:opacity-50"
+          >
+            <div className="flex items-center gap-2 text-[#B6FF3B] font-bold text-xs">
+              <Upload className="h-4 w-4" />
+              <span>{isSyncingPractice ? 'Uploading...' : '4. Load Practice Questions'}</span>
+            </div>
+            <p className="text-[11px] text-[#929DAC]">
+              Loads 30 different practice questions into the Practice Quiz — same flow and timer as the real quiz, never on the scoreboard.
             </p>
           </button>
         </div>
