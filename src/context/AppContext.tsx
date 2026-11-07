@@ -774,9 +774,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const startQuizSession = useCallback((comp: Competition) => {
     setSelectedCompetition(comp);
     const questionCount = comp.quizFormat?.totalQuestions || 30;
-    const minMinutesNeeded = Math.ceil((questionCount * 30) / 60) + 15;
-    const durationMin = Math.max(comp.durationMinutes || 30, minMinutesNeeded);
-    const computedDeadline = Date.now() + durationMin * 60 * 1000;
+    const perQuestionSec = comp.perQuestionTimerSeconds || 15;
+    // Total quiz time is exactly the sum of the per-question times:
+    // 30 questions × 15 seconds = 450 seconds = 7 minutes 30 seconds.
+    const totalSeconds = questionCount * perQuestionSec;
+    const computedDeadline = Date.now() + totalSeconds * 1000;
 
     const newSession: QuizSessionState = {
       competitionId: comp.id,
@@ -838,9 +840,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     try {
       const now = Date.now();
-      const durationMin = selectedCompetition?.durationMinutes || 30;
+      const sessionSeconds =
+        (selectedCompetition?.quizFormat?.totalQuestions || 30) *
+        (selectedCompetition?.perQuestionTimerSeconds || 15);
       const estStart = quizSession.deadlineTimestamp
-        ? quizSession.deadlineTimestamp - durationMin * 60 * 1000
+        ? quizSession.deadlineTimestamp - sessionSeconds * 1000
         : now - 60000;
       const timeTakenSec =
         typeof customTimeTakenSec === 'number' && customTimeTakenSec > 0

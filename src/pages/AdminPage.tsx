@@ -48,7 +48,7 @@ export const AdminPage: React.FC = () => {
   const [compTitle, setCompTitle] = useState('');
   const [compDescription, setCompDescription] = useState('');
   const [compStatus, setCompStatus] = useState<'live' | 'upcoming'>('live');
-  const [compDurationMinutes, setCompDurationMinutes] = useState(15);
+  const [compDurationMinutes, setCompDurationMinutes] = useState(7.5);
   const [perQuestionTimer, setPerQuestionTimer] = useState<number>(15); // Default 15s per question
   const [isCreatingComp, setIsCreatingComp] = useState(false);
 
@@ -98,7 +98,7 @@ export const AdminPage: React.FC = () => {
   const [schedStartTime, setSchedStartTime] = useState<string>('2026-11-08T12:00');
   const [schedEndTime, setSchedEndTime] = useState<string>('2026-11-08T14:00');
   const [schedPerQuestion, setSchedPerQuestion] = useState<number>(15);
-  const [schedDuration, setSchedDuration] = useState<number>(15);
+  const [schedDuration, setSchedDuration] = useState<number>(7.5);
   const [schedStatus, setSchedStatus] = useState<'upcoming' | 'live' | 'completed'>('upcoming');
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
 
@@ -296,7 +296,7 @@ export const AdminPage: React.FC = () => {
           startTime: startIso,
           endTime: endIso ? endIso : deleteField(),
           perQuestionTimerSeconds: Number(schedPerQuestion) || 15,
-          durationMinutes: Number(schedDuration) || 15,
+          durationMinutes: Number(schedDuration) || 7.5,
         },
         { merge: true }
       );
@@ -487,7 +487,7 @@ export const AdminPage: React.FC = () => {
           title: compTitle.trim().slice(0, 120),
           description: compDescription.trim().slice(0, 1000) || 'Official cybersecurity competition round.',
           status: compStatus,
-          durationMinutes: Number(compDurationMinutes) || 15,
+          durationMinutes: Number(compDurationMinutes) || 7.5,
           perQuestionTimerSeconds: Number(perQuestionTimer) || 15,
           startTime: compStatus === 'upcoming' ? scheduledStartIso : new Date().toISOString(),
           createdAt: serverTimestamp(),
@@ -977,7 +977,7 @@ export const AdminPage: React.FC = () => {
                     setSchedEndTime('');
                   }
                   setSchedPerQuestion(c.perQuestionTimerSeconds || 15);
-                  setSchedDuration(c.durationMinutes || 15);
+                  setSchedDuration(c.durationMinutes || 7.5);
                   setSchedStatus(c.status === 'live' ? 'live' : c.status === 'completed' ? 'completed' : 'upcoming');
                 }
               }}

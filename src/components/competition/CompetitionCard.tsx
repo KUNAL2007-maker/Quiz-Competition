@@ -21,6 +21,17 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
   const isPractice = competition.title.toLowerCase().includes('practice');
+
+  // Total quiz time is the sum of the per-question times:
+  // 30 questions × 15 seconds = 450 seconds = 7m 30s.
+  const totalTimeLabel = useMemo(() => {
+    const totalSeconds =
+      (competition.quizFormat?.totalQuestions || 30) *
+      (competition.perQuestionTimerSeconds || 15);
+    const totalMin = Math.floor(totalSeconds / 60);
+    const totalSec = totalSeconds % 60;
+    return totalSec === 0 ? `${totalMin}m` : `${totalMin}m ${totalSec}s`;
+  }, [competition.quizFormat?.totalQuestions, competition.perQuestionTimerSeconds]);
   const effectiveIsCompleted = isCompleted && !isPractice && competition.status !== 'live' && competition.status !== 'upcoming';
 
   const isLive = useMemo(() => {
@@ -133,12 +144,10 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
               })}
             </span>
           )}
-          {competition.durationMinutes !== undefined && (
-            <span className="inline-flex items-center gap-1.5">
-              <Shield className="h-3.5 w-3.5 text-[#929DAC]" aria-hidden="true" />
-              {competition.durationMinutes}m
-            </span>
-          )}
+          <span className="inline-flex items-center gap-1.5">
+            <Shield className="h-3.5 w-3.5 text-[#929DAC]" aria-hidden="true" />
+            {totalTimeLabel}
+          </span>
           {competition.participantCount !== undefined && (
             <span className="inline-flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5 text-[#929DAC]" aria-hidden="true" />
