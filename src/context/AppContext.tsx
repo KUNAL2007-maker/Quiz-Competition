@@ -4,6 +4,7 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   signOut as firebaseSignOut,
   User as FirebaseUser,
 } from 'firebase/auth';
@@ -587,8 +588,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const signUpWithEmail = useCallback(
     async (email: string, pass: string) => {
       try {
-        await createUserWithEmailAndPassword(auth, email.trim(), pass);
-        addToast('Account Registered', 'Welcome! Please complete your competitor profile.', 'success');
+        const cred = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+        // New accounts must verify their email: the security rules only let
+        // verified users record quiz results / leaderboard entries. Without
+        // this email, an email/password student could play the quiz but their
+        // score would be rejected. (Google sign-in is verified automatically.)
+        try {
+          await sendEmailVerification(cred.user);
+        } catch {}
+        addToast('Account Registered', 'Welcome! We sent a verification link to your email — please verify it, then complete your competitor profile.', 'success');
         return { success: true };
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Failed to create account.';
