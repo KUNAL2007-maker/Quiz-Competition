@@ -49,11 +49,11 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
         {/* Header Bar */}
         <div className="flex items-start justify-between gap-4 border-b border-[#252D38] pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#FFB800]/40 bg-[#FFB800]/10 text-[#FFB800] shrink-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 text-[#B6FF3B] shrink-0">
               <AlertTriangle className="h-6 w-6" />
             </div>
             <div>
-              <span className="font-mono text-[10px] sm:text-[11px] font-bold tracking-wider text-[#929DAC] uppercase block">
+              <span className="font-mono text-[10px] sm:text-[11px] font-bold tracking-wider text-[#B6FF3B] uppercase block">
                 CRITICAL OPERATIONAL RULES & CODE OF CONDUCT
               </span>
               <h2
@@ -76,19 +76,19 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
         </div>
 
         {/* Target Tournament Badge */}
-        <div className="mt-4 rounded-lg border border-[#252D38] bg-[#111722] p-3 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
+        <div className="mt-4 rounded-lg border border-[#B6FF3B]/30 bg-[#B6FF3B]/5 p-3 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
           <span className="text-[#929DAC]">Target Tournament:</span>
-          <span className="font-semibold text-[#F0F3F7]">
+          <span className="font-semibold text-[#B6FF3B]">
             {competition?.title || 'Cyber Quiz 2026'}
           </span>
         </div>
 
         {/* Admin Test Controls */}
         {isAdmin && (
-          <div className="mt-3 rounded-lg border border-[#FFB800]/40 bg-[#FFB800]/10 p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="mt-3 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <ShieldAlert className="h-4 w-4 text-[#FFB800] shrink-0" />
-              <span className="font-mono text-xs font-bold text-[#FFB800]">
+              <ShieldAlert className="h-4 w-4 text-[#B6FF3B] shrink-0" />
+              <span className="font-mono text-xs font-bold text-[#B6FF3B]">
                 ADMIN TEST MODE · UNRESTRICTED ACCESS
               </span>
             </div>
@@ -96,7 +96,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
               <button
                 type="button"
                 onClick={onResetAdminSession}
-                className="inline-flex items-center gap-1.5 rounded-md border border-[#252D38] bg-[#07090D] px-3 py-1 font-mono text-xs font-semibold text-[#929DAC] hover:bg-[#111722] hover:text-[#F0F3F7] cursor-pointer shadow-sm transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-md border border-[#B6FF3B]/50 bg-[#07090D] px-3 py-1 font-mono text-xs font-semibold text-[#B6FF3B] hover:bg-[#B6FF3B]/20 cursor-pointer shadow-sm transition-colors"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>Reset Everything (Clean Attempt)</span>
@@ -109,15 +109,15 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
         <div className="mt-4 space-y-3 max-h-[50vh] overflow-y-auto pr-1">
           {/* Rule 1: Tab-Switching Violation & Strike Policy */}
           <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#3A4656] transition-colors p-4 flex items-start gap-3.5">
-            <div className="mt-0.5 rounded-lg border border-[#FFB800]/40 bg-[#FFB800]/10 p-2 text-[#FFB800] shrink-0">
+            <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
               <ShieldAlert className="h-5 w-5" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-mono text-xs font-bold uppercase text-[#F0F3F7] tracking-wide">
+              <h3 className="font-mono text-xs font-bold uppercase text-[#B6FF3B] tracking-wide">
                 1. Tab-Switching Violation & Strike System (Max 2 Warnings)
               </h3>
               <p className="text-xs text-[#929DAC] leading-relaxed">
-                Leaving the exam window, switching tabs, minimizing the browser, or opening secondary applications will immediately trigger a proctoring infraction. You are allowed a maximum of <strong className="text-[#F0F3F7]">2 warnings</strong>. A 3rd infraction (&gt; 2 warnings) will <strong className="text-[#FF365B]">IMMEDIATELY TERMINATE YOUR EXAM ON THE SPOT and record your score as ZERO (0 PTS)</strong> on the official leaderboard.
+                Leaving the exam window, switching tabs, minimizing the browser, or opening other apps triggers a proctoring infraction. Maximum <strong className="text-[#F0F3F7]">2 warnings</strong>. A 3rd infraction will <strong className="text-[#FF365B]">IMMEDIATELY TERMINATE YOUR EXAM and record your score as ZERO (0 PTS)</strong> on the leaderboard.
               </p>
             </div>
           </div>
@@ -133,7 +133,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                   2. Strict Forward-Only
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  Questions are strictly sequential. Once submitted or when the 15s timer expires, you <strong className="text-[#F0F3F7]">cannot go back</strong> to previous questions.
+                  Questions are sequential. Once submitted or the 15s timer expires, you <strong className="text-[#F0F3F7]">cannot go back</strong>.
                 </p>
               </div>
             </div>
@@ -147,7 +147,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                   3. {perQuestionSec}s Per Question
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  Each question has a strict {perQuestionSec}-second countdown. When it hits 0s, the terminal auto-advances to the next question.
+                  Strict {perQuestionSec}-second countdown per question. At 0s, it auto-advances to the next question.
                 </p>
               </div>
             </div>
@@ -164,7 +164,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                   4. Anti-Copy & Screenshot Block
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  Copying, cutting, pasting, right-click, and screenshots (<strong className="text-[#F0F3F7]">PrintScreen, Win+Shift+S</strong>) are disabled and monitored.
+                  Copy, cut, paste, right-click and screenshots (<strong className="text-[#F0F3F7]">PrintScreen, Win+Shift+S</strong>) are disabled and monitored.
                 </p>
               </div>
             </div>
@@ -178,7 +178,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                   5. Zero AI Assistance
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  The use of <strong className="text-[#F0F3F7]">ChatGPT, Claude, Gemini, Copilot, or any AI tool</strong> is strictly forbidden and causes instant disqualification.
+                  <strong className="text-[#F0F3F7]">ChatGPT, Claude, Gemini, Copilot, or any AI tool</strong> is strictly forbidden and causes instant disqualification.
                 </p>
               </div>
             </div>
@@ -194,7 +194,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 6. Strictly One Attempt Per Email
               </h4>
               <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                You are granted only <strong className="text-[#F0F3F7]">ONE attempt per registered email address</strong>. Questions and answer choices are uniquely randomized per candidate to prevent sharing. Once started, refreshing or leaving locks your score permanently on the leaderboard.
+                Only <strong className="text-[#F0F3F7]">ONE attempt per registered email address</strong>. Questions and options are uniquely randomized per candidate. Once started, refreshing or leaving locks your score permanently on the leaderboard.
               </p>
             </div>
           </div>
@@ -211,7 +211,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
               className="mt-0.5 h-4 w-4 rounded border-[#252D38] bg-[#111722] text-[#B6FF3B] focus:ring-[#B6FF3B] cursor-pointer shrink-0"
             />
             <span className="text-xs text-[#F0F3F7] leading-relaxed select-none">
-              I have read, understood, and accept all the rules above. I acknowledge that I have strictly ONE attempt per email address, questions and options are randomized, and exceeding 2 warnings results in immediate score 0 disqualification.
+              I have read and accept all the rules above. I understand there is ONE attempt per email, questions are randomized, and exceeding 2 warnings means instant disqualification with score 0.
             </span>
           </label>
         </div>
