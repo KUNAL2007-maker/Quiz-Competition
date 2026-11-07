@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -61,42 +61,7 @@ export const CertificationPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
 
-  // If user is not authorized administrator, show access denied (same pattern as AdminPage)
-  if (!isAdmin) {
-    return (
-      <div className="mx-auto max-w-lg space-y-6 py-12 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#FF365B] bg-[#FF365B]/10 text-[#FF365B]">
-          <ShieldAlert className="h-8 w-8" />
-        </div>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#f5f5f2]">
-          Restricted Command Console
-        </h1>
-        <p className="text-sm text-[#a8a8a2] leading-relaxed">
-          Access to the certificate generation interface requires verified administrator authorization.
-        </p>
-        {currentUser ? (
-          <p className="text-xs font-mono text-[#FF365B]">
-            Currently signed in with insufficient clearance
-          </p>
-        ) : (
-          <p className="text-xs font-mono text-[#a8a8a2]">
-            No authenticated operator session detected.
-          </p>
-        )}
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className="inline-flex items-center gap-2 rounded-md bg-[#8dc63f] px-5 py-2.5 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer"
-          >
-            <span>Go to Operator Sign-In</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const renderCertificate = async (name: string, certId: string): Promise<boolean> => {
+  const renderCertificate = useCallback(async (name: string, certId: string): Promise<boolean> => {
     const canvas = canvasRef.current;
     if (!canvas) return false;
     const ctx = canvas.getContext('2d');
@@ -153,7 +118,51 @@ export const CertificationPage: React.FC = () => {
     } finally {
       setIsRendering(false);
     }
-  };
+  }, []);
+
+  // Render only AFTER the preview canvas has mounted. Calling renderCertificate
+  // directly after setParticipant() runs before React re-renders, so the canvas
+  // does not exist yet and the draw is silently skipped (blank preview/downloads).
+  useEffect(() => {
+    if (participant) {
+      renderCertificate(participant.name, participant.certId);
+    }
+  }, [participant, renderCertificate]);
+
+  // If user is not authorized administrator, show access denied (same pattern as AdminPage)
+  if (!isAdmin) {
+    return (
+      <div className="mx-auto max-w-lg space-y-6 py-12 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#FF365B] bg-[#FF365B]/10 text-[#FF365B]">
+          <ShieldAlert className="h-8 w-8" />
+        </div>
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#f5f5f2]">
+          Restricted Command Console
+        </h1>
+        <p className="text-sm text-[#a8a8a2] leading-relaxed">
+          Access to the certificate generation interface requires verified administrator authorization.
+        </p>
+        {currentUser ? (
+          <p className="text-xs font-mono text-[#FF365B]">
+            Currently signed in with insufficient clearance
+          </p>
+        ) : (
+          <p className="text-xs font-mono text-[#a8a8a2]">
+            No authenticated operator session detected.
+          </p>
+        )}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className="inline-flex items-center gap-2 rounded-md bg-[#8dc63f] px-5 py-2.5 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer"
+          >
+            <span>Go to Operator Sign-In</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleFind = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -209,7 +218,6 @@ export const CertificationPage: React.FC = () => {
         source: displayName ? 'firestore' : 'registry',
       };
       setParticipant(found);
-      await renderCertificate(name, certId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Lookup failed. Please try again.');
     } finally {
