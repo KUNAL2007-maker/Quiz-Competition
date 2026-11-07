@@ -117,7 +117,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 1. Tab-Switching Violation & Strike System (Max 2 Warnings)
               </h3>
               <p className="text-xs text-[#929DAC] leading-relaxed">
-                Leaving the exam window, switching tabs, minimizing the browser, or opening other apps triggers a proctoring infraction. Maximum <strong className="text-[#F0F3F7]">2 warnings</strong>. A 3rd infraction will <strong className="text-[#FF365B]">IMMEDIATELY TERMINATE YOUR EXAM and record your score as ZERO (0 PTS)</strong> on the leaderboard.
+                Leaving the window, switching tabs, or opening other apps is an infraction. Max <strong className="text-[#F0F3F7]">2 warnings</strong>; a 3rd ends your exam with <strong className="text-[#FF365B]">ZERO (0 PTS)</strong>.
               </p>
             </div>
           </div>
