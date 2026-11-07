@@ -62,11 +62,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
           `group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
             isActive
               ? isSpecialAdmin
-                ? 'bg-[#B6FF3B]/10 text-[#B6FF3B] border border-[#B6FF3B]/50'
-                : 'bg-[#111722] text-[#B6FF3B] border border-[#252D38]'
+                ? 'bg-[#8dc63f]/10 text-[#8dc63f] border border-[#7ab32e]/50'
+                : 'bg-[#1b1b19] text-[#8dc63f] border border-[#2e2e2a]'
               : isSpecialAdmin
-              ? 'text-[#B6FF3B]/90 hover:bg-[#111722]/80 hover:text-[#B6FF3B] border border-transparent'
-              : 'text-[#929DAC] hover:bg-[#111722]/60 hover:text-[#F0F3F7] border border-transparent'
+              ? 'text-[#8dc63f]/90 hover:bg-[#1b1b19]/80 hover:text-[#8dc63f] border border-transparent'
+              : 'text-[#a8a8a2] hover:bg-[#1b1b19]/60 hover:text-[#f5f5f2] border border-transparent'
           }`
         }
       >
@@ -77,16 +77,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
   };
 
   const sidebarContent = (
-    <div className="flex h-full flex-col justify-between bg-[#0C1017] border-r border-[#252D38] w-64 select-none">
+    <div className="flex h-full flex-col justify-between bg-[#1b1b19] border-r border-[#2e2e2a] w-64 select-none">
       <div>
         {/* Brand Identity Header */}
-        <div className="flex h-16 items-center justify-between px-5 border-b border-[#252D38]">
+        <div className="flex h-16 items-center justify-between px-5 border-b border-[#2e2e2a]">
           <NavLink
             to="/"
             onClick={onCloseMobile}
-            className="flex items-center gap-2.5 text-base font-bold tracking-tight text-[#F0F3F7] font-display whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#B6FF3B]"
+            className="flex items-center gap-2.5 text-base font-bold tracking-tight text-[#f5f5f2] font-display whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#8dc63f]"
           >
-            <svg className="h-5 w-5 text-[#B6FF3B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="h-5 w-5 text-[#8dc63f]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2" />
               <line x1="12" y1="22" x2="12" y2="15.5" />
               <polyline points="22 8.5 12 15.5 2 8.5" />
@@ -98,7 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
             type="button"
             onClick={onCloseMobile}
             aria-label="Close navigation menu"
-            className="lg:hidden rounded-md p-1.5 text-[#929DAC] hover:bg-[#111722] hover:text-[#F0F3F7] cursor-pointer"
+            className="lg:hidden rounded-md p-1.5 text-[#a8a8a2] hover:bg-[#1b1b19] hover:text-[#f5f5f2] cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -108,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
         <nav aria-label="Main Navigation" className="p-4 space-y-6">
           {isAdmin && (
             <div>
-              <p className="px-3 mb-2 font-mono text-[11px] font-semibold text-[#B6FF3B] tracking-wider">
+              <p className="px-3 mb-2 font-mono text-[11px] font-semibold text-[#8dc63f] tracking-wider">
                 ADMINISTRATION
               </p>
               <div className="space-y-1">
@@ -118,7 +118,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
           )}
 
           <div>
-            <p className="px-3 mb-2 font-mono text-[11px] font-medium text-[#929DAC]/70">
+            <p className="px-3 mb-2 font-mono text-[11px] font-medium text-[#a8a8a2]/70">
               Command Network
             </p>
             <div className="space-y-1">
@@ -128,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
 
 
           <div>
-            <p className="px-3 mb-2 font-mono text-[11px] font-medium text-[#929DAC]/70">
+            <p className="px-3 mb-2 font-mono text-[11px] font-medium text-[#a8a8a2]/70">
               Operator Dossier
             </p>
             <div className="space-y-1">
@@ -151,7 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           <div
-            className="fixed inset-0 bg-[#07090D]/80 backdrop-blur-xs"
+            className="fixed inset-0 bg-[#111110]/80 backdrop-blur-xs"
             onClick={onCloseMobile}
             aria-hidden="true"
           />

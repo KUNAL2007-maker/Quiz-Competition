@@ -32,35 +32,35 @@ export const ModalDialog: React.FC<ModalDialogProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#07090D]/80 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#111110]/80 p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-dialog-title"
     >
-      <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col rounded-lg border border-[#252D38] bg-[#0C1017] p-5 sm:p-6 shadow-2xl">
-        <div className="mb-4 flex items-start justify-between gap-4 border-b border-[#252D38] pb-4 shrink-0">
+      <div className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5 sm:p-6 shadow-2xl">
+        <div className="mb-4 flex items-start justify-between gap-4 border-b border-[#2e2e2a] pb-4 shrink-0">
           <div>
-            <h2 id="modal-dialog-title" className="font-display text-lg font-semibold text-[#F0F3F7]">
+            <h2 id="modal-dialog-title" className="font-display text-lg font-semibold text-[#f5f5f2]">
               {title}
             </h2>
             {subtitle && (
-              <p className="mt-1 text-xs text-[#929DAC]">{subtitle}</p>
+              <p className="mt-1 text-xs text-[#a8a8a2]">{subtitle}</p>
             )}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-md p-1.5 text-[#929DAC] transition-colors hover:bg-[#111722] hover:text-[#F0F3F7] focus-visible:outline-2 focus-visible:outline-[#B6FF3B] cursor-pointer"
+            className="rounded-md p-1.5 text-[#a8a8a2] transition-colors hover:bg-[#1b1b19] hover:text-[#f5f5f2] focus-visible:outline-2 focus-visible:outline-[#8dc63f] cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="text-sm text-[#F0F3F7] overflow-y-auto pr-1 flex-1">{children}</div>
+        <div className="text-sm text-[#f5f5f2] overflow-y-auto pr-1 flex-1">{children}</div>
 
         {footer && (
-          <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-[#252D38] pt-4 shrink-0">
+          <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-[#2e2e2a] pt-4 shrink-0">
             {footer}
           </div>
         )}

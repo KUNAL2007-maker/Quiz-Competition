@@ -99,15 +99,15 @@ export const LoginPage: React.FC = () => {
     <div className="mx-auto max-w-md py-6 sm:py-12">
       {/* Active Session View if already signed in */}
       {currentUser ? (
-        <div className="rounded-xl border border-[#252D38] bg-[#0C1017] p-6 sm:p-8 space-y-6 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-[#252D38] pb-4">
+        <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-6 sm:p-8 space-y-6 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-[#2e2e2a] pb-4">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-[#36F58A]" />
-              <span className="font-mono text-xs font-semibold text-[#36F58A]">
+              <CheckCircle2 className="h-5 w-5 text-[#a4d65e]" />
+              <span className="font-mono text-xs font-semibold text-[#a4d65e]">
                 ACTIVE SESSION
               </span>
             </div>
-            <span className="rounded bg-[#111722] border border-[#252D38] px-2 py-0.5 font-mono text-[11px] text-[#929DAC]">
+            <span className="rounded bg-[#1b1b19] border border-[#2e2e2a] px-2 py-0.5 font-mono text-[11px] text-[#a8a8a2]">
               {currentUser.email ? (currentUser.email.slice(0, 3) + '••••@••••.com') : 'Connected'}
             </span>
           </div>
@@ -118,22 +118,22 @@ export const LoginPage: React.FC = () => {
                 src={currentUser.photoURL}
                 alt="Avatar"
                 referrerPolicy="no-referrer"
-                className="h-14 w-14 rounded-full border border-[#B6FF3B] object-cover"
+                className="h-14 w-14 rounded-full border border-[#7ab32e] object-cover"
               />
             ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#B6FF3B] bg-[#111722] text-[#B6FF3B]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#7ab32e] bg-[#1b1b19] text-[#8dc63f]">
                 <ShieldCheck className="h-7 w-7" />
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <h2 className="font-display text-base font-bold text-[#F0F3F7] truncate">
+              <h2 className="font-display text-base font-bold text-[#f5f5f2] truncate">
                 {currentUser.displayName || 'Competitor'}
               </h2>
-              <p className="font-mono text-xs text-[#929DAC] truncate">
+              <p className="font-mono text-xs text-[#a8a8a2] truncate">
                 {currentUser.email ? (currentUser.email.slice(0, 3) + '••••@••••.com') : 'Connected'}
               </p>
               {isAdmin && (
-                <span className="mt-1 inline-block rounded bg-[#B6FF3B]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#B6FF3B]">
+                <span className="mt-1 inline-block rounded bg-[#8dc63f]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#8dc63f]">
                   ADMINISTRATOR
                 </span>
               )}
@@ -144,14 +144,14 @@ export const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/admin')}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#B6FF3B] px-4 py-3 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-4 py-3 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer"
             >
               <KeyRound className="h-4 w-4" />
               <span>Open Admin Dashboard & Quiz Creator</span>
             </button>
           )}
 
-          <div className="flex items-center justify-between gap-3 border-t border-[#252D38] pt-4">
+          <div className="flex items-center justify-between gap-3 border-t border-[#2e2e2a] pt-4">
             <button
               type="button"
               onClick={() => {
@@ -161,7 +161,7 @@ export const LoginPage: React.FC = () => {
                     : redirectTarget;
                 navigate(target);
               }}
-              className="inline-flex items-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] hover:text-[#B6FF3B] cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-4 py-2 text-xs font-medium text-[#f5f5f2] hover:border-[#7ab32e] hover:text-[#8dc63f] cursor-pointer"
             >
               <span>Continue to Quizzes</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -170,7 +170,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={signOutOperator}
-              className="inline-flex items-center gap-1.5 rounded-md border border-[#FF365B]/50 bg-[#111722] px-3.5 py-2 text-xs font-medium text-[#FF365B] hover:bg-[#FF365B]/10 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#FF365B]/50 bg-[#1b1b19] px-3.5 py-2 text-xs font-medium text-[#FF365B] hover:bg-[#FF365B]/10 cursor-pointer"
             >
               <LogOut className="h-3.5 w-3.5" />
               <span>Sign Out</span>
@@ -179,16 +179,16 @@ export const LoginPage: React.FC = () => {
         </div>
       ) : (
         /* Simple Clean Login Card */
-        <div className="rounded-xl border border-[#252D38] bg-[#0C1017] p-6 sm:p-8 space-y-6 shadow-2xl">
+        <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-6 sm:p-8 space-y-6 shadow-2xl">
           {/* Header */}
           <div className="text-center space-y-1">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[#252D38] bg-[#111722] text-[#B6FF3B]">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[#2e2e2a] bg-[#1b1b19] text-[#8dc63f]">
               <Lock className="h-5 w-5" />
             </div>
-            <h1 className="font-display text-2xl font-bold text-[#F0F3F7]">
+            <h1 className="font-display text-2xl font-bold text-[#f5f5f2]">
               {mode === 'signin' ? 'Sign In' : 'Create an Account'}
             </h1>
-            <p className="text-xs text-[#929DAC]">
+            <p className="text-xs text-[#a8a8a2]">
               {mode === 'signin'
                 ? 'Enter your credentials to access the quiz competition.'
                 : 'Register an account to participate in competitions.'}
@@ -207,12 +207,12 @@ export const LoginPage: React.FC = () => {
             <div>
               <label
                 htmlFor="login-email"
-                className="block font-mono text-[11px] font-medium text-[#929DAC] mb-1.5"
+                className="block font-mono text-[11px] font-medium text-[#a8a8a2] mb-1.5"
               >
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#929DAC]" />
+                <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8a8a2]" />
                 <input
                   id="login-email"
                   type="email"
@@ -221,7 +221,7 @@ export const LoginPage: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                   autoComplete="email"
-                  className="w-full rounded-lg border border-[#252D38] bg-[#07090D] py-2.5 pl-9 pr-3 text-xs text-[#F0F3F7] placeholder-[#929DAC]/50 focus:border-[#B6FF3B] focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-[#2e2e2a] bg-[#111110] py-2.5 pl-9 pr-3 text-xs text-[#f5f5f2] placeholder-[#a8a8a2]/50 focus:border-[#7ab32e] focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -229,12 +229,12 @@ export const LoginPage: React.FC = () => {
             <div>
               <label
                 htmlFor="login-password"
-                className="block font-mono text-[11px] font-medium text-[#929DAC] mb-1.5"
+                className="block font-mono text-[11px] font-medium text-[#a8a8a2] mb-1.5"
               >
                 Password
               </label>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#929DAC]" />
+                <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8a8a2]" />
                 <input
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
@@ -243,12 +243,12 @@ export const LoginPage: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-                  className="w-full rounded-lg border border-[#252D38] bg-[#07090D] py-2.5 pl-9 pr-9 text-xs text-[#F0F3F7] placeholder-[#929DAC]/50 focus:border-[#B6FF3B] focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-[#2e2e2a] bg-[#111110] py-2.5 pl-9 pr-9 text-xs text-[#f5f5f2] placeholder-[#a8a8a2]/50 focus:border-[#7ab32e] focus:outline-none transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
@@ -263,7 +263,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#B6FF3B] py-3 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors disabled:opacity-50 cursor-pointer shadow-md mt-2"
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] py-3 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors disabled:opacity-50 cursor-pointer shadow-md mt-2"
             >
               {mode === 'signin' ? (
                 <>
@@ -280,7 +280,7 @@ export const LoginPage: React.FC = () => {
           </form>
 
           {/* Toggle between Sign In / Sign Up */}
-          <div className="text-center text-xs text-[#929DAC]">
+          <div className="text-center text-xs text-[#a8a8a2]">
             {mode === 'signin' ? (
               <p>
                 Don't have an account?{' '}
@@ -290,7 +290,7 @@ export const LoginPage: React.FC = () => {
                     setMode('signup');
                     setErrorMessage('');
                   }}
-                  className="text-[#B6FF3B] hover:underline font-medium cursor-pointer"
+                  className="text-[#8dc63f] hover:underline font-medium cursor-pointer"
                 >
                   Sign Up
                 </button>
@@ -304,7 +304,7 @@ export const LoginPage: React.FC = () => {
                     setMode('signin');
                     setErrorMessage('');
                   }}
-                  className="text-[#B6FF3B] hover:underline font-medium cursor-pointer"
+                  className="text-[#8dc63f] hover:underline font-medium cursor-pointer"
                 >
                   Sign In
                 </button>
@@ -314,11 +314,11 @@ export const LoginPage: React.FC = () => {
 
           {/* Divider */}
           <div className="relative flex items-center justify-center">
-            <div className="border-t border-[#252D38] w-full" />
-            <span className="bg-[#0C1017] px-3 font-mono text-[11px] text-[#929DAC]">
+            <div className="border-t border-[#2e2e2a] w-full" />
+            <span className="bg-[#1b1b19] px-3 font-mono text-[11px] text-[#a8a8a2]">
               OR
             </span>
-            <div className="border-t border-[#252D38] w-full" />
+            <div className="border-t border-[#2e2e2a] w-full" />
           </div>
 
           {/* Google Login Button */}
@@ -326,7 +326,7 @@ export const LoginPage: React.FC = () => {
             type="button"
             disabled={isSubmitting}
             onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-3 rounded-lg border border-[#252D38] bg-[#111722] py-3 px-4 text-xs font-semibold text-[#F0F3F7] hover:border-[#B6FF3B] hover:bg-[#161E2C] transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+            className="w-full flex items-center justify-center gap-3 rounded-lg border border-[#2e2e2a] bg-[#1b1b19] py-3 px-4 text-xs font-semibold text-[#f5f5f2] hover:border-[#7ab32e] hover:bg-[#161E2C] transition-all disabled:opacity-50 cursor-pointer shadow-sm"
           >
             <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
               <path

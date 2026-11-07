@@ -693,7 +693,7 @@ export const QuizPage: React.FC = () => {
   if (isDisqualified) {
     return (
       <div className="mx-auto max-w-2xl py-12 px-4 sm:px-6">
-        <div className="rounded-2xl border border-[#FF365B]/60 bg-[#0C1017] p-8 text-center space-y-6 shadow-2xl">
+        <div className="rounded-2xl border border-[#FF365B]/60 bg-[#1b1b19] p-8 text-center space-y-6 shadow-2xl">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl border border-[#FF365B]/40 bg-[#FF365B]/15 text-[#FF365B]">
             <ShieldAlert className="h-10 w-10" />
           </div>
@@ -701,18 +701,18 @@ export const QuizPage: React.FC = () => {
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#FF365B]">
               PROCTORING ENFORCEMENT ACTION
             </span>
-            <h1 className="mt-2 font-display text-2xl sm:text-3xl font-bold text-[#F0F3F7]">
+            <h1 className="mt-2 font-display text-2xl sm:text-3xl font-bold text-[#f5f5f2]">
               EXAMINATION TERMINATED · CANDIDATE DISQUALIFIED
             </h1>
-            <p className="mt-2 text-xs text-[#929DAC] leading-relaxed max-w-md mx-auto">
+            <p className="mt-2 text-xs text-[#a8a8a2] leading-relaxed max-w-md mx-auto">
               {disqualificationReason || 'Exceeded maximum permitted window/tab switching infractions (> 2 warnings).'}
             </p>
           </div>
 
           <div className="rounded-xl border border-[#FF365B]/30 bg-[#FF365B]/5 p-6 space-y-2 font-mono">
-            <div className="text-xs text-[#929DAC] uppercase tracking-wider">OFFICIAL SCORE RECORDED</div>
+            <div className="text-xs text-[#a8a8a2] uppercase tracking-wider">OFFICIAL SCORE RECORDED</div>
             <div className="text-5xl font-black text-[#FF365B] tracking-tight">0 PTS</div>
-            <p className="text-[11px] text-[#929DAC] pt-2">
+            <p className="text-[11px] text-[#a8a8a2] pt-2">
               {isPracticeQuiz
                 ? 'Practice attempt ended with 0. Practice scores are never recorded — you can retake the practice quiz as many times as you like.'
                 : 'Status: Disqualified. Result permanently logged to scoreboard.'}
@@ -738,18 +738,18 @@ export const QuizPage: React.FC = () => {
                     }
                   } catch {}
                 }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-[#B6FF3B] bg-[#B6FF3B]/20 px-6 py-2.5 font-mono text-xs font-bold text-[#B6FF3B] hover:bg-[#B6FF3B]/30 cursor-pointer shadow-lg"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-[#7ab32e] bg-[#8dc63f]/20 px-6 py-2.5 font-mono text-xs font-bold text-[#8dc63f] hover:bg-[#8dc63f]/30 cursor-pointer shadow-lg"
               >
                 <RotateCcw className="h-4 w-4" />
                 <span>Admin Reset Disqualification & Retake Test</span>
               </button>
             </div>
           )}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-[#252D38]">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-[#2e2e2a]">
             <button
               type="button"
               onClick={() => navigate('/dashboard')}
-              className="w-full sm:w-auto rounded-lg bg-[#B6FF3B] px-6 py-2.5 font-mono text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer"
+              className="w-full sm:w-auto rounded-lg bg-[#8dc63f] px-6 py-2.5 font-mono text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer"
             >
               Return to Dashboard
             </button>
@@ -765,10 +765,10 @@ export const QuizPage: React.FC = () => {
     return (
       <div className="mx-auto max-w-lg py-12 text-center space-y-6">
         <div className="space-y-2">
-          <h1 className="font-display text-2xl font-bold text-[#F0F3F7]">
+          <h1 className="font-display text-2xl font-bold text-[#f5f5f2]">
             Checking sign-in...
           </h1>
-          <p className="text-xs text-[#929DAC] leading-relaxed max-w-sm mx-auto">
+          <p className="text-xs text-[#a8a8a2] leading-relaxed max-w-sm mx-auto">
             Please wait while we verify your session.
           </p>
         </div>
@@ -780,14 +780,14 @@ export const QuizPage: React.FC = () => {
   if (!currentUser) {
     return (
       <div className="mx-auto max-w-lg py-12 text-center space-y-6">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#252D38] bg-[#0C1017] text-[#B6FF3B]">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#2e2e2a] bg-[#1b1b19] text-[#8dc63f]">
           <Lock className="h-8 w-8" />
         </div>
         <div className="space-y-2">
-          <h1 className="font-display text-2xl font-bold text-[#F0F3F7]">
+          <h1 className="font-display text-2xl font-bold text-[#f5f5f2]">
             Authentication Required
           </h1>
-          <p className="text-xs text-[#929DAC] leading-relaxed max-w-sm mx-auto">
+          <p className="text-xs text-[#a8a8a2] leading-relaxed max-w-sm mx-auto">
             You must sign in with your Google or tournament account to participate in this cybersecurity quiz and record scores on the live leaderboard.
           </p>
         </div>
@@ -795,7 +795,7 @@ export const QuizPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/login?redirect=/quiz')}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#B6FF3B] px-6 py-2.5 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer shadow-lg"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-2.5 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
           >
             <LogIn className="h-4 w-4" />
             <span>Sign In to Access Quiz</span>
@@ -803,7 +803,7 @@ export const QuizPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/competitions')}
-            className="w-full sm:w-auto rounded-lg border border-[#252D38] bg-[#111722] px-5 py-2.5 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+            className="w-full sm:w-auto rounded-lg border border-[#2e2e2a] bg-[#1b1b19] px-5 py-2.5 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
           >
             Browse Tournaments
           </button>
@@ -851,7 +851,7 @@ export const QuizPage: React.FC = () => {
   if (!isCompetitionStarted) {
     return (
       <div className="mx-auto max-w-2xl py-8 space-y-6">
-        <div className="rounded-xl border border-[#00E5FF]/40 bg-[#0C1017] p-6 text-center space-y-4 shadow-xl">
+        <div className="rounded-xl border border-[#00E5FF]/40 bg-[#1b1b19] p-6 text-center space-y-4 shadow-xl">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-[#00E5FF]/50 bg-[#00E5FF]/10 text-[#00E5FF]">
             <Clock className="h-7 w-7" />
           </div>
@@ -859,10 +859,10 @@ export const QuizPage: React.FC = () => {
             <span className="rounded bg-[#00E5FF]/20 px-3 py-1 font-mono text-xs font-bold text-[#00E5FF] tracking-wider uppercase">
               UPCOMING QUIZ COMPETITION
             </span>
-            <h1 className="mt-2 font-display text-2xl font-bold text-[#F0F3F7]">
+            <h1 className="mt-2 font-display text-2xl font-bold text-[#f5f5f2]">
               {activeCompetition?.title || 'Cybersecurity Quiz Competition'}
             </h1>
-            <p className="text-xs text-[#929DAC] leading-relaxed max-w-md mx-auto">
+            <p className="text-xs text-[#a8a8a2] leading-relaxed max-w-md mx-auto">
               This competition is scheduled to start at{' '}
               <span className="font-mono text-[#00E5FF]">
                 {activeCompetition?.startTime
@@ -893,7 +893,7 @@ export const QuizPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/competitions')}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#252D38] bg-[#111722] px-6 py-2.5 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#2e2e2a] bg-[#1b1b19] px-6 py-2.5 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Return to Competitions Directory</span>
@@ -909,7 +909,7 @@ export const QuizPage: React.FC = () => {
   if (!isAdmin && !isQuizActive && activeCompetition && activeCompetition.status === 'completed') {
     return (
       <div className="mx-auto max-w-2xl py-8 space-y-6">
-        <div className="rounded-xl border border-[#FF5C5C]/40 bg-[#0C1017] p-6 text-center space-y-4 shadow-xl">
+        <div className="rounded-xl border border-[#FF5C5C]/40 bg-[#1b1b19] p-6 text-center space-y-4 shadow-xl">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-[#FF5C5C]/50 bg-[#FF5C5C]/10 text-[#FF5C5C]">
             <Clock className="h-7 w-7" />
           </div>
@@ -917,10 +917,10 @@ export const QuizPage: React.FC = () => {
             <span className="rounded bg-[#FF5C5C]/20 px-3 py-1 font-mono text-xs font-bold text-[#FF5C5C] tracking-wider uppercase">
               Competition Ended
             </span>
-            <h1 className="mt-2 font-display text-2xl font-bold text-[#F0F3F7]">
+            <h1 className="mt-2 font-display text-2xl font-bold text-[#f5f5f2]">
               {activeCompetition?.title || 'Cybersecurity Quiz Competition'}
             </h1>
-            <p className="text-xs text-[#929DAC] leading-relaxed max-w-md mx-auto">
+            <p className="text-xs text-[#a8a8a2] leading-relaxed max-w-md mx-auto">
               This competition ended at{' '}
               <span className="font-mono text-[#FF5C5C]">
                 {activeCompetition?.endTime
@@ -940,7 +940,7 @@ export const QuizPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/competitions')}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#252D38] bg-[#111722] px-6 py-2.5 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#2e2e2a] bg-[#1b1b19] px-6 py-2.5 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Return to Competitions Directory</span>
@@ -956,7 +956,7 @@ export const QuizPage: React.FC = () => {
   if (!isAdmin && !profile.isProfileComplete) {
     return (
       <div className="mx-auto max-w-xl py-12 text-center space-y-6">
-        <div className="rounded-2xl border border-[#FFB800]/40 bg-[#0C1017] p-8 text-center space-y-5 shadow-2xl">
+        <div className="rounded-2xl border border-[#FFB800]/40 bg-[#1b1b19] p-8 text-center space-y-5 shadow-2xl">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#FFB800]/50 bg-[#FFB800]/10 text-[#FFB800]">
             <Lock className="h-8 w-8" />
           </div>
@@ -964,10 +964,10 @@ export const QuizPage: React.FC = () => {
             <span className="rounded bg-[#FFB800]/20 px-3 py-1 font-mono text-xs font-bold text-[#FFB800] tracking-wider uppercase">
               100% Profile Completion Required
             </span>
-            <h2 className="mt-2 font-display text-2xl font-bold text-[#F0F3F7]">
+            <h2 className="mt-2 font-display text-2xl font-bold text-[#f5f5f2]">
               Complete Your Operator Profile
             </h2>
-            <p className="text-xs text-[#929DAC] max-w-md mx-auto leading-relaxed">
+            <p className="text-xs text-[#a8a8a2] max-w-md mx-auto leading-relaxed">
               Official tournament integrity rules require a 100% completed profile (Full Legal Name and WhatsApp contact number) before accessing or starting any quiz competition.
             </p>
           </div>
@@ -976,7 +976,7 @@ export const QuizPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/profile?required=1')}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#B6FF3B] px-6 py-2.5 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer shadow-lg"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-2.5 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
             >
               <User className="h-4 w-4" />
               <span>Go to My Profile & Complete (100%)</span>
@@ -984,7 +984,7 @@ export const QuizPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/competitions')}
-              className="w-full sm:w-auto rounded-lg border border-[#252D38] bg-[#111722] px-5 py-2.5 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+              className="w-full sm:w-auto rounded-lg border border-[#2e2e2a] bg-[#1b1b19] px-5 py-2.5 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
             >
               Return to Directory
             </button>
@@ -1023,10 +1023,10 @@ export const QuizPage: React.FC = () => {
         <div
           role="alertdialog"
           aria-modal="true"
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#07090D]/95 p-4 backdrop-blur-md"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#111110]/95 p-4 backdrop-blur-md"
         >
-          <div className="relative w-full max-w-lg rounded-2xl border border-[#FF365B]/60 bg-[#0C1017] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 border-b border-[#252D38] pb-4">
+          <div className="relative w-full max-w-lg rounded-2xl border border-[#FF365B]/60 bg-[#1b1b19] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 border-b border-[#2e2e2a] pb-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#FF365B]/40 bg-[#FF365B]/15 text-[#FF365B] animate-pulse">
                 <AlertTriangle className="h-6 w-6" />
               </div>
@@ -1034,7 +1034,7 @@ export const QuizPage: React.FC = () => {
                 <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#FF365B]">
                   PROCTORING INFRACTION DETECTED
                 </span>
-                <h3 className="font-display text-lg font-bold text-[#F0F3F7]">
+                <h3 className="font-display text-lg font-bold text-[#f5f5f2]">
                   {activeTabWarningModal === 1
                     ? 'WARNING 1 OF 2: TAB SWITCHING DETECTED'
                     : 'CRITICAL FINAL WARNING (2 OF 2): LAST CHANCE'}
@@ -1043,7 +1043,7 @@ export const QuizPage: React.FC = () => {
             </div>
 
             <div className="mt-4 space-y-3 font-mono text-xs">
-              <div className="rounded-lg border border-[#FF365B]/30 bg-[#FF365B]/5 p-3.5 text-[#F0F3F7] leading-relaxed">
+              <div className="rounded-lg border border-[#FF365B]/30 bg-[#FF365B]/5 p-3.5 text-[#f5f5f2] leading-relaxed">
                 {activeTabWarningModal === 1 ? (
                   <>
                     You navigated away from the exam window. Tab switching, minimizing the browser, or opening other applications is strictly prohibited.
@@ -1072,7 +1072,7 @@ export const QuizPage: React.FC = () => {
                     window.focus();
                   } catch {}
                 }}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#B6FF3B] px-5 py-2.5 font-mono text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer shadow-lg"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#8dc63f] px-5 py-2.5 font-mono text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
               >
                 <span>I Understand & Acknowledge (Return to Question)</span>
               </button>
@@ -1082,21 +1082,21 @@ export const QuizPage: React.FC = () => {
       )}
 
       {/* Focused Quiz Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-lg border border-[#252D38] bg-[#0C1017] p-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate('/competitions')}
             aria-label="Return to competitions directory"
-            className="rounded-md border border-[#252D38] bg-[#111722] p-2 text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+            className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-2 text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <p className="font-mono text-xs text-[#929DAC]">
+            <p className="font-mono text-xs text-[#a8a8a2]">
               FOCUSED QUIZ ENVIRONMENT · 1 ATTEMPT IN PROGRESS
             </p>
-            <h1 className="font-display text-lg sm:text-xl font-bold text-[#F0F3F7]">
+            <h1 className="font-display text-lg sm:text-xl font-bold text-[#f5f5f2]">
               {activeCompetition?.title ||
                 quizSession.competitionTitle ||
                 'Cybersecurity Quiz Competition'}
@@ -1106,11 +1106,11 @@ export const QuizPage: React.FC = () => {
 
         {/* Quiz Progress & Real Target Deadline Timer */}
         <div className="flex flex-wrap items-center gap-4">
-          <div className="rounded-md border border-[#252D38] bg-[#111722] px-3.5 py-2">
-            <span className="block font-mono text-[10px] text-[#929DAC]">
+          <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-3.5 py-2">
+            <span className="block font-mono text-[10px] text-[#a8a8a2]">
               PROGRESS
             </span>
-            <span className="font-mono text-xs font-semibold text-[#F0F3F7] tabular-nums">
+            <span className="font-mono text-xs font-semibold text-[#f5f5f2] tabular-nums">
               {questions.length > 0
                 ? `${progress.answered} / ${progress.total} Answered`
                 : 'No Questions Loaded'}
@@ -1121,12 +1121,12 @@ export const QuizPage: React.FC = () => {
             className={`flex items-center gap-2.5 rounded-md border px-3.5 py-2 ${
               isNearDeadline
                 ? 'border-[#FF365B] bg-[#FF365B]/10 text-[#FF365B]'
-                : 'border-[#252D38] bg-[#111722] text-[#F0F3F7]'
+                : 'border-[#2e2e2a] bg-[#1b1b19] text-[#f5f5f2]'
             }`}
           >
-            <Clock className="h-4 w-4 shrink-0 text-[#929DAC]" aria-hidden="true" />
+            <Clock className="h-4 w-4 shrink-0 text-[#a8a8a2]" aria-hidden="true" />
             <div>
-              <span className="block font-mono text-[10px] text-[#929DAC]">
+              <span className="block font-mono text-[10px] text-[#a8a8a2]">
                 QUIZ TIMER
               </span>
               <span className="font-mono text-xs font-bold tabular-nums">
@@ -1143,7 +1143,7 @@ export const QuizPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/profile')}
-              className="inline-flex items-center gap-2 rounded-md bg-[#36F58A] px-4 py-2.5 text-xs font-semibold text-[#07090D] transition-colors hover:bg-[#5affaa] whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-md bg-[#a4d65e] px-4 py-2.5 text-xs font-semibold text-[#141a09] transition-colors hover:bg-[#5affaa] whitespace-nowrap shrink-0 cursor-pointer"
             >
               <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
               <span>View Profile & History</span>
@@ -1153,7 +1153,7 @@ export const QuizPage: React.FC = () => {
               type="button"
               onClick={handleDirectSubmit}
               disabled={isSubmitting || !hasSelectedCurrentAnswer}
-              className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2.5 text-xs font-semibold text-[#07090D] transition-colors hover:bg-[#c8ff66] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer shadow-md"
+              className="inline-flex items-center gap-2 rounded-md bg-[#8dc63f] px-4 py-2.5 text-xs font-semibold text-[#141a09] transition-colors hover:bg-[#a4d65e] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer shadow-md"
             >
               <Send className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{isSubmitting ? 'Submitting...' : 'Submit Quiz'}</span>
@@ -1178,18 +1178,18 @@ export const QuizPage: React.FC = () => {
               onSecondaryAction={() => navigate('/leaderboard')}
             />
           ) : (
-            <div className="relative overflow-hidden rounded-lg border border-[#252D38] bg-[#0C1017] p-4 sm:p-6 md:p-8 space-y-6">
+            <div className="relative overflow-hidden rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-4 sm:p-6 md:p-8 space-y-6">
               {/* Anti-cheat watermark: candidate identity on any screenshot */}
               <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 select-none overflow-hidden opacity-[0.07]">
-                <div className="absolute -inset-10 flex flex-wrap content-center items-center justify-center gap-x-10 gap-y-8 rotate-[-16deg] font-mono text-sm font-bold text-[#F0F3F7] whitespace-nowrap">
+                <div className="absolute -inset-10 flex flex-wrap content-center items-center justify-center gap-x-10 gap-y-8 rotate-[-16deg] font-mono text-sm font-bold text-[#f5f5f2] whitespace-nowrap">
                   {Array.from({ length: 12 }).map((_, i) => (
                     <span key={i}>{currentUser?.email || profile?.username || 'NULLORIGIN'}</span>
                   ))}
                 </div>
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#252D38] pb-4">
-                <div className="flex items-center gap-2 font-mono text-xs text-[#929DAC]">
-                  <span className="text-[#B6FF3B] font-semibold">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#2e2e2a] pb-4">
+                <div className="flex items-center gap-2 font-mono text-xs text-[#a8a8a2]">
+                  <span className="text-[#8dc63f] font-semibold">
                     QUESTION {String(quizSession.currentQuestionIndex + 1).padStart(2, '0')} OF{' '}
                     {String(questions.length).padStart(2, '0')}
                   </span>
@@ -1214,26 +1214,26 @@ export const QuizPage: React.FC = () => {
                 className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-2.5 transition-colors ${
                   questionSecondsLeft <= 5
                     ? 'border-[#FF365B]/60 bg-[#FF365B]/10'
-                    : 'border-[#252D38] bg-[#07090D]'
+                    : 'border-[#2e2e2a] bg-[#111110]'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <div
                     className={`flex h-7 w-7 items-center justify-center rounded-md font-mono text-xs font-bold transition-all ${
                       questionSecondsLeft <= 5
-                        ? 'bg-[#FF365B] text-[#07090D] animate-pulse'
-                        : 'bg-[#111722] text-[#B6FF3B] border border-[#252D38]'
+                        ? 'bg-[#FF365B] text-[#111110] animate-pulse'
+                        : 'bg-[#1b1b19] text-[#8dc63f] border border-[#2e2e2a]'
                     }`}
                   >
                     <Clock className="h-3.5 w-3.5" />
                   </div>
                   <div>
-                    <span className="font-mono text-xs font-semibold text-[#F0F3F7]">
+                    <span className="font-mono text-xs font-semibold text-[#f5f5f2]">
                       QUESTION TIMER:
                     </span>
                     <span
                       className={`ml-2 font-mono text-xs font-bold tabular-nums ${
-                        questionSecondsLeft <= 5 ? 'text-[#FF365B]' : 'text-[#B6FF3B]'
+                        questionSecondsLeft <= 5 ? 'text-[#FF365B]' : 'text-[#8dc63f]'
                       }`}
                     >
                       {questionSecondsLeft}s remaining
@@ -1242,13 +1242,13 @@ export const QuizPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-[10px] text-[#929DAC]">
+                  <span className="font-mono text-[10px] text-[#a8a8a2]">
                     Limit: {questionTimeLimit}s
                   </span>
-                  <div className="w-20 sm:w-28 h-1.5 rounded-full bg-[#111722] overflow-hidden border border-[#252D38]">
+                  <div className="w-20 sm:w-28 h-1.5 rounded-full bg-[#1b1b19] overflow-hidden border border-[#2e2e2a]">
                     <div
                       className={`h-full transition-all duration-1000 ${
-                        questionSecondsLeft <= 5 ? 'bg-[#FF365B]' : 'bg-[#B6FF3B]'
+                        questionSecondsLeft <= 5 ? 'bg-[#FF365B]' : 'bg-[#8dc63f]'
                       }`}
                       style={{
                         width: `${Math.max(
@@ -1262,12 +1262,12 @@ export const QuizPage: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <h2 className="font-display text-lg font-medium text-[#F0F3F7] leading-relaxed">
+                <h2 className="font-display text-lg font-medium text-[#f5f5f2] leading-relaxed">
                   {currentQuestion.prompt}
                 </h2>
 
                 {currentQuestion.codeSnippet && (
-                  <pre className="overflow-x-auto rounded-md border border-[#252D38] bg-[#07090D] p-4 font-mono text-xs text-[#F0F3F7]">
+                  <pre className="overflow-x-auto rounded-md border border-[#2e2e2a] bg-[#111110] p-4 font-mono text-xs text-[#f5f5f2]">
                     <code>{currentQuestion.codeSnippet}</code>
                   </pre>
                 )}
@@ -1288,15 +1288,15 @@ export const QuizPage: React.FC = () => {
                       onClick={() => selectQuizAnswer(currentQuestion.id, opt.id)}
                       className={`flex w-full items-start gap-3.5 rounded-lg border p-4 text-left transition-colors cursor-pointer ${
                         isSelected
-                          ? 'border-[#B6FF3B] bg-[#111722] text-[#F0F3F7]'
-                          : 'border-[#252D38] bg-[#111722]/50 text-[#929DAC] hover:border-[#929DAC]/50 hover:text-[#F0F3F7]'
+                          ? 'border-[#7ab32e] bg-[#1b1b19] text-[#f5f5f2]'
+                          : 'border-[#2e2e2a] bg-[#1b1b19]/50 text-[#a8a8a2] hover:border-[#a8a8a2]/50 hover:text-[#f5f5f2]'
                       }`}
                     >
                       <span
                         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded border font-mono text-xs font-semibold ${
                           isSelected
-                            ? 'border-[#B6FF3B] bg-[#B6FF3B] text-[#07090D]'
-                            : 'border-[#252D38] bg-[#07090D] text-[#929DAC]'
+                            ? 'border-[#7ab32e] bg-[#8dc63f] text-[#141a09]'
+                            : 'border-[#2e2e2a] bg-[#111110] text-[#a8a8a2]'
                         }`}
                       >
                         {opt.label}
@@ -1308,8 +1308,8 @@ export const QuizPage: React.FC = () => {
               </div>
 
               {/* Forward-Only Navigation (Previous strictly disabled to prevent timer reset) */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-[#252D38] pt-5">
-                <div className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 font-mono text-xs sm:text-[11px] text-[#929DAC]">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-[#2e2e2a] pt-5">
+                <div className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-md border border-[#2e2e2a] bg-[#111110] px-3 py-2 font-mono text-xs sm:text-[11px] text-[#a8a8a2]">
                   <Lock className="h-3.5 w-3.5 text-[#E6B450]" />
                   <span>Strict Forward Progression · Returning Disabled</span>
                 </div>
@@ -1319,7 +1319,7 @@ export const QuizPage: React.FC = () => {
                     type="button"
                     disabled={isSubmitting || quizSession.isSubmitted || !hasSelectedCurrentAnswer}
                     onClick={handleDirectSubmit}
-                    className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-md bg-[#B6FF3B] px-5 py-2 text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] disabled:opacity-40 cursor-pointer transition-colors shadow-md"
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-md bg-[#8dc63f] px-5 py-2 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] disabled:opacity-40 cursor-pointer transition-colors shadow-md"
                   >
                     <Send className="h-3.5 w-3.5" />
                     <span>{isSubmitting ? 'Submitting...' : 'Submit Quiz'}</span>
@@ -1332,7 +1332,7 @@ export const QuizPage: React.FC = () => {
                       recordQuestionTime(quizSession.currentQuestionIndex);
                       setCurrentQuestionIndex(quizSession.currentQuestionIndex + 1);
                     }}
-                    className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] disabled:opacity-40 cursor-pointer"
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-4 py-2 text-xs font-medium text-[#f5f5f2] hover:border-[#7ab32e] disabled:opacity-40 cursor-pointer"
                   >
                     <span>Next</span>
                     <ChevronRight className="h-4 w-4" />
@@ -1353,30 +1353,30 @@ export const QuizPage: React.FC = () => {
             onSelectIndex={handleSelectQuestionIndex}
           />
 
-          <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-5 space-y-3">
-            <h3 className="font-display text-sm font-semibold text-[#F0F3F7]">
+          <div className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5 space-y-3">
+            <h3 className="font-display text-sm font-semibold text-[#f5f5f2]">
               Session Telemetry Summary
             </h3>
             <dl className="space-y-2 text-xs font-mono">
               <div className="flex justify-between">
-                <dt className="text-[#929DAC]">Total Questions</dt>
-                <dd className="text-[#F0F3F7] tabular-nums">{progress.total}</dd>
+                <dt className="text-[#a8a8a2]">Total Questions</dt>
+                <dd className="text-[#f5f5f2] tabular-nums">{progress.total}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-[#929DAC]">Answered</dt>
-                <dd className="text-[#36F58A] tabular-nums">{progress.answered}</dd>
+                <dt className="text-[#a8a8a2]">Answered</dt>
+                <dd className="text-[#a4d65e] tabular-nums">{progress.answered}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-[#929DAC]">Unanswered</dt>
-                <dd className="text-[#929DAC] tabular-nums">{progress.unanswered}</dd>
+                <dt className="text-[#a8a8a2]">Unanswered</dt>
+                <dd className="text-[#a8a8a2] tabular-nums">{progress.unanswered}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-[#929DAC]">Marked for Review</dt>
+                <dt className="text-[#a8a8a2]">Marked for Review</dt>
                 <dd className="text-[#FF365B] tabular-nums">{progress.markedForReview}</dd>
               </div>
-              <div className="flex justify-between border-t border-[#252D38] pt-2">
-                <dt className="text-[#929DAC]">Per-Question Limit</dt>
-                <dd className="text-[#B6FF3B] tabular-nums font-semibold">{questionTimeLimit}s</dd>
+              <div className="flex justify-between border-t border-[#2e2e2a] pt-2">
+                <dt className="text-[#a8a8a2]">Per-Question Limit</dt>
+                <dd className="text-[#8dc63f] tabular-nums font-semibold">{questionTimeLimit}s</dd>
               </div>
             </dl>
           </div>

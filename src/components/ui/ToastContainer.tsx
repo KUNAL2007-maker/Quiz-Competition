@@ -15,28 +15,28 @@ export const ToastContainer: React.FC = () => {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="pointer-events-auto flex items-start gap-3 rounded-lg border border-[#252D38] bg-[#111722] p-4 shadow-xl transition-all"
+          className="pointer-events-auto flex items-start gap-3 rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-4 shadow-xl transition-all"
         >
           {toast.variant === 'success' && (
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-[#36F58A] mt-0.5" aria-hidden="true" />
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-[#a4d65e] mt-0.5" aria-hidden="true" />
           )}
           {toast.variant === 'alert' && (
             <AlertTriangle className="h-4 w-4 shrink-0 text-[#FF365B] mt-0.5" aria-hidden="true" />
           )}
           {(!toast.variant || toast.variant === 'default') && (
-            <Info className="h-4 w-4 shrink-0 text-[#B6FF3B] mt-0.5" aria-hidden="true" />
+            <Info className="h-4 w-4 shrink-0 text-[#8dc63f] mt-0.5" aria-hidden="true" />
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-[#F0F3F7]">{toast.title}</p>
+            <p className="text-xs font-semibold text-[#f5f5f2]">{toast.title}</p>
             {toast.description && (
-              <p className="mt-1 text-xs text-[#929DAC] leading-relaxed">{toast.description}</p>
+              <p className="mt-1 text-xs text-[#a8a8a2] leading-relaxed">{toast.description}</p>
             )}
           </div>
           <button
             type="button"
             onClick={() => dismissToast(toast.id)}
             aria-label="Dismiss notification"
-            className="rounded p-1 text-[#929DAC] hover:bg-[#0C1017] hover:text-[#F0F3F7] cursor-pointer"
+            className="rounded p-1 text-[#a8a8a2] hover:bg-[#1b1b19] hover:text-[#f5f5f2] cursor-pointer"
           >
             <X className="h-3.5 w-3.5" />
           </button>

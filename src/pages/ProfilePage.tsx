@@ -69,7 +69,7 @@ export const ProfilePage: React.FC = () => {
   const assignedAvatarUrl = useMemo(() => {
     if (profile.avatarUrl) return profile.avatarUrl;
     const seed = currentUser?.uid || 'cyber-operator-default';
-    return `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(seed)}&backgroundColor=07090d`;
+    return `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(seed)}&backgroundColor=111110`;
   }, [profile.avatarUrl, currentUser]);
 
   // Calculate 100% profile completeness
@@ -250,21 +250,21 @@ export const ProfilePage: React.FC = () => {
     <div className="space-y-8">
       {/* 100% Profile Completion Status Banner */}
       {is100PercentComplete ? (
-        <div className="rounded-xl border border-[#36F58A]/40 bg-[#0C1017] p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="rounded-xl border border-[#a4d65e]/40 bg-[#1b1b19] p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#36F58A]/50 bg-[#36F58A]/10 text-[#36F58A]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#a4d65e]/50 bg-[#a4d65e]/10 text-[#a4d65e]">
               <CheckCircle2 className="h-6 w-6" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-xs font-bold text-[#36F58A] tracking-wider uppercase">
+                <span className="font-mono text-xs font-bold text-[#a4d65e] tracking-wider uppercase">
                   PROFILE STATUS: 100% COMPLETED
                 </span>
-                <span className="rounded bg-[#36F58A]/15 border border-[#36F58A]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#36F58A]">
+                <span className="rounded bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
                   ELIGIBLE FOR QUIZ
                 </span>
               </div>
-              <p className="mt-1 text-xs text-[#929DAC] leading-relaxed">
+              <p className="mt-1 text-xs text-[#a8a8a2] leading-relaxed">
                 Your competitor profile is 100% complete and verified. You are fully eligible to enter live quiz competitions and receive winner prize notifications.
               </p>
             </div>
@@ -272,11 +272,11 @@ export const ProfilePage: React.FC = () => {
 
           <div className="flex items-center gap-3 self-end md:self-center shrink-0">
             <div className="text-right">
-              <span className="block font-mono text-sm font-bold text-[#36F58A]">100%</span>
-              <span className="font-mono text-[10px] text-[#929DAC]">VERIFIED</span>
+              <span className="block font-mono text-sm font-bold text-[#a4d65e]">100%</span>
+              <span className="font-mono text-[10px] text-[#a8a8a2]">VERIFIED</span>
             </div>
-            <div className="w-24 h-2.5 rounded-full bg-[#111722] overflow-hidden border border-[#252D38]">
-              <div className="h-full bg-[#36F58A] w-full" />
+            <div className="w-24 h-2.5 rounded-full bg-[#1b1b19] overflow-hidden border border-[#2e2e2a]">
+              <div className="h-full bg-[#a4d65e] w-full" />
             </div>
           </div>
         </div>
@@ -295,15 +295,15 @@ export const ProfilePage: React.FC = () => {
                   100% REQUIRED TO ENTER QUIZ
                 </span>
               </div>
-              <p className="mt-1 text-xs text-[#F0F3F7] leading-relaxed">
+              <p className="mt-1 text-xs text-[#f5f5f2] leading-relaxed">
                 Tournament rules require a 100% completed profile before participating in any quiz. Please provide your Full Legal Name and WhatsApp contact number.
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px]">
-                <span className={isNameComplete ? 'text-[#36F58A]' : 'text-[#FF365B]'}>
+                <span className={isNameComplete ? 'text-[#a4d65e]' : 'text-[#FF365B]'}>
                   {isNameComplete ? '✓ Full Legal Name' : '✗ Missing Full Legal Name'}
                 </span>
-                <span className="text-[#929DAC]">·</span>
-                <span className={isWhatsappComplete ? 'text-[#36F58A]' : 'text-[#FF365B]'}>
+                <span className="text-[#a8a8a2]">·</span>
+                <span className={isWhatsappComplete ? 'text-[#a4d65e]' : 'text-[#FF365B]'}>
                   {isWhatsappComplete ? '✓ WhatsApp Contact' : '✗ Missing WhatsApp Number'}
                 </span>
               </div>
@@ -313,11 +313,11 @@ export const ProfilePage: React.FC = () => {
       )}
 
       {/* Operator Identity Dossier Header Card */}
-      <section className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6 md:p-8">
+      <section className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-6 md:p-8">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-start gap-5">
             {/* Locked Avatar Slot */}
-            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border-2 border-[#B6FF3B] bg-[#111722] text-[#B6FF3B] overflow-hidden">
+            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border-2 border-[#7ab32e] bg-[#1b1b19] text-[#8dc63f] overflow-hidden">
               <img
                 src={assignedAvatarUrl}
                 alt="System-assigned avatar"
@@ -326,55 +326,55 @@ export const ProfilePage: React.FC = () => {
               />
               <div
                 title="Profile photo is randomly assigned by the platform and cannot be changed"
-                className="absolute bottom-1 right-1 rounded-full bg-[#07090D] border border-[#B6FF3B] p-0.5 text-[#B6FF3B]"
+                className="absolute bottom-1 right-1 rounded-full bg-[#111110] border border-[#7ab32e] p-0.5 text-[#8dc63f]"
               >
                 <Lock className="h-3 w-3" />
               </div>
             </div>
 
             <div>
-              <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-[#929DAC]">
+              <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-[#a8a8a2]">
                 <span>OPERATOR DOSSIER</span>
                 <span aria-hidden="true">·</span>
                 <span>AUTHENTICATED</span>
                 {is100PercentComplete && (
                   <>
                     <span aria-hidden="true">·</span>
-                    <span className="text-[#36F58A] font-semibold">100% COMPLETED</span>
+                    <span className="text-[#a4d65e] font-semibold">100% COMPLETED</span>
                   </>
                 )}
               </div>
 
-              <h1 className="mt-1 font-display text-2xl font-bold text-[#F0F3F7]">
+              <h1 className="mt-1 font-display text-2xl font-bold text-[#f5f5f2]">
                 {profile.displayName || currentUser?.displayName || 'Unassigned Operator Identity'}
               </h1>
 
-              <p className="mt-0.5 font-mono text-xs text-[#B6FF3B]">
+              <p className="mt-0.5 font-mono text-xs text-[#8dc63f]">
                 {profile.username ? `@${profile.username}` : `@user_${(currentUser?.uid || 'opr').slice(0, 8)}`}
               </p>
 
               <div className="mt-2.5 flex flex-wrap items-center gap-4 font-mono text-xs">
                 {profile.whatsappNumber ? (
-                  <span className="inline-flex items-center gap-1.5 text-[#36F58A]">
+                  <span className="inline-flex items-center gap-1.5 text-[#a4d65e]">
                     <Phone className="h-3.5 w-3.5" />
                     <span>WhatsApp: Registered & Verified (Hidden)</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-[#929DAC]">
+                  <span className="inline-flex items-center gap-1.5 text-[#a8a8a2]">
                     <Phone className="h-3.5 w-3.5" />
                     <span>WhatsApp: Not provided</span>
                   </span>
                 )}
 
                 {(currentUser?.email || profile.email) && (
-                  <span className="inline-flex items-center gap-1.5 text-[#929DAC]">
+                  <span className="inline-flex items-center gap-1.5 text-[#a8a8a2]">
                     <Mail className="h-3.5 w-3.5" />
                     <span>Email: Verified Account (Hidden)</span>
                   </span>
                 )}
               </div>
 
-              <p className="mt-3 max-w-2xl text-sm text-[#929DAC] leading-relaxed">
+              <p className="mt-3 max-w-2xl text-sm text-[#a8a8a2] leading-relaxed">
                 {profile.biography ||
                   'Official competitor dossier. Contact details are securely archived for tournament verification, leaderboard standings, and winner prize distribution.'}
               </p>
@@ -386,7 +386,7 @@ export const ProfilePage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleOpenEdit}
-                className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2.5 min-h-11 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-md bg-[#8dc63f] px-4 py-2.5 min-h-11 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <Edit3 className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Edit Profile</span>
@@ -399,14 +399,14 @@ export const ProfilePage: React.FC = () => {
         {isEditing && (
           <form
             onSubmit={handleSaveProfile}
-            className="mt-8 border-t border-[#252D38] pt-6 space-y-5"
+            className="mt-8 border-t border-[#2e2e2a] pt-6 space-y-5"
           >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-display text-base font-semibold text-[#F0F3F7]">
+                <h2 className="font-display text-base font-semibold text-[#f5f5f2]">
                   Edit Competitor Contact Details
                 </h2>
-                <p className="text-xs text-[#929DAC]">
+                <p className="text-xs text-[#a8a8a2]">
                   Ensure your full legal name and WhatsApp number are accurate so we can contact you immediately upon winning.
                 </p>
               </div>
@@ -416,7 +416,7 @@ export const ProfilePage: React.FC = () => {
               <div>
                 <label
                   htmlFor="profile-display-name"
-                  className="block font-mono text-xs text-[#929DAC] mb-1.5"
+                  className="block font-mono text-xs text-[#a8a8a2] mb-1.5"
                 >
                   FULL LEGAL NAME *
                 </label>
@@ -427,7 +427,7 @@ export const ProfilePage: React.FC = () => {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="e.g. Johnathan Doe"
-                  className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3.5 py-2 text-sm text-[#F0F3F7] focus:border-[#B6FF3B] focus:outline-none"
+                  className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] px-3.5 py-2 text-sm text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
                 />
                 {validationErrors.displayName && (
                   <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#FF365B]">
@@ -440,7 +440,7 @@ export const ProfilePage: React.FC = () => {
               <div>
                 <label
                   htmlFor="profile-whatsapp"
-                  className="block font-mono text-xs text-[#929DAC] mb-1.5"
+                  className="block font-mono text-xs text-[#a8a8a2] mb-1.5"
                 >
                   WHATSAPP CONTACT NUMBER *
                 </label>
@@ -451,7 +451,7 @@ export const ProfilePage: React.FC = () => {
                   value={whatsappNumber}
                   onChange={(e) => setWhatsappNumber(e.target.value)}
                   placeholder="e.g. +91 9876543210"
-                  className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3.5 py-2 text-sm text-[#F0F3F7] focus:border-[#B6FF3B] focus:outline-none"
+                  className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] px-3.5 py-2 text-sm text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
                 />
                 {validationErrors.whatsappNumber && (
                   <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#FF365B]">
@@ -464,7 +464,7 @@ export const ProfilePage: React.FC = () => {
               <div>
                 <label
                   htmlFor="profile-username"
-                  className="block font-mono text-xs text-[#929DAC] mb-1.5"
+                  className="block font-mono text-xs text-[#a8a8a2] mb-1.5"
                 >
                   USERNAME / CALLSIGN
                 </label>
@@ -474,7 +474,7 @@ export const ProfilePage: React.FC = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="e.g. operator_01"
-                  className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3.5 py-2 font-mono text-sm text-[#F0F3F7] focus:border-[#B6FF3B] focus:outline-none"
+                  className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] px-3.5 py-2 font-mono text-sm text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
                 />
                 {validationErrors.username && (
                   <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#FF365B]">
@@ -487,7 +487,7 @@ export const ProfilePage: React.FC = () => {
               <div>
                 <label
                   htmlFor="profile-email-ro"
-                  className="block font-mono text-xs text-[#929DAC] mb-1.5"
+                  className="block font-mono text-xs text-[#a8a8a2] mb-1.5"
                 >
                   REGISTERED EMAIL (LOCKED)
                 </label>
@@ -498,9 +498,9 @@ export const ProfilePage: React.FC = () => {
                     readOnly
                     disabled
                     value={currentUser?.email ? (currentUser.email.slice(0, 3) + '••••@••••.com') : 'Account Connected'}
-                    className="w-full rounded-md border border-[#252D38] bg-[#07090D]/50 px-3.5 py-2 text-sm text-[#929DAC] cursor-not-allowed"
+                    className="w-full rounded-md border border-[#2e2e2a] bg-[#111110]/50 px-3.5 py-2 text-sm text-[#a8a8a2] cursor-not-allowed"
                   />
-                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#929DAC]/50" />
+                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#a8a8a2]/50" />
                 </div>
               </div>
             </div>
@@ -508,7 +508,7 @@ export const ProfilePage: React.FC = () => {
             <div>
               <label
                 htmlFor="profile-biography"
-                className="block font-mono text-xs text-[#929DAC] mb-1.5"
+                className="block font-mono text-xs text-[#a8a8a2] mb-1.5"
               >
                 SHORT BIOGRAPHY ({biography.length}/280)
               </label>
@@ -518,7 +518,7 @@ export const ProfilePage: React.FC = () => {
                 value={biography}
                 onChange={(e) => setBiography(e.target.value)}
                 placeholder="Describe your cybersecurity background or areas of interest..."
-                className="w-full rounded-md border border-[#252D38] bg-[#07090D] p-3.5 text-sm text-[#F0F3F7] focus:border-[#B6FF3B] focus:outline-none"
+                className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] p-3.5 text-sm text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
               />
               {validationErrors.biography && (
                 <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#FF365B]">
@@ -529,25 +529,25 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             {/* Random Assigned Avatar Notice (Requirement) */}
-            <div className="rounded-lg border border-[#252D38] bg-[#07090D] p-4 flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-[#B6FF3B] shrink-0" />
-              <div className="text-xs text-[#929DAC] leading-relaxed">
-                <span className="font-semibold text-[#F0F3F7]">System-Assigned Profile Avatar</span>:
+            <div className="rounded-lg border border-[#2e2e2a] bg-[#111110] p-4 flex items-center gap-3">
+              <Sparkles className="h-5 w-5 text-[#8dc63f] shrink-0" />
+              <div className="text-xs text-[#a8a8a2] leading-relaxed">
+                <span className="font-semibold text-[#f5f5f2]">System-Assigned Profile Avatar</span>:
                 Profile photos are automatically and uniquely generated by the tournament identity protocol based on your account ID to maintain tournament fairness. Competitors cannot change this photo.
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-[#252D38] pt-4">
+            <div className="flex items-center justify-end gap-3 border-t border-[#2e2e2a] pt-4">
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+                className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-4 py-2 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 rounded-md bg-[#B6FF3B] px-5 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] cursor-pointer shadow-md"
+                className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-5 py-2 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] cursor-pointer shadow-md"
               >
                 <Check className="h-3.5 w-3.5" />
                 <span>Save Profile (100% Verify)</span>
@@ -559,18 +559,18 @@ export const ProfilePage: React.FC = () => {
 
       {/* SECTION 01: Competition & Participation History (The ONLY section retained per instructions) */}
       <section className="space-y-6" aria-labelledby="history-heading">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#252D38] pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2e2e2a] pb-4">
           <div>
-            <h2 id="history-heading" className="font-display text-lg font-bold text-[#F0F3F7]">
+            <h2 id="history-heading" className="font-display text-lg font-bold text-[#f5f5f2]">
               01. Competition & Participation History
             </h2>
-            <p className="text-xs text-[#929DAC]">
+            <p className="text-xs text-[#a8a8a2]">
               Complete ledger of tournaments you have applied for, completed, or are currently scheduled to enter.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="rounded-md border border-[#252D38] bg-[#111722] px-3 py-1 font-mono text-xs text-[#929DAC]">
+            <span className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-3 py-1 font-mono text-xs text-[#a8a8a2]">
               {enrichedResults.length} Completed · {pendingCompetitions.length} Available
             </span>
           </div>
@@ -579,14 +579,14 @@ export const ProfilePage: React.FC = () => {
         {/* 1. Completed Tournaments Ledger */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-sm font-semibold text-[#F0F3F7] uppercase tracking-wide">
+            <h3 className="font-display text-sm font-semibold text-[#f5f5f2] uppercase tracking-wide">
               Completed Tournament Rounds ({enrichedResults.length})
             </h3>
             {enrichedResults.length > 0 && (
               <button
                 type="button"
                 onClick={() => navigate('/leaderboard')}
-                className="text-xs font-mono text-[#B6FF3B] hover:underline cursor-pointer"
+                className="text-xs font-mono text-[#8dc63f] hover:underline cursor-pointer"
               >
                 View Full Leaderboard Standings →
               </button>
@@ -608,12 +608,12 @@ export const ProfilePage: React.FC = () => {
               {enrichedResults.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-lg border border-[#252D38] bg-[#0C1017] p-5 sm:p-6 transition-all hover:border-[#36F58A]/50 space-y-4 shadow-sm"
+                  className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5 sm:p-6 transition-all hover:border-[#a4d65e]/50 space-y-4 shadow-sm"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#252D38] pb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2e2e2a] pb-3">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 rounded bg-[#36F58A]/15 border border-[#36F58A]/30 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#36F58A]">
+                        <span className="inline-flex items-center gap-1 rounded bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
                           <CheckCircle2 className="h-3 w-3" /> COMPLETED · 1 ATTEMPT RECORDED
                         </span>
                         {item.rank &&
@@ -621,19 +621,19 @@ export const ProfilePage: React.FC = () => {
                             (item.competitionTitle || '').toLowerCase().includes('practice') ||
                             (item.competitionId || '').toLowerCase().includes('practice')
                           ) && (
-                            <span className="inline-flex items-center gap-1 rounded bg-[#B6FF3B]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#B6FF3B]">
+                            <span className="inline-flex items-center gap-1 rounded bg-[#8dc63f]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#8dc63f]">
                               <Trophy className="h-3 w-3" /> RANK #{item.rank}
                             </span>
                           )}
                       </div>
-                      <h4 className="font-display text-base sm:text-lg font-bold text-[#F0F3F7]">
+                      <h4 className="font-display text-base sm:text-lg font-bold text-[#f5f5f2]">
                         {item.competitionTitle}
                       </h4>
                     </div>
 
-                    <div className="font-mono text-xs text-[#929DAC] sm:text-right">
+                    <div className="font-mono text-xs text-[#a8a8a2] sm:text-right">
                       <span>Submitted: </span>
-                      <span className="text-[#F0F3F7]">
+                      <span className="text-[#f5f5f2]">
                         {new Date(item.completedAt).toLocaleString(undefined, {
                           month: 'short',
                           day: 'numeric',
@@ -647,46 +647,46 @@ export const ProfilePage: React.FC = () => {
 
                   {/* Metrics Row */}
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                    <div className="rounded-md border border-[#252D38] bg-[#111722] p-3 text-center">
-                      <span className="block font-mono text-base font-bold text-[#36F58A] tabular-nums">
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
+                      <span className="block font-mono text-base font-bold text-[#a4d65e] tabular-nums">
                         {item.finalScore} / {item.maxScore}
                       </span>
-                      <span className="font-mono text-[10px] text-[#929DAC]">FINAL SCORE</span>
+                      <span className="font-mono text-[10px] text-[#a8a8a2]">FINAL SCORE</span>
                     </div>
 
-                    <div className="rounded-md border border-[#252D38] bg-[#111722] p-3 text-center">
-                      <span className="block font-mono text-base font-bold text-[#B6FF3B] tabular-nums">
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
+                      <span className="block font-mono text-base font-bold text-[#8dc63f] tabular-nums">
                         {item.accuracyPercent !== undefined ? `${item.accuracyPercent}%` : '—'}
                       </span>
-                      <span className="font-mono text-[10px] text-[#929DAC]">ACCURACY</span>
+                      <span className="font-mono text-[10px] text-[#a8a8a2]">ACCURACY</span>
                     </div>
 
-                    <div className="rounded-md border border-[#252D38] bg-[#111722] p-3 text-center">
-                      <span className="block font-mono text-base font-bold text-[#F0F3F7] tabular-nums">
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
+                      <span className="block font-mono text-base font-bold text-[#f5f5f2] tabular-nums">
                         {item.timeTakenSeconds !== undefined ? formatDurationSeconds(item.timeTakenSeconds) : '—'}
                       </span>
-                      <span className="font-mono text-[10px] text-[#929DAC]">TIME TAKEN</span>
+                      <span className="font-mono text-[10px] text-[#a8a8a2]">TIME TAKEN</span>
                     </div>
 
-                    <div className="rounded-md border border-[#252D38] bg-[#111722] p-3 text-center">
-                      <span className="block font-mono text-base font-bold text-[#36F58A] tabular-nums">
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
+                      <span className="block font-mono text-base font-bold text-[#a4d65e] tabular-nums">
                         {item.correctCount !== undefined ? item.correctCount : '—'}
                       </span>
-                      <span className="font-mono text-[10px] text-[#929DAC]">CORRECT</span>
+                      <span className="font-mono text-[10px] text-[#a8a8a2]">CORRECT</span>
                     </div>
 
-                    <div className="rounded-md border border-[#252D38] bg-[#111722] p-3 text-center">
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
                       <span className="block font-mono text-base font-bold text-[#FF365B] tabular-nums">
                         {item.incorrectCount !== undefined ? item.incorrectCount : '—'}
                       </span>
-                      <span className="font-mono text-[10px] text-[#929DAC]">
+                      <span className="font-mono text-[10px] text-[#a8a8a2]">
                         WRONG{Boolean(item.unwrittenCount) ? ` (${item.unwrittenCount} unwritten)` : ''}
                       </span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className="font-mono text-[11px] text-[#929DAC]">
+                    <span className="font-mono text-[11px] text-[#a8a8a2]">
                       Official score synced with Firestore & Python scoring engine
                     </span>
                     {/* Practice quizzes have no leaderboard standing, so no link. */}
@@ -697,7 +697,7 @@ export const ProfilePage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => navigate('/leaderboard')}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#B6FF3B] hover:underline cursor-pointer"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8dc63f] hover:underline cursor-pointer"
                       >
                         <span>Inspect Live Standing</span>
                         <ArrowRight className="h-3.5 w-3.5" />
@@ -712,8 +712,8 @@ export const ProfilePage: React.FC = () => {
 
         {/* 2. Pending / Available Competitions */}
         {pendingCompetitions.length > 0 && (
-          <div className="space-y-4 pt-4 border-t border-[#252D38]">
-            <h3 className="font-display text-sm font-semibold text-[#F0F3F7] uppercase tracking-wide">
+          <div className="space-y-4 pt-4 border-t border-[#2e2e2a]">
+            <h3 className="font-display text-sm font-semibold text-[#f5f5f2] uppercase tracking-wide">
               Pending & Available Competitions ({pendingCompetitions.length})
             </h3>
 
@@ -721,34 +721,34 @@ export const ProfilePage: React.FC = () => {
               {pendingCompetitions.map((comp) => (
                 <div
                   key={comp.id}
-                  className="rounded-lg border border-[#252D38] bg-[#0C1017] p-5 space-y-4 flex flex-col justify-between"
+                  className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5 space-y-4 flex flex-col justify-between"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 font-mono text-[11px]">
                       <span
                         className={`rounded px-2 py-0.5 font-bold ${
                           comp.status === 'live'
-                            ? 'bg-[#36F58A]/15 text-[#36F58A] border border-[#36F58A]/30'
-                            : 'bg-[#B6FF3B]/10 text-[#B6FF3B] border border-[#B6FF3B]/30'
+                            ? 'bg-[#a4d65e]/15 text-[#a4d65e] border border-[#a4d65e]/30'
+                            : 'bg-[#8dc63f]/10 text-[#8dc63f] border border-[#7ab32e]/30'
                         }`}
                       >
                         {comp.status === 'live' ? 'LIVE NOW' : 'PENDING / SCHEDULED'}
                       </span>
                     </div>
 
-                    <h4 className="font-display text-base font-semibold text-[#F0F3F7]">
+                    <h4 className="font-display text-base font-semibold text-[#f5f5f2]">
                       {comp.title}
                     </h4>
 
                     {comp.description && (
-                      <p className="text-xs text-[#929DAC] line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-[#a8a8a2] line-clamp-2 leading-relaxed">
                         {comp.description}
                       </p>
                     )}
                   </div>
 
-                  <div className="border-t border-[#252D38] pt-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 font-mono text-xs text-[#929DAC]">
+                  <div className="border-t border-[#2e2e2a] pt-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 font-mono text-xs text-[#a8a8a2]">
                       {comp.startTime && (
                         <span className="inline-flex items-center gap-1">
                           <Clock className="h-3 w-3" />
@@ -780,7 +780,7 @@ export const ProfilePage: React.FC = () => {
                           }
                         }
                       }}
-                      className="inline-flex items-center gap-1.5 rounded-md bg-[#111722] border border-[#252D38] px-3 py-1.5 text-xs font-semibold text-[#F0F3F7] hover:border-[#B6FF3B] hover:text-[#B6FF3B] transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#2e2e2a] px-3 py-1.5 text-xs font-semibold text-[#f5f5f2] hover:border-[#7ab32e] hover:text-[#8dc63f] transition-colors cursor-pointer"
                     >
                       <span>
                         {!is100PercentComplete

@@ -238,15 +238,15 @@ export const CompetitionsPage: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Page Heading */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#252D38] pb-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#2e2e2a] pb-6">
         <div>
-          <p className="font-mono text-xs tracking-wider text-[#B6FF3B]">
+          <p className="font-mono text-xs tracking-wider text-[#8dc63f]">
             OPERATIONAL TOURNAMENTS
           </p>
-          <h1 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-[#F0F3F7]">
+          <h1 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-[#f5f5f2]">
             Competitions Directory
           </h1>
-          <p className="mt-2 text-sm text-[#929DAC] max-w-2xl">
+          <p className="mt-2 text-sm text-[#a8a8a2] max-w-2xl">
             Select an active quiz to enter directly, or inspect scheduled start timers for upcoming cybersecurity rounds.
           </p>
         </div>
@@ -255,7 +255,7 @@ export const CompetitionsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/leaderboard')}
-            className="rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] hover:text-[#B6FF3B] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-4 py-2 text-xs font-medium text-[#f5f5f2] hover:border-[#7ab32e] hover:text-[#8dc63f] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
             Live Rankings Ledger
           </button>
@@ -263,12 +263,12 @@ export const CompetitionsPage: React.FC = () => {
       </div>
 
       {/* Filter & Search Toolbar */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 rounded-lg border border-[#252D38] bg-[#0C1017] p-4">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-4">
         {/* Status Segmented Filter Tabs */}
         <div
           role="group"
           aria-label="Filter competitions by status"
-          className="flex flex-wrap items-center gap-1 rounded-md bg-[#07090D] p-1 border border-[#252D38]"
+          className="flex flex-wrap items-center gap-1 rounded-md bg-[#111110] p-1 border border-[#2e2e2a]"
         >
           {statusTabs.map((tab) => {
             const active = statusFilter === tab.id;
@@ -279,16 +279,16 @@ export const CompetitionsPage: React.FC = () => {
                 onClick={() => setStatusFilter(tab.id)}
                 className={`rounded px-3.5 py-2.5 min-h-11 text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer inline-flex items-center gap-1.5 ${
                   active
-                    ? 'bg-[#B6FF3B] text-[#07090D] font-semibold'
-                    : 'text-[#929DAC] hover:text-[#F0F3F7]'
+                    ? 'bg-[#8dc63f] text-[#141a09] font-semibold'
+                    : 'text-[#a8a8a2] hover:text-[#f5f5f2]'
                 }`}
               >
                 <span>{tab.label}</span>
                 <span
                   className={`rounded px-1.5 py-0.2 font-mono text-[10px] ${
                     active
-                      ? 'bg-[#07090D] text-[#B6FF3B] font-bold'
-                      : 'bg-[#111722] text-[#929DAC] border border-[#252D38]'
+                      ? 'bg-[#111110] text-[#8dc63f] font-bold'
+                      : 'bg-[#1b1b19] text-[#a8a8a2] border border-[#2e2e2a]'
                   }`}
                 >
                   {tab.count}
@@ -302,7 +302,7 @@ export const CompetitionsPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1 sm:w-64">
             <Search
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#929DAC]"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8a8a2]"
               aria-hidden="true"
             />
             <input
@@ -311,14 +311,14 @@ export const CompetitionsPage: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search competition title..."
               aria-label="Search competitions"
-              className="w-full rounded-md border border-[#252D38] bg-[#07090D] py-1.5 pl-9 pr-8 text-xs text-[#F0F3F7] placeholder-[#929DAC]/60 focus:border-[#B6FF3B] focus:outline-none"
+              className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] py-1.5 pl-9 pr-8 text-xs text-[#f5f5f2] placeholder-[#a8a8a2]/60 focus:border-[#7ab32e] focus:outline-none"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
                 aria-label="Clear search"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -412,7 +412,7 @@ export const CompetitionsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setUpcomingModalComp(null)}
-                className="rounded-md border border-[#252D38] bg-[#111722] px-4 py-2 text-xs font-medium text-[#929DAC] hover:text-[#F0F3F7] cursor-pointer"
+                className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-4 py-2 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
               >
                 Close
               </button>
@@ -425,7 +425,7 @@ export const CompetitionsPage: React.FC = () => {
                     setUpcomingModalComp(null);
                     handleEnterLiveQuiz(comp);
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer shadow-md"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-4 py-2 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-md"
                 >
                   <Play className="h-3.5 w-3.5 fill-current" />
                   <span>Enter Quiz (Admin Test Mode)</span>
@@ -440,7 +440,7 @@ export const CompetitionsPage: React.FC = () => {
                     setUpcomingModalComp(null);
                     handleEnterLiveQuiz(comp);
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-[#B6FF3B] px-5 py-2 text-xs font-bold text-[#07090D] hover:bg-[#c8ff66] transition-colors cursor-pointer shadow-md"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-5 py-2 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-md"
                 >
                   <Play className="h-3.5 w-3.5 fill-current" />
                   <span>Enter Quiz Directly</span>
@@ -453,8 +453,8 @@ export const CompetitionsPage: React.FC = () => {
         <div className="space-y-5">
           <div className="rounded-lg border border-[#00E5FF]/30 bg-[#00E5FF]/5 p-4 flex items-start gap-3">
             <Clock className="h-5 w-5 text-[#00E5FF] shrink-0 mt-0.5" />
-            <div className="text-xs text-[#929DAC] leading-relaxed">
-              <span className="font-bold text-[#F0F3F7]">
+            <div className="text-xs text-[#a8a8a2] leading-relaxed">
+              <span className="font-bold text-[#f5f5f2]">
                 Live Start Countdown:
               </span>{' '}
               This quiz is scheduled to go live at the configured timestamp. The quiz unlocks automatically when the countdown reaches zero.
@@ -479,11 +479,11 @@ export const CompetitionsPage: React.FC = () => {
           )}
 
           {upcomingModalComp?.description && (
-            <div className="border-t border-[#252D38] pt-4">
-              <h4 className="font-mono text-xs text-[#929DAC] uppercase">
+            <div className="border-t border-[#2e2e2a] pt-4">
+              <h4 className="font-mono text-xs text-[#a8a8a2] uppercase">
                 Tournament Briefing
               </h4>
-              <p className="mt-1 text-xs text-[#F0F3F7] leading-relaxed">
+              <p className="mt-1 text-xs text-[#f5f5f2] leading-relaxed">
                 {upcomingModalComp.description}
               </p>
             </div>

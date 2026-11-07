@@ -18,12 +18,12 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
   onSelectIndex,
 }) => {
   return (
-    <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-5">
-      <div className="mb-3 flex items-center justify-between border-b border-[#252D38] pb-3">
-        <h3 className="font-display text-sm font-semibold text-[#F0F3F7]">
+    <div className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5">
+      <div className="mb-3 flex items-center justify-between border-b border-[#2e2e2a] pb-3">
+        <h3 className="font-display text-sm font-semibold text-[#f5f5f2]">
           Question Navigator
         </h3>
-        <span className="font-mono text-xs text-[#929DAC] tabular-nums">
+        <span className="font-mono text-xs text-[#a8a8a2] tabular-nums">
           {questions.length} SLOTS
         </span>
       </div>
@@ -35,21 +35,21 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
       </div>
 
       {/* Accessible Legend */}
-      <div className="mb-4 flex flex-wrap gap-x-3 gap-y-1.5 text-[11px] text-[#929DAC]">
+      <div className="mb-4 flex flex-wrap gap-x-3 gap-y-1.5 text-[11px] text-[#a8a8a2]">
         <div className="flex items-center gap-1.5">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#B6FF3B] bg-[#B6FF3B]/15 font-mono text-[10px] font-bold text-[#B6FF3B]">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#7ab32e] bg-[#8dc63f]/15 font-mono text-[10px] font-bold text-[#8dc63f]">
             •
           </span>
           <span>Current</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#252D38] bg-[#111722] font-mono text-[10px] text-[#929DAC]">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#2e2e2a] bg-[#1b1b19] font-mono text-[10px] text-[#a8a8a2]">
             🔒
           </span>
           <span>Locked</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#252D38] bg-[#07090D] font-mono text-[10px] text-[#929DAC]/50">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-[#2e2e2a] bg-[#111110] font-mono text-[10px] text-[#a8a8a2]/50">
             -
           </span>
           <span>Upcoming</span>
@@ -57,9 +57,9 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
       </div>
 
       {questions.length === 0 ? (
-        <div className="rounded-md border border-[#252D38] bg-[#111722]/50 p-4 text-center">
-          <p className="font-mono text-xs text-[#929DAC]">PALETTE · EMPTY</p>
-          <p className="mt-1 text-xs text-[#929DAC]">
+        <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19]/50 p-4 text-center">
+          <p className="font-mono text-xs text-[#a8a8a2]">PALETTE · EMPTY</p>
+          <p className="mt-1 text-xs text-[#a8a8a2]">
             Question slots will populate here once a live quiz packet is loaded.
           </p>
         </div>
@@ -73,25 +73,25 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
 
             let statusSymbol = '-';
             let statusAria = 'Upcoming question (locked)';
-            let btnStyle = 'border-[#252D38]/50 bg-[#07090D] text-[#929DAC]/40 cursor-not-allowed opacity-50';
+            let btnStyle = 'border-[#2e2e2a]/50 bg-[#111110] text-[#a8a8a2]/40 cursor-not-allowed opacity-50';
             let isDisabled = true;
 
             if (isCurrent) {
               statusSymbol = '•';
               statusAria = 'Current question';
-              btnStyle = 'border-[#B6FF3B] bg-[#B6FF3B]/15 text-[#B6FF3B] font-bold ring-1 ring-[#B6FF3B]/50';
+              btnStyle = 'border-[#7ab32e] bg-[#8dc63f]/15 text-[#8dc63f] font-bold ring-1 ring-[#7ab32e]/50';
               isDisabled = false;
             } else if (isPast) {
               statusSymbol = isAnswered ? '✓' : '🔒';
               statusAria = isAnswered
                 ? 'Answered and locked (returning disabled)'
                 : 'Locked (returning disabled)';
-              btnStyle = 'border-[#252D38] bg-[#111722]/60 text-[#929DAC]/60 cursor-not-allowed opacity-60';
+              btnStyle = 'border-[#2e2e2a] bg-[#1b1b19]/60 text-[#a8a8a2]/60 cursor-not-allowed opacity-60';
               isDisabled = true;
             } else if (isFuture) {
               statusSymbol = '-';
               statusAria = 'Upcoming question (locked)';
-              btnStyle = 'border-[#252D38]/50 bg-[#07090D] text-[#929DAC]/40 cursor-not-allowed opacity-50';
+              btnStyle = 'border-[#2e2e2a]/50 bg-[#111110] text-[#a8a8a2]/40 cursor-not-allowed opacity-50';
               isDisabled = true;
             }
 

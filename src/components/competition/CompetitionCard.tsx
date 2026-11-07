@@ -81,17 +81,17 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
   }, [isUpcoming, competition.startTime, competition.id, transitionCompetitionToLive]);
 
   return (
-    <article className="group relative flex flex-col justify-between rounded-lg border border-[#252D38] bg-[#111722] p-6 transition-colors hover:border-[#B6FF3B]/60 shadow-sm">
+    <article className="group relative flex flex-col justify-between rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-6 transition-colors hover:border-[#7ab32e]/60 shadow-sm">
       <div className="space-y-3">
         {/* Metadata kicker */}
-        <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-[#929DAC]">
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-[#a8a8a2]">
           {effectiveIsCompleted ? (
-            <span className="inline-flex items-center gap-1 rounded bg-[#36F58A]/15 border border-[#36F58A]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#36F58A]">
+            <span className="inline-flex items-center gap-1 rounded bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
               <CheckCircle2 className="h-3 w-3" /> ATTEMPT COMPLETED
             </span>
           ) : isLive ? (
-            <span className="inline-flex items-center gap-1.5 rounded bg-[#36F58A]/15 border border-[#36F58A]/40 px-2.5 py-0.5 font-mono text-[11px] font-bold text-[#36F58A]">
-              <span className="h-2 w-2 rounded-full bg-[#36F58A] animate-ping" />
+            <span className="inline-flex items-center gap-1.5 rounded bg-[#a4d65e]/15 border border-[#a4d65e]/40 px-2.5 py-0.5 font-mono text-[11px] font-bold text-[#a4d65e]">
+              <span className="h-2 w-2 rounded-full bg-[#a4d65e] animate-ping" />
               LIVE QUIZ NOW
             </span>
           ) : isUpcoming ? (
@@ -100,18 +100,18 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
               UPCOMING QUIZ
             </span>
           ) : (
-            <span className="rounded bg-[#252D38] px-2 py-0.5 font-mono text-[10px] text-[#929DAC]">
+            <span className="rounded bg-[#2e2e2a] px-2 py-0.5 font-mono text-[10px] text-[#a8a8a2]">
               COMPLETED
             </span>
           )}
         </div>
 
-        <h3 className="font-display text-lg font-bold text-[#F0F3F7] group-hover:text-[#B6FF3B] transition-colors">
+        <h3 className="font-display text-lg font-bold text-[#f5f5f2] group-hover:text-[#8dc63f] transition-colors">
           {competition.title}
         </h3>
 
         {competition.description && (
-          <p className="text-xs text-[#929DAC] leading-relaxed line-clamp-2">
+          <p className="text-xs text-[#a8a8a2] leading-relaxed line-clamp-2">
             {competition.description}
           </p>
         )}
@@ -123,7 +123,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
               <Clock className="h-3.5 w-3.5 text-[#00E5FF] animate-pulse" />
               <span>STARTS IN:</span>
             </div>
-            <div className="font-mono text-xs font-bold text-[#F0F3F7] tabular-nums">
+            <div className="font-mono text-xs font-bold text-[#f5f5f2] tabular-nums">
               {countdown.days > 0 ? `${countdown.days}d ` : ''}
               {formatPad(countdown.hours)}h {formatPad(countdown.minutes)}m {formatPad(countdown.seconds)}s
             </div>
@@ -131,11 +131,11 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
         )}
       </div>
 
-      <div className="mt-6 border-t border-[#252D38] pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3.5 font-mono text-xs text-[#929DAC]">
+      <div className="mt-6 border-t border-[#2e2e2a] pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3.5 font-mono text-xs text-[#a8a8a2]">
           {competition.startTime && (
             <span className="inline-flex items-center gap-1.5" title={`Scheduled: ${new Date(competition.startTime).toLocaleString()}`}>
-              <Clock className="h-3.5 w-3.5 text-[#929DAC]" aria-hidden="true" />
+              <Clock className="h-3.5 w-3.5 text-[#a8a8a2]" aria-hidden="true" />
               {new Date(competition.startTime).toLocaleString(undefined, {
                 month: 'short',
                 day: 'numeric',
@@ -145,12 +145,12 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
             </span>
           )}
           <span className="inline-flex items-center gap-1.5">
-            <Shield className="h-3.5 w-3.5 text-[#929DAC]" aria-hidden="true" />
+            <Shield className="h-3.5 w-3.5 text-[#a8a8a2]" aria-hidden="true" />
             {totalTimeLabel}
           </span>
           {competition.participantCount !== undefined && (
             <span className="inline-flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-[#929DAC]" aria-hidden="true" />
+              <Users className="h-3.5 w-3.5 text-[#a8a8a2]" aria-hidden="true" />
               {competition.participantCount}
             </span>
           )}
@@ -160,7 +160,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
           <button
             type="button"
             onClick={() => onSelect(competition)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#36F58A]/40 px-3.5 py-2.5 min-h-11 text-xs font-semibold text-[#36F58A] transition-colors hover:bg-[#36F58A]/10 whitespace-nowrap shrink-0 cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#a4d65e]/40 px-3.5 py-2.5 min-h-11 text-xs font-semibold text-[#a4d65e] transition-colors hover:bg-[#a4d65e]/10 whitespace-nowrap shrink-0 cursor-pointer"
           >
             <span>View Standings</span>
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -169,7 +169,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
           <button
             type="button"
             onClick={() => onSelect(competition)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#B6FF3B] px-4 py-1.5 text-xs font-bold text-[#07090D] transition-colors hover:bg-[#c8ff66] whitespace-nowrap shrink-0 cursor-pointer shadow-md"
+            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#8dc63f] px-4 py-1.5 text-xs font-bold text-[#141a09] transition-colors hover:bg-[#a4d65e] whitespace-nowrap shrink-0 cursor-pointer shadow-md"
           >
             <Play className="h-3.5 w-3.5 fill-current" />
             <span>Enter Quiz Directly</span>
@@ -187,7 +187,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
                     onSelect(competition);
                   }
                 }}
-                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#B6FF3B] px-3.5 py-2.5 min-h-11 text-xs font-bold text-[#07090D] transition-colors hover:bg-[#c8ff66] whitespace-nowrap shrink-0 cursor-pointer shadow-md"
+                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#8dc63f] px-3.5 py-2.5 min-h-11 text-xs font-bold text-[#141a09] transition-colors hover:bg-[#a4d65e] whitespace-nowrap shrink-0 cursor-pointer shadow-md"
                 title="Admin direct testing mode"
               >
                 <Play className="h-3.5 w-3.5 fill-current" />
@@ -197,7 +197,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
             <button
               type="button"
               onClick={() => onSelect(competition)}
-              className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#00E5FF]/40 px-3.5 py-2.5 min-h-11 text-xs font-semibold text-[#00E5FF] transition-colors hover:bg-[#00E5FF]/10 whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#00E5FF]/40 px-3.5 py-2.5 min-h-11 text-xs font-semibold text-[#00E5FF] transition-colors hover:bg-[#00E5FF]/10 whitespace-nowrap shrink-0 cursor-pointer"
             >
               <Lock className="h-3.5 w-3.5" />
               <span>
@@ -211,7 +211,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
           <button
             type="button"
             onClick={() => onSelect(competition)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0C1017] border border-[#252D38] px-3.5 py-2.5 min-h-11 text-xs font-medium text-[#F0F3F7] transition-colors hover:border-[#B6FF3B] hover:text-[#B6FF3B] whitespace-nowrap shrink-0 cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#2e2e2a] px-3.5 py-2.5 min-h-11 text-xs font-medium text-[#f5f5f2] transition-colors hover:border-[#7ab32e] hover:text-[#8dc63f] whitespace-nowrap shrink-0 cursor-pointer"
           >
             <span>View Details</span>
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

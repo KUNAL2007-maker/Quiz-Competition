@@ -12,7 +12,7 @@ export const AppShell: React.FC = () => {
 
   return (
     <div
-      className={`min-h-screen flex bg-[#07090D] text-[#F0F3F7] ${
+      className={`min-h-screen flex bg-[#111110] text-[#f5f5f2] ${
         settings.appearance.gridOverlay ? 'cyber-grid-bg' : ''
       } ${settings.appearance.scanlineOverlay ? 'cyber-scanline' : ''}`}
     >

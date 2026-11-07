@@ -96,13 +96,13 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Main Cinematic Welcome Banner */}
-      <section className="relative overflow-hidden rounded-lg border border-[#252D38] bg-[#0C1017] p-6 md:p-10">
+      <section className="relative overflow-hidden rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-6 md:p-10">
         {/* Technical SVG Background Accent */}
         <div
           className="pointer-events-none absolute right-0 top-0 bottom-0 w-1/2 opacity-15 hidden md:flex items-center justify-end pr-8"
           aria-hidden="true"
         >
-          <svg className="h-64 w-64 text-[#B6FF3B]" viewBox="0 0 240 240" fill="none">
+          <svg className="h-64 w-64 text-[#8dc63f]" viewBox="0 0 240 240" fill="none">
             <circle cx="120" cy="120" r="105" stroke="currentColor" strokeWidth="1" strokeDasharray="6 6" />
             <circle cx="120" cy="120" r="75" stroke="currentColor" strokeWidth="1" />
             <polygon points="120,30 200,75 200,165 120,210 40,165 40,75" stroke="currentColor" strokeWidth="1" />
@@ -112,15 +112,15 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <div className="relative z-10 max-w-2xl">
-          <p className="font-mono text-xs tracking-widest text-[#B6FF3B]">
+          <p className="font-mono text-xs tracking-widest text-[#8dc63f]">
             RESTRICTED TOURNAMENT COMMAND NETWORK
           </p>
 
-          <h1 className="mt-3 font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#F0F3F7]">
+          <h1 className="mt-3 font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#f5f5f2]">
             ENTER THE NETWORK
           </h1>
 
-          <p className="mt-4 text-sm sm:text-base text-[#929DAC] leading-relaxed">
+          <p className="mt-4 text-sm sm:text-base text-[#a8a8a2] leading-relaxed">
             Compete in timed cybersecurity quiz tournaments, cryptography challenges, and digital forensics evaluations. Enter live competitions directly, monitor the ranking ledger, and manage your operator profile.
           </p>
 
@@ -128,7 +128,7 @@ export const DashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/competitions')}
-              className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-5 py-2.5 text-xs font-semibold text-[#07090D] transition-colors hover:bg-[#c8ff66] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B6FF3B] whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-md bg-[#8dc63f] px-5 py-2.5 text-xs font-semibold text-[#141a09] transition-colors hover:bg-[#a4d65e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8dc63f] whitespace-nowrap shrink-0 cursor-pointer"
             >
               <span>Browse Competitions</span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -137,9 +137,9 @@ export const DashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/leaderboard')}
-              className="inline-flex items-center gap-2 rounded-md border border-[#252D38] bg-[#111722] px-4 py-2.5 text-xs font-medium text-[#F0F3F7] transition-colors hover:border-[#929DAC]/60 hover:bg-[#161E2C] focus-visible:outline-2 focus-visible:outline-[#B6FF3B] whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-4 py-2.5 text-xs font-medium text-[#f5f5f2] transition-colors hover:border-[#a8a8a2]/60 hover:bg-[#161E2C] focus-visible:outline-2 focus-visible:outline-[#8dc63f] whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <Trophy className="h-4 w-4 text-[#929DAC]" aria-hidden="true" />
+              <Trophy className="h-4 w-4 text-[#a8a8a2]" aria-hidden="true" />
               <span>Live Standings Ledger</span>
             </button>
           </div>
@@ -149,10 +149,10 @@ export const DashboardPage: React.FC = () => {
       {/* Quick Navigation Shortcuts */}
       <section aria-labelledby="quick-navigation-heading">
         <div className="mb-4 flex items-center justify-between gap-4">
-          <h2 id="quick-navigation-heading" className="font-display text-base sm:text-lg font-semibold text-[#F0F3F7]">
+          <h2 id="quick-navigation-heading" className="font-display text-base sm:text-lg font-semibold text-[#f5f5f2]">
             01. Quick Command Shortcuts
           </h2>
-          <span className="font-mono text-xs text-[#929DAC] whitespace-nowrap shrink-0">DIRECT ACCESS</span>
+          <span className="font-mono text-xs text-[#a8a8a2] whitespace-nowrap shrink-0">DIRECT ACCESS</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -163,27 +163,27 @@ export const DashboardPage: React.FC = () => {
                 key={item.path}
                 type="button"
                 onClick={() => navigate(item.path)}
-                className="group flex flex-col justify-between rounded-lg border border-[#252D38] bg-[#111722] p-5 text-left transition-colors hover:border-[#B6FF3B]/60 focus-visible:outline-2 focus-visible:outline-[#B6FF3B] cursor-pointer"
+                className="group flex flex-col justify-between rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5 text-left transition-colors hover:border-[#7ab32e]/60 focus-visible:outline-2 focus-visible:outline-[#8dc63f] cursor-pointer"
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] text-[#929DAC]">
+                    <span className="font-mono text-[11px] text-[#a8a8a2]">
                       {item.code}
                     </span>
                     <Icon
-                      className="h-4 w-4 text-[#929DAC] transition-colors group-hover:text-[#B6FF3B]"
+                      className="h-4 w-4 text-[#a8a8a2] transition-colors group-hover:text-[#8dc63f]"
                       aria-hidden="true"
                     />
                   </div>
-                  <h3 className="mt-3 font-display text-base font-semibold text-[#F0F3F7] group-hover:text-[#B6FF3B] transition-colors">
+                  <h3 className="mt-3 font-display text-base font-semibold text-[#f5f5f2] group-hover:text-[#8dc63f] transition-colors">
                     {item.title}
                   </h3>
-                  <p className="mt-1.5 text-xs text-[#929DAC] leading-relaxed">
+                  <p className="mt-1.5 text-xs text-[#a8a8a2] leading-relaxed">
                     {item.subtitle}
                   </p>
                 </div>
 
-                <div className="mt-4 flex items-center gap-1.5 font-mono text-xs text-[#B6FF3B]">
+                <div className="mt-4 flex items-center gap-1.5 font-mono text-xs text-[#8dc63f]">
                   <span>Open Section</span>
                   <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                 </div>
@@ -196,13 +196,13 @@ export const DashboardPage: React.FC = () => {
       {/* Active Competition Overview (Full Width) */}
       <section className="space-y-4" aria-labelledby="comp-overview-heading">
         <div className="flex items-center justify-between">
-          <h2 id="comp-overview-heading" className="font-display text-lg font-semibold text-[#F0F3F7]">
+          <h2 id="comp-overview-heading" className="font-display text-lg font-semibold text-[#f5f5f2]">
             02. Active Competition Overview
           </h2>
           <button
             type="button"
             onClick={() => navigate('/competitions')}
-            className="text-xs font-medium text-[#B6FF3B] hover:underline whitespace-nowrap shrink-0 cursor-pointer"
+            className="text-xs font-medium text-[#8dc63f] hover:underline whitespace-nowrap shrink-0 cursor-pointer"
           >
             View Directory
           </button>

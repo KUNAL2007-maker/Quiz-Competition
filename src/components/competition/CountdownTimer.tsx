@@ -91,13 +91,13 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   // Waiting State when no valid timestamp is configured
   if (!countdown.isValid) {
     return (
-      <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#252D38] pb-5">
+      <div className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-6 md:p-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#2e2e2a] pb-5">
           <div>
-            <p className="font-mono text-xs text-[#929DAC]">
+            <p className="font-mono text-xs text-[#a8a8a2]">
               COUNTDOWN MODULE · STANDBY
             </p>
-            <h2 className="mt-1 font-display text-xl font-semibold text-[#F0F3F7]">
+            <h2 className="mt-1 font-display text-xl font-semibold text-[#f5f5f2]">
               Awaiting Scheduled Start Timestamp
             </h2>
           </div>
@@ -109,8 +109,8 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
               aria-pressed={soundEnabled}
               className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                 soundEnabled
-                  ? 'border-[#B6FF3B] bg-[#111722] text-[#B6FF3B]'
-                  : 'border-[#252D38] bg-[#111722] text-[#929DAC] hover:text-[#F0F3F7]'
+                  ? 'border-[#7ab32e] bg-[#1b1b19] text-[#8dc63f]'
+                  : 'border-[#2e2e2a] bg-[#1b1b19] text-[#a8a8a2] hover:text-[#f5f5f2]'
               }`}
             >
               {soundEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
@@ -123,8 +123,8 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
               aria-pressed={notifEnabled}
               className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                 notifEnabled
-                  ? 'border-[#B6FF3B] bg-[#111722] text-[#B6FF3B]'
-                  : 'border-[#252D38] bg-[#111722] text-[#929DAC] hover:text-[#F0F3F7]'
+                  ? 'border-[#7ab32e] bg-[#1b1b19] text-[#8dc63f]'
+                  : 'border-[#2e2e2a] bg-[#1b1b19] text-[#a8a8a2] hover:text-[#f5f5f2]'
               }`}
             >
               <Bell className="h-3.5 w-3.5" />
@@ -143,22 +143,22 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
           ].map((unit) => (
             <div
               key={unit.label}
-              className="flex flex-col items-center justify-center rounded-lg border border-[#252D38] bg-[#111722]/70 py-6 px-4"
+              className="flex flex-col items-center justify-center rounded-lg border border-[#2e2e2a] bg-[#1b1b19]/70 py-6 px-4"
             >
-              <span className="font-mono text-4xl md:text-5xl font-bold tracking-wider text-[#929DAC]/40 tabular-nums">
+              <span className="font-mono text-4xl md:text-5xl font-bold tracking-wider text-[#a8a8a2]/40 tabular-nums">
                 {unit.value}
               </span>
-              <span className="mt-2 font-mono text-[11px] tracking-widest text-[#929DAC]">
+              <span className="mt-2 font-mono text-[11px] tracking-widest text-[#a8a8a2]">
                 {unit.label}
               </span>
             </div>
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-md border border-[#252D38] bg-[#111722]/40 p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-md border border-[#2e2e2a] bg-[#1b1b19]/40 p-4">
           <div className="flex items-start gap-3">
-            <Clock className="h-4 w-4 text-[#929DAC] shrink-0 mt-0.5" aria-hidden="true" />
-            <p className="text-xs text-[#929DAC] leading-relaxed">
+            <Clock className="h-4 w-4 text-[#a8a8a2] shrink-0 mt-0.5" aria-hidden="true" />
+            <p className="text-xs text-[#a8a8a2] leading-relaxed">
               No active start timestamp is currently assigned to this waiting room. The countdown clock remains locked in standby until a competition start schedule is supplied.
             </p>
           </div>
@@ -174,15 +174,15 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     circumference - (countdown.progressPercent / 100) * circumference;
 
   return (
-    <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-6 md:p-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#252D38] pb-5">
+    <div className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-6 md:p-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#2e2e2a] pb-5">
         <div>
-          <p className="font-mono text-xs text-[#B6FF3B]">
+          <p className="font-mono text-xs text-[#8dc63f]">
             {countdown.isExpired
               ? 'ARENA STATUS · THRESHOLD REACHED'
               : 'ARENA STATUS · COUNTDOWN SYNCHRONIZED'}
           </p>
-          <h2 className="mt-1 font-display text-xl font-semibold text-[#F0F3F7]">
+          <h2 className="mt-1 font-display text-xl font-semibold text-[#f5f5f2]">
             {countdown.isExpired
               ? 'Quiz Competition Ready — Entering Quiz'
               : 'Time Remaining Until Quiz Unlocks'}
@@ -196,8 +196,8 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
             aria-pressed={soundEnabled}
             className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
               soundEnabled
-                ? 'border-[#B6FF3B] bg-[#111722] text-[#B6FF3B]'
-                : 'border-[#252D38] bg-[#111722] text-[#929DAC] hover:text-[#F0F3F7]'
+                ? 'border-[#7ab32e] bg-[#1b1b19] text-[#8dc63f]'
+                : 'border-[#2e2e2a] bg-[#1b1b19] text-[#a8a8a2] hover:text-[#f5f5f2]'
             }`}
           >
             {soundEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
@@ -210,8 +210,8 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
             aria-pressed={notifEnabled}
             className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
               notifEnabled
-                ? 'border-[#B6FF3B] bg-[#111722] text-[#B6FF3B]'
-                : 'border-[#252D38] bg-[#111722] text-[#929DAC] hover:text-[#F0F3F7]'
+                ? 'border-[#7ab32e] bg-[#1b1b19] text-[#8dc63f]'
+                : 'border-[#2e2e2a] bg-[#1b1b19] text-[#a8a8a2] hover:text-[#f5f5f2]'
             }`}
           >
             <Bell className="h-3.5 w-3.5" />
@@ -228,7 +228,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
               cx="64"
               cy="64"
               r={radius}
-              stroke="#252D38"
+              stroke="#2e2e2a"
               strokeWidth="6"
               fill="transparent"
             />
@@ -236,7 +236,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
               cx="64"
               cy="64"
               r={radius}
-              stroke={countdown.isExpired ? '#36F58A' : '#B6FF3B'}
+              stroke={countdown.isExpired ? '#a4d65e' : '#8dc63f'}
               strokeWidth="6"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -246,10 +246,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span className="font-mono text-lg font-bold text-[#F0F3F7] tabular-nums">
+            <span className="font-mono text-lg font-bold text-[#f5f5f2] tabular-nums">
               {countdown.progressPercent}%
             </span>
-            <span className="font-mono text-[10px] text-[#929DAC]">SYNC</span>
+            <span className="font-mono text-[10px] text-[#a8a8a2]">SYNC</span>
           </div>
         </div>
 
@@ -260,39 +260,39 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
           }`}
         >
           {countdown.days > 0 && (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-[#252D38] bg-[#111722] py-6 px-4">
-              <span className="font-mono text-4xl md:text-5xl font-bold text-[#B6FF3B] tabular-nums drop-shadow-[0_0_12px_rgba(182,255,59,0.2)]">
+            <div className="flex flex-col items-center justify-center rounded-lg border border-[#2e2e2a] bg-[#1b1b19] py-6 px-4">
+              <span className="font-mono text-4xl md:text-5xl font-bold text-[#8dc63f] tabular-nums drop-shadow-[0_0_12px_rgba(141, 198, 63,0.2)]">
                 {formatPad(countdown.days)}
               </span>
-              <span className="mt-2 font-mono text-[11px] tracking-widest text-[#929DAC]">
+              <span className="mt-2 font-mono text-[11px] tracking-widest text-[#a8a8a2]">
                 DAYS
               </span>
             </div>
           )}
 
-          <div className="flex flex-col items-center justify-center rounded-lg border border-[#252D38] bg-[#111722] py-6 px-4">
-            <span className="font-mono text-4xl md:text-5xl font-bold text-[#B6FF3B] tabular-nums drop-shadow-[0_0_12px_rgba(182,255,59,0.2)]">
+          <div className="flex flex-col items-center justify-center rounded-lg border border-[#2e2e2a] bg-[#1b1b19] py-6 px-4">
+            <span className="font-mono text-4xl md:text-5xl font-bold text-[#8dc63f] tabular-nums drop-shadow-[0_0_12px_rgba(141, 198, 63,0.2)]">
               {formatPad(countdown.hours)}
             </span>
-            <span className="mt-2 font-mono text-[11px] tracking-widest text-[#929DAC]">
+            <span className="mt-2 font-mono text-[11px] tracking-widest text-[#a8a8a2]">
               HOURS
             </span>
           </div>
 
-          <div className="flex flex-col items-center justify-center rounded-lg border border-[#252D38] bg-[#111722] py-6 px-4">
-            <span className="font-mono text-4xl md:text-5xl font-bold text-[#B6FF3B] tabular-nums drop-shadow-[0_0_12px_rgba(182,255,59,0.2)]">
+          <div className="flex flex-col items-center justify-center rounded-lg border border-[#2e2e2a] bg-[#1b1b19] py-6 px-4">
+            <span className="font-mono text-4xl md:text-5xl font-bold text-[#8dc63f] tabular-nums drop-shadow-[0_0_12px_rgba(141, 198, 63,0.2)]">
               {formatPad(countdown.minutes)}
             </span>
-            <span className="mt-2 font-mono text-[11px] tracking-widest text-[#929DAC]">
+            <span className="mt-2 font-mono text-[11px] tracking-widest text-[#a8a8a2]">
               MINUTES
             </span>
           </div>
 
-          <div className="flex flex-col items-center justify-center rounded-lg border border-[#252D38] bg-[#111722] py-6 px-4">
-            <span className="font-mono text-4xl md:text-5xl font-bold text-[#36F58A] tabular-nums drop-shadow-[0_0_12px_rgba(54,245,138,0.25)]">
+          <div className="flex flex-col items-center justify-center rounded-lg border border-[#2e2e2a] bg-[#1b1b19] py-6 px-4">
+            <span className="font-mono text-4xl md:text-5xl font-bold text-[#a4d65e] tabular-nums drop-shadow-[0_0_12px_rgba(164, 214, 94,0.25)]">
               {formatPad(countdown.seconds)}
             </span>
-            <span className="mt-2 font-mono text-[11px] tracking-widest text-[#929DAC]">
+            <span className="mt-2 font-mono text-[11px] tracking-widest text-[#a8a8a2]">
               SECONDS
             </span>
           </div>
@@ -300,14 +300,14 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       </div>
 
       {countdown.isExpired && onEnterQuizNow && (
-        <div className="mt-4 flex items-center justify-between rounded-md border border-[#36F58A]/40 bg-[#111722] p-4">
-          <p className="text-xs font-medium text-[#36F58A]">
+        <div className="mt-4 flex items-center justify-between rounded-md border border-[#a4d65e]/40 bg-[#1b1b19] p-4">
+          <p className="text-xs font-medium text-[#a4d65e]">
             Countdown complete. Transitioning to quiz competition...
           </p>
           <button
             type="button"
             onClick={onEnterQuizNow}
-            className="inline-flex items-center gap-2 rounded-md bg-[#B6FF3B] px-4 py-2 text-xs font-semibold text-[#07090D] hover:bg-[#c8ff66] cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-md bg-[#8dc63f] px-4 py-2 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] cursor-pointer"
           >
             <span>Enter Quiz Competition</span>
             <ArrowRight className="h-3.5 w-3.5" />

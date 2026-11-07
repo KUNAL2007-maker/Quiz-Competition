@@ -4,33 +4,33 @@ import { Shield } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="border-t border-[#252D38] bg-[#0C1017]/80 py-4 px-4 sm:px-8 mt-auto">
-      <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#929DAC]">
+    <footer className="border-t border-[#2e2e2a] bg-[#1b1b19]/80 py-4 px-4 sm:px-8 mt-auto">
+      <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#a8a8a2]">
         {/* Brand */}
         <div className="flex items-center gap-2">
-          <Shield className="h-4 w-4 text-[#B6FF3B] shrink-0" />
-          <span className="font-display font-medium text-[#F0F3F7]">NULL ORIGIN</span>
+          <Shield className="h-4 w-4 text-[#8dc63f] shrink-0" />
+          <span className="font-display font-medium text-[#f5f5f2]">NULL ORIGIN</span>
         </div>
 
         {/* Small Bottom Links */}
         <div className="flex items-center gap-4 text-[11px] font-mono">
           <Link
             to="/about"
-            className="text-[#929DAC] hover:text-[#B6FF3B] transition-colors"
+            className="text-[#a8a8a2] hover:text-[#8dc63f] transition-colors"
           >
             About Us
           </Link>
-          <span className="text-[#252D38]">|</span>
+          <span className="text-[#2e2e2a]">|</span>
           <Link
             to="/privacy"
-            className="text-[#929DAC] hover:text-[#B6FF3B] transition-colors"
+            className="text-[#a8a8a2] hover:text-[#8dc63f] transition-colors"
           >
             Privacy Policy
           </Link>
-          <span className="text-[#252D38]">|</span>
+          <span className="text-[#2e2e2a]">|</span>
           <a
             href="mailto:contact@nullorigin.live"
-            className="text-[#929DAC] hover:text-[#B6FF3B] transition-colors"
+            className="text-[#a8a8a2] hover:text-[#8dc63f] transition-colors"
             title="contact@nullorigin.live"
           >
             Support
@@ -38,7 +38,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Copyright */}
-        <div className="text-[10px] text-[#929DAC]/60 font-mono">
+        <div className="text-[10px] text-[#a8a8a2]/60 font-mono">
           © 2026 Null Origin. All rights reserved.
         </div>
       </div>
