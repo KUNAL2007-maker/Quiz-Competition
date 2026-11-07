@@ -1207,23 +1207,6 @@ export const QuizPage: React.FC = () => {
                   )}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => toggleMarkForReview(currentQuestion.id)}
-                  aria-pressed={Boolean(quizSession.markedForReview[currentQuestion.id])}
-                  className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
-                    quizSession.markedForReview[currentQuestion.id]
-                      ? 'border-[#FF365B] bg-[#FF365B]/15 text-[#FF365B]'
-                      : 'border-[#252D38] bg-[#111722] text-[#929DAC] hover:text-[#F0F3F7]'
-                  }`}
-                >
-                  <Flag className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>
-                    {quizSession.markedForReview[currentQuestion.id]
-                      ? 'Marked for Review'
-                      : 'Mark for Review'}
-                  </span>
-                </button>
               </div>
 
               {/* Per-Question Live Countdown Banner */}
