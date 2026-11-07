@@ -21,7 +21,7 @@ import {
   Database,
   Copy,
 } from 'lucide-react';
-import { doc, setDoc, deleteDoc, getDocs, serverTimestamp, collection, onSnapshot, query, where } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, deleteField, getDocs, serverTimestamp, collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db, firebaseConfig } from '../lib/firebase';
 import { FIRESTORE_RULES_SOURCE } from '../constants/firestoreRules';
 import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
@@ -294,7 +294,7 @@ export const AdminPage: React.FC = () => {
         {
           status: schedStatus,
           startTime: startIso,
-          ...(endIso ? { endTime: endIso } : {}),
+          endTime: endIso ? endIso : deleteField(),
           perQuestionTimerSeconds: Number(schedPerQuestion) || 15,
           durationMinutes: Number(schedDuration) || 15,
         },
@@ -302,7 +302,7 @@ export const AdminPage: React.FC = () => {
       );
       addToast(
         'Schedule Saved',
-        `Competition updated: ${schedStatus}, starts ${new Date(startIso).toLocaleString()}${endIso ? `, ends ${new Date(endIso).toLocaleString()}` : ''}, ${schedPerQuestion}s per question.`,
+        `Competition updated: ${schedStatus}, starts ${new Date(startIso).toLocaleString()}${endIso ? `, ends ${new Date(endIso).toLocaleString()}` : ', no end (lifetime)'}, ${schedPerQuestion}s per question.`,
         'success'
       );
     } catch (err) {
