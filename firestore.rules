@@ -207,8 +207,8 @@ service cloud.firestore {
 
     // Private Operator Results (Strictly scoped to ownerId)
     match /results/{resultId} {
-      allow get: if isSignedIn() && isValidId(resultId) && existing().ownerId == request.auth.uid;
-      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow get: if isSignedIn() && isValidId(resultId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
       allow create: if isVerifiedUser() && isValidId(resultId) &&
         resultId == request.auth.uid + '_' + incoming().competitionId &&
         !exists(/databases/$(database)/documents/results/$(resultId)) &&

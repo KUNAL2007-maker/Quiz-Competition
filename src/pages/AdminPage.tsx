@@ -48,7 +48,7 @@ export const AdminPage: React.FC = () => {
   const [compDescription, setCompDescription] = useState('');
   const [compStatus, setCompStatus] = useState<'live' | 'upcoming'>('live');
   const [compDurationMinutes, setCompDurationMinutes] = useState(15);
-  const [perQuestionTimer, setPerQuestionTimer] = useState<number>(30); // Default 30s per question
+  const [perQuestionTimer, setPerQuestionTimer] = useState<number>(15); // Default 15s per question
   const [isCreatingComp, setIsCreatingComp] = useState(false);
 
   // Scheduled Start Time for Upcoming Competitions (default: 1 hour ahead)
@@ -70,7 +70,7 @@ export const AdminPage: React.FC = () => {
   const [qCategory, setQCategory] = useState('Cryptography');
   const [qPoints, setQPoints] = useState(100);
   const [qCodeSnippet, setQCodeSnippet] = useState('');
-  const [qTimeLimit, setQTimeLimit] = useState(30); // Per question timer setting (default 30s)
+  const [qTimeLimit, setQTimeLimit] = useState(15); // Per question timer setting (default 15s)
   const [qOptA, setQOptA] = useState('');
   const [qOptB, setQOptB] = useState('');
   const [qOptC, setQOptC] = useState('');
@@ -89,6 +89,14 @@ export const AdminPage: React.FC = () => {
   const [isResettingAll, setIsResettingAll] = useState(false);
   const [isSettingLive, setIsSettingLive] = useState(false);
   const [isSyncingQuestions, setIsSyncingQuestions] = useState(false);
+
+  // Schedule & Timer Control for an Existing Competition (finale: 8 Nov 12:00 PM, 15s/question)
+  const [schedCompId, setSchedCompId] = useState<string>('');
+  const [schedStartTime, setSchedStartTime] = useState<string>('2026-11-08T12:00');
+  const [schedPerQuestion, setSchedPerQuestion] = useState<number>(15);
+  const [schedDuration, setSchedDuration] = useState<number>(15);
+  const [schedStatus, setSchedStatus] = useState<'upcoming' | 'live'>('upcoming');
+  const [isSavingSchedule, setIsSavingSchedule] = useState(false);
 
   // Private Winner Contact Directory (Synced securely from admin-only collection)
   const [winnerContacts, setWinnerContacts] = useState<Record<string, { whatsappNumber?: string; email?: string }>>({});
@@ -201,16 +209,25 @@ export const AdminPage: React.FC = () => {
       for (const d of wcSnap.docs) {
         await deleteDoc(d.ref);
       }
-      // 4. Clear local completed attempt flags in browser
+      // 4. Clear local attempt / warning / disqualification flags in this browser
       if (typeof window !== 'undefined') {
-        const toRemove: string[] = [];
-        for (let i = 0; i < window.localStorage.length; i++) {
-          const k = window.localStorage.key(i);
-          if (k && k.startsWith('completed_comp_')) {
-            toRemove.push(k);
+        const prefixes = [
+          'completed_comp_',
+          'completed_email_',
+          'nullorigin_tab_warnings_',
+          'nullorigin_disqualified_',
+          'nullorigin_disqualified_email_',
+        ];
+        [window.localStorage, window.sessionStorage].forEach((store) => {
+          const toRemove: string[] = [];
+          for (let i = 0; i < store.length; i++) {
+            const k = store.key(i);
+            if (k && prefixes.some((p) => k.startsWith(p))) {
+              toRemove.push(k);
+            }
           }
-        }
-        toRemove.forEach((k) => window.localStorage.removeItem(k));
+          toRemove.forEach((k) => store.removeItem(k));
+        });
       }
       addToast(
         'Database Reset Complete',
@@ -254,6 +271,39 @@ export const AdminPage: React.FC = () => {
     }
   };
 
+  const handleSaveSchedule = async () => {
+    const targetId = schedCompId || cyberComp?.id || '';
+    if (!targetId) {
+      addToast('Error', 'Select a competition first.', 'alert');
+      return;
+    }
+    setIsSavingSchedule(true);
+    try {
+      const startIso = schedStartTime
+        ? new Date(schedStartTime).toISOString()
+        : new Date().toISOString();
+      await setDoc(
+        doc(db, 'competitions', targetId),
+        {
+          status: schedStatus,
+          startTime: startIso,
+          perQuestionTimerSeconds: Number(schedPerQuestion) || 15,
+          durationMinutes: Number(schedDuration) || 15,
+        },
+        { merge: true }
+      );
+      addToast(
+        'Schedule Saved',
+        `Competition updated: ${schedStatus}, starts ${new Date(startIso).toLocaleString()}, ${schedPerQuestion}s per question.`,
+        'success'
+      );
+    } catch (err) {
+      addToast('Save Failed', err instanceof Error ? err.message : 'Could not update competition.', 'alert');
+    } finally {
+      setIsSavingSchedule(false);
+    }
+  };
+
   const handleSync30Questions = async () => {
     const target = cyberComp || competitions.find((c) => c.id === targetCompId) || competitions[0];
     if (!target) {
@@ -267,7 +317,7 @@ export const AdminPage: React.FC = () => {
       for (const qDoc of qSnap.docs) {
         await deleteDoc(qDoc.ref);
       }
-      // 2. Upload the 30 new one-liner questions
+      // 2. Upload the 50 one-liner questions
       for (let i = 0; i < cyberQuizQuestions.length; i++) {
         const item = cyberQuizQuestions[i];
         const qId = `q_cq2026_${String(i).padStart(2, '0')}`;
@@ -283,8 +333,8 @@ export const AdminPage: React.FC = () => {
         });
       }
       addToast(
-        '30 Questions Uploaded',
-        'Successfully loaded all 30 new one-liner questions into Cyber Quiz 2026!',
+        '50 Questions Uploaded',
+        'Successfully loaded all 50 one-liner questions into Cyber Quiz 2026!',
         'success'
       );
     } catch (err) {
@@ -769,10 +819,10 @@ export const AdminPage: React.FC = () => {
           >
             <div className="flex items-center gap-2 text-[#00E5FF] font-bold text-xs">
               <Upload className="h-4 w-4" />
-              <span>{isSyncingQuestions ? 'Uploading...' : '2. Load 30 New Questions'}</span>
+              <span>{isSyncingQuestions ? 'Uploading...' : '2. Load 50 Questions'}</span>
             </div>
             <p className="text-[11px] text-[#929DAC]">
-              Replaces Cyber Quiz 2026 with the 30 new one-liners (Easy Q1-10, Med Q11-22, Hard Q23-30).
+              Replaces Cyber Quiz 2026 with the 50 one-liners (Easy 16, Med 20, Hard 14) — each student gets a random 30.
             </p>
           </button>
 
@@ -791,6 +841,116 @@ export const AdminPage: React.FC = () => {
               Purges all leaderboard rankings, quiz results, and winner contacts. Fresh clean slate for testing.
             </p>
           </button>
+        </div>
+      </section>
+
+      {/* Schedule & Timer Control for an Existing Competition */}
+      <section className="rounded-xl border border-[#00E5FF]/40 bg-[#0C1017] p-5 space-y-4 shadow-xl">
+        <div className="flex items-center gap-2 border-b border-[#252D38] pb-4">
+          <Calendar className="h-5 w-5 text-[#00E5FF]" />
+          <div>
+            <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#00E5FF]">
+              Schedule &amp; Timer — Existing Competition
+            </h2>
+            <p className="text-xs text-[#929DAC]">
+              Set the start time, status and per-question timer for a competition that already exists (e.g. Cyber Quiz 2026 for 8 Nov 12:00 PM).
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div>
+            <label htmlFor="sched-comp" className="block font-mono text-xs text-[#929DAC] mb-1">COMPETITION</label>
+            <select
+              id="sched-comp"
+              value={schedCompId || cyberComp?.id || ''}
+              onChange={(e) => {
+                const id = e.target.value;
+                setSchedCompId(id);
+                const c = competitions.find((x) => x.id === id);
+                if (c) {
+                  if (c.startTime) {
+                    const d = new Date(c.startTime);
+                    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                    setSchedStartTime(d.toISOString().slice(0, 16));
+                  }
+                  setSchedPerQuestion(c.perQuestionTimerSeconds || 15);
+                  setSchedDuration(c.durationMinutes || 15);
+                  setSchedStatus(c.status === 'live' ? 'live' : 'upcoming');
+                }
+              }}
+              className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 text-xs text-[#F0F3F7] focus:border-[#00E5FF] focus:outline-none cursor-pointer"
+            >
+              {competitions.map((c) => (
+                <option key={c.id} value={c.id}>{c.title} ({c.status})</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="sched-start" className="block font-mono text-xs text-[#929DAC] mb-1">START TIME</label>
+            <input
+              id="sched-start"
+              type="datetime-local"
+              value={schedStartTime}
+              onChange={(e) => setSchedStartTime(e.target.value)}
+              className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 font-mono text-xs text-[#00E5FF] focus:border-[#00E5FF] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="sched-perq" className="block font-mono text-xs text-[#929DAC] mb-1">SECONDS / QUESTION</label>
+            <input
+              id="sched-perq"
+              type="number"
+              min={5}
+              max={600}
+              value={schedPerQuestion}
+              onChange={(e) => setSchedPerQuestion(Math.max(5, Number(e.target.value)))}
+              className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 font-mono text-xs text-[#F0F3F7] focus:border-[#00E5FF] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="sched-duration" className="block font-mono text-xs text-[#929DAC] mb-1">DURATION (MIN)</label>
+            <input
+              id="sched-duration"
+              type="number"
+              min={1}
+              max={1440}
+              value={schedDuration}
+              onChange={(e) => setSchedDuration(Number(e.target.value))}
+              className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 font-mono text-xs text-[#F0F3F7] focus:border-[#00E5FF] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="sched-status" className="block font-mono text-xs text-[#929DAC] mb-1">STATUS</label>
+            <select
+              id="sched-status"
+              value={schedStatus}
+              onChange={(e) => setSchedStatus(e.target.value as any)}
+              className="w-full rounded-md border border-[#252D38] bg-[#07090D] px-3 py-2 text-xs text-[#F0F3F7] focus:border-[#00E5FF] focus:outline-none cursor-pointer"
+            >
+              <option value="upcoming">Upcoming (countdown lock)</option>
+              <option value="live">Live (open now)</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSaveSchedule}
+            disabled={isSavingSchedule}
+            className="inline-flex items-center gap-2 rounded-md bg-[#00E5FF] px-5 py-2.5 text-xs font-bold text-[#07090D] hover:bg-[#7deeff] disabled:opacity-50 transition-colors cursor-pointer"
+          >
+            <Calendar className="h-4 w-4" />
+            <span>{isSavingSchedule ? 'Saving...' : 'Save Schedule & Timer'}</span>
+          </button>
+          <p className="text-[11px] text-[#929DAC]">
+            Saving sets the competition to Upcoming with the chosen start time — it flips live automatically when the countdown reaches zero.
+          </p>
         </div>
       </section>
 

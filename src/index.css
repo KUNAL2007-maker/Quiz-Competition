@@ -107,3 +107,8 @@
     visibility: hidden !important;
   }
 }
+
+/* Anti-cheat: blur the quiz the instant its tab is hidden (background-tab screenshots show nothing) */
+body.exam-hidden #quiz-content {
+  filter: blur(18px);
+}

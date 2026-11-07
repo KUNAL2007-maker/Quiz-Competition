@@ -36,7 +36,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
   if (!isOpen) return null;
 
   const durationMin = competition?.durationMinutes || 15;
-  const perQuestionSec = competition?.perQuestionTimerSeconds || 30;
+  const perQuestionSec = competition?.perQuestionTimerSeconds || 15;
 
   return (
     <div

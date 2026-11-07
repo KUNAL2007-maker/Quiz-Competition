@@ -42,7 +42,8 @@ const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E', 'F'];
  */
 export function getShuffledQuiz(
   rawQuestions: QuizQuestion[],
-  sessionSeed: string
+  sessionSeed: string,
+  maxQuestions?: number
 ): QuizQuestion[] {
   if (!rawQuestions || rawQuestions.length === 0 || !sessionSeed) {
     return rawQuestions || [];
@@ -50,11 +51,16 @@ export function getShuffledQuiz(
 
   const random = createPRNG(sessionSeed);
 
-  // 1. Shuffle question sequence
+  // 1. Shuffle question sequence, then take a random subset (e.g. 30 of a 50-question bank).
+  // The seed is per candidate, so each candidate gets a different subset, stable across reloads.
   const shuffledQuestions = seededShuffle(rawQuestions, random);
+  const selectedQuestions =
+    typeof maxQuestions === 'number' && maxQuestions > 0
+      ? shuffledQuestions.slice(0, Math.min(maxQuestions, shuffledQuestions.length))
+      : shuffledQuestions;
 
   // 2. Shuffle options within each question and re-assign visual labels (A, B, C, D)
-  return shuffledQuestions.map((q, qIndex) => {
+  return selectedQuestions.map((q, qIndex) => {
     const optRandom = createPRNG(`${sessionSeed}_q_${q.id}`);
     const shuffledOptions = seededShuffle(q.options || [], optRandom).map(
       (opt, optIdx) => ({

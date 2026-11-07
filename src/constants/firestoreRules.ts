@@ -14,11 +14,7 @@ service cloud.firestore {
     }
 
     function isVerifiedUser() {
-      return isSignedIn() && (
-        request.auth.token.email_verified == true ||
-        request.auth.token.firebase.sign_in_provider == 'password' ||
-        (request.auth.token.firebase.sign_in_provider == 'google.com' && request.auth.token.email != null)
-      );
+      return isSignedIn() && request.auth.token.email_verified == true;
     }
 
     function incoming() {
@@ -30,14 +26,14 @@ service cloud.firestore {
     }
 
     function isValidId(id) {
-      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\\\-]+$');
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
     function isAdmin() {
       return isSignedIn() && (
         (request.auth.token.email != null && (
           request.auth.token.email in ['checkship66@gmail.com', 'hafizmujawar786@gmail.com', 'kunalbankhele07@gmail.com'] ||
-          request.auth.token.email.matches('(?i)^(checkship66@gmail\\\\.com|hafizmujawar786@gmail\\\\.com|kunalbankhele07@gmail\\\\.com)$')
+          request.auth.token.email.matches('(?i)^(checkship66@gmail\\.com|hafizmujawar786@gmail\\.com|kunalbankhele07@gmail\\.com)$')
         )) ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
@@ -73,7 +69,7 @@ service cloud.firestore {
         data.keys().hasOnly(['ownerId', 'displayName', 'username', 'biography', 'avatarPreset', 'whatsappNumber', 'email', 'avatarUrl', 'isProfileComplete', 'createdAt', 'updatedAt']) &&
         data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId == userId &&
         data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 64 &&
-        data.username is string && data.username.size() >= 3 && data.username.size() <= 32 && data.username.matches('^[a-zA-Z0-9_.\\\\-]+$') &&
+        data.username is string && data.username.size() >= 3 && data.username.size() <= 32 && data.username.matches('^[a-zA-Z0-9_.\\-]+$') &&
         (!('whatsappNumber' in data) || (data.whatsappNumber is string && data.whatsappNumber.size() <= 32)) &&
         (!('email' in data) || (data.email is string && data.email.size() <= 120)) &&
         (!('avatarUrl' in data) || (data.avatarUrl is string && data.avatarUrl.size() <= 500)) &&
@@ -90,9 +86,9 @@ service cloud.firestore {
         data.ownerId is string && data.ownerId == request.auth.uid &&
         isValidId(data.competitionId) &&
         data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 64 &&
-        (!('username' in data) || (data.username is string && data.username.size() >= 3 && data.username.size() <= 32 && data.username.matches('^[a-zA-Z0-9_.\\\\-]+$'))) &&
+        (!('username' in data) || (data.username is string && data.username.size() >= 3 && data.username.size() <= 32 && data.username.matches('^[a-zA-Z0-9_.\\-]+$'))) &&
         (!('avatarUrl' in data) || (data.avatarUrl is string && data.avatarUrl.size() <= 500)) &&
-        data.score is number && data.score >= 0 && data.score <= 1000000 &&
+        data.score is number && data.score >= 0 && data.score <= 3000 &&
         data.completionStatus is string && data.completionStatus in ['Completed', 'In Progress', 'Verified'] &&
         (!('accuracyPercent' in data) || (data.accuracyPercent is number && data.accuracyPercent >= 0 && data.accuracyPercent <= 100)) &&
         (!('completionTimeSeconds' in data) || (data.completionTimeSeconds is number && data.completionTimeSeconds >= 0 && data.completionTimeSeconds <= 86400)) &&
@@ -107,7 +103,7 @@ service cloud.firestore {
         data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 64 &&
         (!('whatsappNumber' in data) || (data.whatsappNumber is string && data.whatsappNumber.size() <= 32)) &&
         (!('email' in data) || (data.email is string && data.email.size() <= 120)) &&
-        data.score is number && data.score >= 0 && data.score <= 1000000 &&
+        data.score is number && data.score >= 0 && data.score <= 3000 &&
         data.createdAt is timestamp;
     }
 
@@ -117,12 +113,12 @@ service cloud.firestore {
         data.ownerId is string && data.ownerId == request.auth.uid &&
         isValidId(data.competitionId) &&
         data.competitionName is string && data.competitionName.size() >= 2 && data.competitionName.size() <= 120 &&
-        data.finalScore is number && data.finalScore >= 0 && data.finalScore <= 1000000 &&
-        (!('maxScore' in data) || (data.maxScore is number && data.maxScore >= 0 && data.maxScore <= 1000000)) &&
+        data.finalScore is number && data.finalScore >= 0 && data.finalScore <= 3000 &&
+        (!('maxScore' in data) || (data.maxScore is number && data.maxScore >= 0 && data.maxScore <= 3000)) &&
         (!('accuracyPercent' in data) || (data.accuracyPercent is number && data.accuracyPercent >= 0 && data.accuracyPercent <= 100)) &&
         (!('timeTakenSeconds' in data) || (data.timeTakenSeconds is number && data.timeTakenSeconds >= 0 && data.timeTakenSeconds <= 86400)) &&
-        (!('correctCount' in data) || (data.correctCount is number && data.correctCount >= 0 && data.correctCount <= 500)) &&
-        (!('incorrectCount' in data) || (data.incorrectCount is number && data.incorrectCount >= 0 && data.incorrectCount <= 500)) &&
+        (!('correctCount' in data) || (data.correctCount is number && data.correctCount >= 0 && data.correctCount <= 30)) &&
+        (!('incorrectCount' in data) || (data.incorrectCount is number && data.incorrectCount >= 0 && data.incorrectCount <= 30)) &&
         data.createdAt is timestamp;
     }
 
@@ -141,24 +137,18 @@ service cloud.firestore {
       allow get: if isValidId(competitionId) && (isAdmin() || existing().status in ['upcoming', 'live', 'completed']);
       allow list: if isAdmin() || existing().status in ['upcoming', 'live', 'completed'];
       allow create: if isAdmin() && isValidId(competitionId) && isValidCompetition(incoming()) && (incoming().createdAt == request.time || incoming().createdAt is timestamp);
-      allow update: if isValidId(competitionId) && (
-        isAdmin() || (
-          existing().status == 'upcoming' &&
-          incoming().status == 'live' &&
-          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
-        )
-      );
+      allow update: if isAdmin() && isValidId(competitionId);
       allow delete: if isAdmin() && isValidId(competitionId);
 
       // Questions subcollection
       match /questions/{questionId} {
-        allow get: if isValidId(competitionId) && isValidId(questionId) &&
+        allow get: if isSignedIn() && isValidId(competitionId) && isValidId(questionId) &&
           exists(/databases/$(database)/documents/competitions/$(competitionId)) &&
           (isAdmin() || get(/databases/$(database)/documents/competitions/$(competitionId)).data.status in ['live', 'completed']);
-        allow list: if isAdmin() || (
+        allow list: if isSignedIn() && (isAdmin() || (
           exists(/databases/$(database)/documents/competitions/$(competitionId)) &&
           get(/databases/$(database)/documents/competitions/$(competitionId)).data.status in ['live', 'completed']
-        );
+        ));
         allow create: if isAdmin() && isValidId(competitionId) && isValidId(questionId) &&
           isValidQuestion(incoming(), competitionId) &&
           exists(/databases/$(database)/documents/competitions/$(competitionId));
@@ -182,7 +172,7 @@ service cloud.firestore {
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time &&
         incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'username', 'biography', 'avatarPreset', 'whatsappNumber', 'email', 'avatarUrl', 'isProfileComplete', 'updatedAt']);
-      allow delete: if isAdmin() && isValidId(entryId);
+      allow delete: if isAdmin() && isValidId(userId);
     }
 
     // Public Leaderboard Standings (Free of PII like WhatsApp and Email)
@@ -190,6 +180,8 @@ service cloud.firestore {
       allow get: if isValidId(entryId) && existing().score >= 0;
       allow list: if existing().score >= 0;
       allow create: if isVerifiedUser() && isValidId(entryId) &&
+        entryId == request.auth.uid + '_' + incoming().competitionId &&
+        !exists(/databases/$(database)/documents/leaderboard/$(entryId)) &&
         isValidLeaderboardEntry(incoming()) &&
         incoming().createdAt == request.time &&
         exists(/databases/$(database)/documents/competitions/$(incoming().competitionId));
@@ -216,14 +208,15 @@ service cloud.firestore {
 
     // Private Operator Results (Strictly scoped to ownerId)
     match /results/{resultId} {
-      allow get: if isSignedIn() && isValidId(resultId) && existing().ownerId == request.auth.uid;
-      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow get: if isSignedIn() && isValidId(resultId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
       allow create: if isVerifiedUser() && isValidId(resultId) &&
+        resultId == request.auth.uid + '_' + incoming().competitionId &&
+        !exists(/databases/$(database)/documents/results/$(resultId)) &&
         isValidCompetitionResult(incoming()) &&
         incoming().createdAt == request.time &&
         exists(/databases/$(database)/documents/competitions/$(incoming().competitionId));
       allow update, delete: if isAdmin() && isValidId(resultId);
     }
   }
-}
-`;
+}`;

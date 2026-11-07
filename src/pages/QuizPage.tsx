@@ -69,7 +69,8 @@ export const QuizPage: React.FC = () => {
   const questions = useMemo(() => {
     if (!currentUser || !rawQuestions || rawQuestions.length === 0) return rawQuestions || [];
     const seed = `${currentUser.email || currentUser.uid}_${activeCompId}`;
-    return getShuffledQuiz(rawQuestions, seed);
+    // Bank holds 50 questions; each candidate gets a random 30 (seeded per candidate, stable across reloads)
+    return getShuffledQuiz(rawQuestions, seed, 30);
   }, [rawQuestions, currentUser, activeCompId]);
 
 
@@ -204,7 +205,7 @@ export const QuizPage: React.FC = () => {
   const recordQuestionTime = useCallback(
     (qIndex: number) => {
       const q = questions[qIndex];
-      const limit = q?.timeLimitSeconds ?? activeCompetition?.perQuestionTimerSeconds ?? 30;
+      const limit = activeCompetition?.perQuestionTimerSeconds ?? q?.timeLimitSeconds ?? 30;
       const elapsed = Math.min(limit, Math.max(1, Math.round((Date.now() - questionStartTimeRef.current) / 1000)));
       questionTimesRef.current[qIndex] = Math.min(limit, (questionTimesRef.current[qIndex] || 0) + elapsed);
       questionStartTimeRef.current = Date.now();
@@ -495,7 +496,11 @@ export const QuizPage: React.FC = () => {
     // Layer 1: Document Visibility Change (Tab switch, minimize, app switch)
     const handleVisibilityChange = () => {
       if (document.hidden || document.visibilityState === 'hidden') {
+        // Hide the questions instantly so a background-tab screenshot shows nothing
+        document.body.classList.add('exam-hidden');
         handleTabSwitchEvent('Tab switched, minimized, or moved to background');
+      } else {
+        document.body.classList.remove('exam-hidden');
       }
     };
 
@@ -532,6 +537,7 @@ export const QuizPage: React.FC = () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
+      document.body.classList.remove('exam-hidden');
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleWindowBlur);
       window.removeEventListener('focusout', handleFocusOut);
@@ -582,7 +588,7 @@ export const QuizPage: React.FC = () => {
       const currIdx = quizSession.currentQuestionIndex;
       const totalQ = questions.length;
       const currQ = questions[currIdx];
-      const currLimit = currQ?.timeLimitSeconds ?? activeCompetition?.perQuestionTimerSeconds ?? 30;
+      const currLimit = activeCompetition?.perQuestionTimerSeconds ?? currQ?.timeLimitSeconds ?? 30;
       questionTimesRef.current[currIdx] = currLimit;
       questionStartTimeRef.current = Date.now();
 
@@ -592,8 +598,8 @@ export const QuizPage: React.FC = () => {
         setCurrentQuestionIndex(nextIdx);
         const nextQ = questions[nextIdx];
         const nextLimit =
-          nextQ?.timeLimitSeconds ??
           activeCompetition?.perQuestionTimerSeconds ??
+          nextQ?.timeLimitSeconds ??
           30;
         setQuestionSecondsLeft(nextLimit);
       } else {
@@ -634,7 +640,7 @@ export const QuizPage: React.FC = () => {
         setCurrentQuestionIndex(0);
         questionStartTimeRef.current = Date.now();
         questionTimesRef.current = {};
-        const firstLimit = questions[0]?.timeLimitSeconds ?? activeCompetition?.perQuestionTimerSeconds ?? 30;
+        const firstLimit = activeCompetition?.perQuestionTimerSeconds ?? questions[0]?.timeLimitSeconds ?? 30;
         setQuestionSecondsLeft(firstLimit);
         addToast(
           'Quiz Commenced',
@@ -944,7 +950,7 @@ export const QuizPage: React.FC = () => {
 
   // Active Quiz Environment (Renders ONLY after 3-2-1 countdown finishes)
   return (
-    <div className="space-y-6 select-none">
+    <div id="quiz-content" className="space-y-6 select-none">
       {/* Tab Switch Warning Modal Dialog */}
       {activeTabWarningModal !== null && (
         <div
@@ -1105,7 +1111,15 @@ export const QuizPage: React.FC = () => {
               onSecondaryAction={() => navigate('/leaderboard')}
             />
           ) : (
-            <div className="rounded-lg border border-[#252D38] bg-[#0C1017] p-4 sm:p-6 md:p-8 space-y-6">
+            <div className="relative overflow-hidden rounded-lg border border-[#252D38] bg-[#0C1017] p-4 sm:p-6 md:p-8 space-y-6">
+              {/* Anti-cheat watermark: candidate identity on any screenshot */}
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 select-none overflow-hidden opacity-[0.07]">
+                <div className="absolute -inset-10 flex flex-wrap content-center items-center justify-center gap-x-10 gap-y-8 rotate-[-16deg] font-mono text-sm font-bold text-[#F0F3F7] whitespace-nowrap">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <span key={i}>{currentUser?.email || profile?.username || 'NULLORIGIN'}</span>
+                  ))}
+                </div>
+              </div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#252D38] pb-4">
                 <div className="flex items-center gap-2 font-mono text-xs text-[#929DAC]">
                   <span className="text-[#B6FF3B] font-semibold">

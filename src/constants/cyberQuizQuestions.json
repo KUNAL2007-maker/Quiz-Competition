@@ -4,12 +4,28 @@
     "prompt": "Which of these is a sign of a phishing email?",
     "category": "Easy (Q1–10)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Sender address matches the company exactly" },
-      { "id": "opt_b", "label": "B", "text": "Urgent threat + suspicious link" },
-      { "id": "opt_c", "label": "C", "text": "Proper grammar" },
-      { "id": "opt_d", "label": "D", "text": "Personalised greeting" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Sender address matches the company exactly"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Urgent threat + suspicious link"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Proper grammar"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Personalised greeting"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -18,12 +34,28 @@
     "prompt": "What does HTTPS protect against?",
     "category": "Easy (Q1–10)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Phishing" },
-      { "id": "opt_b", "label": "B", "text": "Eavesdropping on the connection" },
-      { "id": "opt_c", "label": "C", "text": "Weak passwords" },
-      { "id": "opt_d", "label": "D", "text": "Malware downloads" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Phishing"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Eavesdropping on the connection"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Weak passwords"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Malware downloads"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -32,12 +64,28 @@
     "prompt": "Which of these should you never share online?",
     "category": "Easy (Q1–10)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Your favourite movie" },
-      { "id": "opt_b", "label": "B", "text": "Your OTP" },
-      { "id": "opt_c", "label": "C", "text": "Your city" },
-      { "id": "opt_d", "label": "D", "text": "Your hobby" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Your favourite movie"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Your OTP"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Your city"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Your hobby"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -46,12 +94,28 @@
     "prompt": "What is the safest way to verify a suspicious bank message?",
     "category": "Easy (Q1–10)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Click the link in it" },
-      { "id": "opt_b", "label": "B", "text": "Call the bank's official number" },
-      { "id": "opt_c", "label": "C", "text": "Reply to the message" },
-      { "id": "opt_d", "label": "D", "text": "Forward it to friends" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Click the link in it"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Call the bank's official number"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Reply to the message"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Forward it to friends"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -60,12 +124,28 @@
     "prompt": "Which attack floods a server with traffic until it crashes?",
     "category": "Easy (Q1–10)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Phishing" },
-      { "id": "opt_b", "label": "B", "text": "DDoS" },
-      { "id": "opt_c", "label": "C", "text": "SQL injection" },
-      { "id": "opt_d", "label": "D", "text": "Spoofing" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Phishing"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "DDoS"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "SQL injection"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Spoofing"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -74,12 +154,28 @@
     "prompt": "A strong password should be...",
     "category": "Easy (Q1–10)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Your birthdate" },
-      { "id": "opt_b", "label": "B", "text": "Long, random and unique" },
-      { "id": "opt_c", "label": "C", "text": "Same everywhere" },
-      { "id": "opt_d", "label": "D", "text": "Short and easy" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Your birthdate"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Long, random and unique"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Same everywhere"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Short and easy"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -88,12 +184,28 @@
     "prompt": "What does antivirus software mainly do?",
     "category": "Easy (Q1–10)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Speed up your PC" },
-      { "id": "opt_b", "label": "B", "text": "Detect and remove malware" },
-      { "id": "opt_c", "label": "C", "text": "Block ads" },
-      { "id": "opt_d", "label": "D", "text": "Encrypt files" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Speed up your PC"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Detect and remove malware"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Block ads"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Encrypt files"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -102,12 +214,28 @@
     "prompt": "Which of these is a type of malware that demands money?",
     "category": "Easy (Q1–10)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Spyware" },
-      { "id": "opt_b", "label": "B", "text": "Ransomware" },
-      { "id": "opt_c", "label": "C", "text": "Adware" },
-      { "id": "opt_d", "label": "D", "text": "Rootkit" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Spyware"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Ransomware"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Adware"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Rootkit"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -116,12 +244,28 @@
     "prompt": "What is two-factor authentication (2FA)?",
     "category": "Easy (Q1–10)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Two passwords" },
-      { "id": "opt_b", "label": "B", "text": "Password + a second proof like OTP" },
-      { "id": "opt_c", "label": "C", "text": "Two usernames" },
-      { "id": "opt_d", "label": "D", "text": "Two devices" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Two passwords"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Password + a second proof like OTP"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Two usernames"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Two devices"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -130,12 +274,28 @@
     "prompt": "Which port does HTTPS use by default?",
     "category": "Easy (Q1–10)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "80" },
-      { "id": "opt_b", "label": "B", "text": "443" },
-      { "id": "opt_c", "label": "C", "text": "22" },
-      { "id": "opt_d", "label": "D", "text": "21" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "80"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "443"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "22"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "21"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -144,12 +304,28 @@
     "prompt": "Which HTTP security header prevents a site from being loaded inside an iframe?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "X-Frame-Options" },
-      { "id": "opt_b", "label": "B", "text": "Content-Type" },
-      { "id": "opt_c", "label": "C", "text": "Referrer-Policy" },
-      { "id": "opt_d", "label": "D", "text": "Server" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "X-Frame-Options"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Content-Type"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Referrer-Policy"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Server"
+      }
     ],
     "correctOptionId": "opt_a"
   },
@@ -158,12 +334,28 @@
     "prompt": "The payload ' OR '1'='1 in a login form is an example of...?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "XSS" },
-      { "id": "opt_b", "label": "B", "text": "SQL injection" },
-      { "id": "opt_c", "label": "C", "text": "CSRF" },
-      { "id": "opt_d", "label": "D", "text": "Clickjacking" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "XSS"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "SQL injection"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "CSRF"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Clickjacking"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -172,12 +364,28 @@
     "prompt": "Which Nmap scan type sends SYN packets without completing the handshake?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Connect scan" },
-      { "id": "opt_b", "label": "B", "text": "SYN scan" },
-      { "id": "opt_c", "label": "C", "text": "UDP scan" },
-      { "id": "opt_d", "label": "D", "text": "Ping scan" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Connect scan"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "SYN scan"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "UDP scan"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Ping scan"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -186,12 +394,28 @@
     "prompt": "Why is salting added before hashing a password?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "To make it faster" },
-      { "id": "opt_b", "label": "B", "text": "To stop rainbow table attacks" },
-      { "id": "opt_c", "label": "C", "text": "To encrypt it" },
-      { "id": "opt_d", "label": "D", "text": "To compress it" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "To make it faster"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "To stop rainbow table attacks"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "To encrypt it"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "To compress it"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -200,12 +424,28 @@
     "prompt": "In HTTPS, which encryption type is used to exchange the session key?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Symmetric" },
-      { "id": "opt_b", "label": "B", "text": "Asymmetric" },
-      { "id": "opt_c", "label": "C", "text": "Hashing" },
-      { "id": "opt_d", "label": "D", "text": "None" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Symmetric"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Asymmetric"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Hashing"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "None"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -214,12 +454,28 @@
     "prompt": "What is the difference between hashing and encryption?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Hashing is reversible, encryption is not" },
-      { "id": "opt_b", "label": "B", "text": "Hashing is one-way, encryption is reversible" },
-      { "id": "opt_c", "label": "C", "text": "They are the same" },
-      { "id": "opt_d", "label": "D", "text": "Hashing needs a key" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Hashing is reversible, encryption is not"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Hashing is one-way, encryption is reversible"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "They are the same"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Hashing needs a key"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -228,12 +484,28 @@
     "prompt": "Which Wireshark filter shows only HTTP traffic?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "tcp.port == 80" },
-      { "id": "opt_b", "label": "B", "text": "http" },
-      { "id": "opt_c", "label": "C", "text": "ip.addr == 80" },
-      { "id": "opt_d", "label": "D", "text": "dns" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "tcp.port == 80"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "http"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "ip.addr == 80"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "dns"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -242,12 +514,28 @@
     "prompt": "Stored XSS differs from reflected XSS because the payload is...?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Sent in a link" },
-      { "id": "opt_b", "label": "B", "text": "Saved on the server" },
-      { "id": "opt_c", "label": "C", "text": "Encrypted" },
-      { "id": "opt_d", "label": "D", "text": "Run once" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Sent in a link"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Saved on the server"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Encrypted"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Run once"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -256,12 +544,28 @@
     "prompt": "Which algorithm is used for password hashing and is deliberately slow?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "MD5" },
-      { "id": "opt_b", "label": "B", "text": "SHA-1" },
-      { "id": "opt_c", "label": "C", "text": "bcrypt" },
-      { "id": "opt_d", "label": "D", "text": "AES" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "MD5"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "SHA-1"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "bcrypt"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "AES"
+      }
     ],
     "correctOptionId": "opt_c"
   },
@@ -270,12 +574,28 @@
     "prompt": "A honeypot is used to...?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Block all traffic" },
-      { "id": "opt_b", "label": "B", "text": "Attract and study attackers" },
-      { "id": "opt_c", "label": "C", "text": "Store passwords" },
-      { "id": "opt_d", "label": "D", "text": "Encrypt data" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Block all traffic"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Attract and study attackers"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Store passwords"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Encrypt data"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -284,12 +604,28 @@
     "prompt": "Which attack happens when an attacker sits between a user and a server?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Phishing" },
-      { "id": "opt_b", "label": "B", "text": "Man-in-the-Middle" },
-      { "id": "opt_c", "label": "C", "text": "Brute force" },
-      { "id": "opt_d", "label": "D", "text": "Ransomware" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Phishing"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Man-in-the-Middle"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Brute force"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Ransomware"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -298,12 +634,28 @@
     "prompt": "What does a CSRF token protect against?",
     "category": "Medium (Q11–22)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "SQL injection" },
-      { "id": "opt_b", "label": "B", "text": "Forged requests from another site" },
-      { "id": "opt_c", "label": "C", "text": "Phishing" },
-      { "id": "opt_d", "label": "D", "text": "DDoS" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "SQL injection"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Forged requests from another site"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Phishing"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "DDoS"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -312,12 +664,28 @@
     "prompt": "Which of these makes a session cookie hardest to steal via XSS?",
     "category": "Hard (Q23–30)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Secure flag" },
-      { "id": "opt_b", "label": "B", "text": "HttpOnly flag" },
-      { "id": "opt_c", "label": "C", "text": "SameSite=Lax" },
-      { "id": "opt_d", "label": "D", "text": "Path=/" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Secure flag"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "HttpOnly flag"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "SameSite=Lax"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Path=/"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -326,12 +694,28 @@
     "prompt": "JWT tokens are usually signed with which algorithm?",
     "category": "Hard (Q23–30)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "MD5" },
-      { "id": "opt_b", "label": "B", "text": "HMAC-SHA256" },
-      { "id": "opt_c", "label": "C", "text": "AES-256" },
-      { "id": "opt_d", "label": "D", "text": "RSA-1024" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "MD5"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "HMAC-SHA256"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "AES-256"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "RSA-1024"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -340,12 +724,28 @@
     "prompt": "What does HSTS force the browser to do?",
     "category": "Hard (Q23–30)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Use HTTP only" },
-      { "id": "opt_b", "label": "B", "text": "Always use HTTPS" },
-      { "id": "opt_c", "label": "C", "text": "Clear cookies" },
-      { "id": "opt_d", "label": "D", "text": "Block pop-ups" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Use HTTP only"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Always use HTTPS"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Clear cookies"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Block pop-ups"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -354,12 +754,28 @@
     "prompt": "In a DNS rebinding attack, the attacker...?",
     "category": "Hard (Q23–30)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Floods the DNS server" },
-      { "id": "opt_b", "label": "B", "text": "Makes the browser talk to a private IP" },
-      { "id": "opt_c", "label": "C", "text": "Steals DNS records" },
-      { "id": "opt_d", "label": "D", "text": "Spoofs email" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Floods the DNS server"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Makes the browser talk to a private IP"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Steals DNS records"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Spoofs email"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -368,12 +784,28 @@
     "prompt": "Which of these is a secure way to store passwords?",
     "category": "Hard (Q23–30)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Plain text" },
-      { "id": "opt_b", "label": "B", "text": "MD5 hash" },
-      { "id": "opt_c", "label": "C", "text": "bcrypt with salt" },
-      { "id": "opt_d", "label": "D", "text": "Base64 encoding" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Plain text"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "MD5 hash"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "bcrypt with salt"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Base64 encoding"
+      }
     ],
     "correctOptionId": "opt_c"
   },
@@ -382,12 +814,28 @@
     "prompt": "What does the SameSite cookie attribute prevent?",
     "category": "Hard (Q23–30)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "SQL injection" },
-      { "id": "opt_b", "label": "B", "text": "Cross-site request forgery" },
-      { "id": "opt_c", "label": "C", "text": "XSS" },
-      { "id": "opt_d", "label": "D", "text": "Phishing" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "SQL injection"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Cross-site request forgery"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "XSS"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Phishing"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -396,12 +844,28 @@
     "prompt": "Which HTTP method should never change data on the server?",
     "category": "Hard (Q23–30)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "POST" },
-      { "id": "opt_b", "label": "B", "text": "GET" },
-      { "id": "opt_c", "label": "C", "text": "PUT" },
-      { "id": "opt_d", "label": "D", "text": "DELETE" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "POST"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "GET"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "PUT"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "DELETE"
+      }
     ],
     "correctOptionId": "opt_b"
   },
@@ -410,13 +874,629 @@
     "prompt": "In a blind SQL injection, the attacker...?",
     "category": "Hard (Q23–30)",
     "points": 100,
-    "timeLimitSeconds": 30,
+    "timeLimitSeconds": 15,
     "options": [
-      { "id": "opt_a", "label": "A", "text": "Sees the full database" },
-      { "id": "opt_b", "label": "B", "text": "Infers data from true/false responses" },
-      { "id": "opt_c", "label": "C", "text": "Deletes tables directly" },
-      { "id": "opt_d", "label": "D", "text": "Needs the password" }
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Sees the full database"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Infers data from true/false responses"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Deletes tables directly"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Needs the password"
+      }
     ],
     "correctOptionId": "opt_b"
+  },
+  {
+    "index": 30,
+    "prompt": "What should you do if you receive an OTP you did not request?",
+    "category": "Easy (Q31–36)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Share it with the person who asked for it"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Use it quickly before it expires"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Ignore it and never share it"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Post it in a group chat to ask what it is"
+      }
+    ],
+    "correctOptionId": "opt_c"
+  },
+  {
+    "index": 31,
+    "prompt": "Which of these is the safest habit on public Wi-Fi?",
+    "category": "Easy (Q31–36)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Use a VPN and avoid sensitive logins"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Log in to your bank without protection"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Turn off your device firewall"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Connect to any network named 'Free WiFi'"
+      }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 32,
+    "prompt": "What is malware that secretly records everything you type called?",
+    "category": "Easy (Q31–36)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Adware"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Worm"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Spyware"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Keylogger"
+      }
+    ],
+    "correctOptionId": "opt_d"
+  },
+  {
+    "index": 33,
+    "prompt": "What does a firewall mainly do?",
+    "category": "Easy (Q31–36)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Blocks unauthorised network traffic"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Removes viruses from files"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Speeds up your internet"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Encrypts your emails"
+      }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 34,
+    "prompt": "Which of these passwords is the strongest?",
+    "category": "Easy (Q31–36)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "123456"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "P@ssw0rd!2026#Xy"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "password"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "qwerty"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 35,
+    "prompt": "What is social engineering in cyber security?",
+    "category": "Easy (Q31–36)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Building social media apps"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Writing firewall rules"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Tricking people into revealing information"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "A type of antivirus"
+      }
+    ],
+    "correctOptionId": "opt_c"
+  },
+  {
+    "index": 36,
+    "prompt": "What does the 'S' in HTTPS stand for?",
+    "category": "Medium (Q37–44)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Secure"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Server"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Standard"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "System"
+      }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 37,
+    "prompt": "Which tool is commonly used to crack password hashes offline?",
+    "category": "Medium (Q37–44)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Wireshark"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Nmap"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Hashcat"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Burp Suite"
+      }
+    ],
+    "correctOptionId": "opt_c"
+  },
+  {
+    "index": 38,
+    "prompt": "What is the main risk of using the same password on many sites?",
+    "category": "Medium (Q37–44)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Slower login"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "One breach exposes all your accounts"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Password expires faster"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "It uses more storage"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 39,
+    "prompt": "Which HTTP header tells the browser to only load resources from trusted sources?",
+    "category": "Medium (Q37–44)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "X-Frame-Options"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Content-Security-Policy"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Referrer-Policy"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Cache-Control"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 40,
+    "prompt": "In a brute-force attack, the attacker...?",
+    "category": "Medium (Q37–44)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Sends a phishing email"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Injects SQL into a form"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Listens on the network"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Tries many passwords rapidly"
+      }
+    ],
+    "correctOptionId": "opt_d"
+  },
+  {
+    "index": 41,
+    "prompt": "What is a zero-day vulnerability?",
+    "category": "Medium (Q37–44)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "A bug with no fix available yet"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "A virus that lasts zero days"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "A password that never expires"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "A firewall with no rules"
+      }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 42,
+    "prompt": "What does encryption at rest mean?",
+    "category": "Medium (Q37–44)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Data encrypted while being typed"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Data encrypted only on Wi-Fi"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Data encrypted while stored on disk"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Data encrypted after deletion"
+      }
+    ],
+    "correctOptionId": "opt_c"
+  },
+  {
+    "index": 43,
+    "prompt": "What is Burp Suite mainly used for?",
+    "category": "Medium (Q37–44)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Cracking Wi-Fi passwords"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Testing web application security"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Monitoring network traffic"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Recovering deleted files"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 44,
+    "prompt": "Which attack exploits a race condition between a check and its use?",
+    "category": "Hard (Q45–50)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "SQL injection"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "TOCTOU"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "XSS"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "CSRF"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 45,
+    "prompt": "What does ASLR protect against?",
+    "category": "Hard (Q45–50)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Buffer overflow exploitation"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Phishing"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "DDoS"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "SQL injection"
+      }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 46,
+    "prompt": "In OAuth 2.0, what is the authorization code used for?",
+    "category": "Hard (Q45–50)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "To log in directly"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "To encrypt passwords"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "To exchange for an access token"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "To reset the account"
+      }
+    ],
+    "correctOptionId": "opt_c"
+  },
+  {
+    "index": 47,
+    "prompt": "Which of these is a sign of a secure JWT implementation?",
+    "category": "Hard (Q45–50)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Storing secrets in the token payload"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Verifying the signature on the server"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Using the 'none' algorithm"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Tokens that never expire"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 48,
+    "prompt": "What is a side-channel attack?",
+    "category": "Hard (Q45–50)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "An attack through the side menu of a site"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "An attack on backup servers"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "An attack via social media"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "An attack through timing or power usage patterns"
+      }
+    ],
+    "correctOptionId": "opt_d"
+  },
+  {
+    "index": 49,
+    "prompt": "Which HTTP response header prevents MIME-sniffing attacks?",
+    "category": "Hard (Q45–50)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "X-Content-Type-Options: nosniff"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "X-Frame-Options"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Strict-Transport-Security"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Referrer-Policy"
+      }
+    ],
+    "correctOptionId": "opt_a"
   }
 ]
