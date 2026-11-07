@@ -129,7 +129,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 <Lock className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-display text-xs font-bold text-[#F0F3F7]">
+                <h4 className="font-display text-xs font-bold uppercase text-[#F0F3F7]">
                   2. Strict Forward-Only
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -143,7 +143,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 <Hourglass className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-display text-xs font-bold text-[#F0F3F7]">
+                <h4 className="font-display text-xs font-bold uppercase text-[#F0F3F7]">
                   3. {perQuestionSec}s Per Question
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -160,7 +160,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 <AlertTriangle className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-display text-xs font-bold text-[#F0F3F7]">
+                <h4 className="font-display text-xs font-bold uppercase text-[#F0F3F7]">
                   4. Anti-Copy & Screenshot Block
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -174,7 +174,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                 <Bot className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-display text-xs font-bold text-[#F0F3F7]">
+                <h4 className="font-display text-xs font-bold uppercase text-[#F0F3F7]">
                   5. Zero AI Assistance
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -190,7 +190,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
               <Clock className="h-4 w-4" />
             </div>
             <div className="space-y-1">
-              <h4 className="font-display text-xs font-bold text-[#F0F3F7]">
+              <h4 className="font-display text-xs font-bold uppercase text-[#F0F3F7]">
                 6. Strictly One Attempt Per Email
               </h4>
               <p className="text-[11px] text-[#929DAC] leading-relaxed">
