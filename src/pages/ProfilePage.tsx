@@ -616,11 +616,15 @@ export const ProfilePage: React.FC = () => {
                         <span className="inline-flex items-center gap-1 rounded bg-[#36F58A]/15 border border-[#36F58A]/30 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#36F58A]">
                           <CheckCircle2 className="h-3 w-3" /> COMPLETED · 1 ATTEMPT RECORDED
                         </span>
-                        {item.rank && (
-                          <span className="inline-flex items-center gap-1 rounded bg-[#B6FF3B]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#B6FF3B]">
-                            <Trophy className="h-3 w-3" /> RANK #{item.rank}
-                          </span>
-                        )}
+                        {item.rank &&
+                          !(
+                            (item.competitionTitle || '').toLowerCase().includes('practice') ||
+                            (item.competitionId || '').toLowerCase().includes('practice')
+                          ) && (
+                            <span className="inline-flex items-center gap-1 rounded bg-[#B6FF3B]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#B6FF3B]">
+                              <Trophy className="h-3 w-3" /> RANK #{item.rank}
+                            </span>
+                          )}
                       </div>
                       <h4 className="font-display text-base sm:text-lg font-bold text-[#F0F3F7]">
                         {item.competitionTitle}
@@ -685,14 +689,20 @@ export const ProfilePage: React.FC = () => {
                     <span className="font-mono text-[11px] text-[#929DAC]">
                       Official score synced with Firestore & Python scoring engine
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => navigate('/leaderboard')}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#B6FF3B] hover:underline cursor-pointer"
-                    >
-                      <span>Inspect Live Standing</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
+                    {/* Practice quizzes have no leaderboard standing, so no link. */}
+                    {!(
+                      (item.competitionTitle || '').toLowerCase().includes('practice') ||
+                      (item.competitionId || '').toLowerCase().includes('practice')
+                    ) && (
+                      <button
+                        type="button"
+                        onClick={() => navigate('/leaderboard')}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#B6FF3B] hover:underline cursor-pointer"
+                      >
+                        <span>Inspect Live Standing</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
