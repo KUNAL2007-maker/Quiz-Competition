@@ -642,6 +642,19 @@ export const QuizPage: React.FC = () => {
           startQuizSession(activeCompetition);
         }
         setIsQuizActive(true);
+        // Practice is repeatable: every fresh practice attempt starts with a
+        // clean proctoring slate. Reset the tab-switch warning count to 0 so
+        // the student gets their 2 warnings again before the test is stopped
+        // on a 3rd infraction. (For the real Cyber Quiz the stored count is
+        // kept, so a reload mid-quiz cannot erase warnings.)
+        if (isPracticeQuiz && activeCompId) {
+          setTabSwitchWarnings(0);
+          setActiveTabWarningModal(null);
+          try {
+            window.sessionStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+            window.localStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+          } catch {}
+        }
         setCurrentQuestionIndex(0);
         questionStartTimeRef.current = Date.now();
         questionTimesRef.current = {};
