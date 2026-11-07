@@ -21,7 +21,7 @@ import {
   Database,
   Copy,
 } from 'lucide-react';
-import { doc, setDoc, deleteDoc, getDocs, serverTimestamp, collection, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, getDocs, serverTimestamp, collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db, firebaseConfig } from '../lib/firebase';
 import { FIRESTORE_RULES_SOURCE } from '../constants/firestoreRules';
 import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
@@ -193,8 +193,14 @@ export const AdminPage: React.FC = () => {
   const handleResetAllTournamentData = async () => {
     setIsResettingAll(true);
     try {
-      // 1. Purge leaderboard collection
-      const lbSnap = await getDocs(collection(db, 'leaderboard'));
+      // 1. Purge leaderboard collection — MUST use where('score','>=',0).
+      // Firestore rules are not filters: the rule `allow list: if
+      // existing().score >= 0` denies an UNFILTERED getDocs(collection),
+      // which is why the purge failed with 'Missing or insufficient
+      // permissions' even after the new rules were published. The app reads
+      // the leaderboard with this same filter (AppContext), so the purge
+      // must too.
+      const lbSnap = await getDocs(query(collection(db, 'leaderboard'), where('score', '>=', 0)));
       for (const d of lbSnap.docs) {
         await deleteDoc(d.ref);
       }
