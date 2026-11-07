@@ -95,8 +95,8 @@ export const AdminPage: React.FC = () => {
 
   // Schedule & Timer Control for an Existing Competition (finale: 8 Nov 12:00 PM, 15s/question)
   const [schedCompId, setSchedCompId] = useState<string>('');
-  const [schedStartTime, setSchedStartTime] = useState<string>('2026-11-07T12:00');
-  const [schedEndTime, setSchedEndTime] = useState<string>('2026-11-07T14:00');
+  const [schedStartTime, setSchedStartTime] = useState<string>('2026-11-08T12:00');
+  const [schedEndTime, setSchedEndTime] = useState<string>('2026-11-08T14:00');
   const [schedPerQuestion, setSchedPerQuestion] = useState<number>(15);
   const [schedDuration, setSchedDuration] = useState<number>(15);
   const [schedStatus, setSchedStatus] = useState<'upcoming' | 'live' | 'completed'>('upcoming');
