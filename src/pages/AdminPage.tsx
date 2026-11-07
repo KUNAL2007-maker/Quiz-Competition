@@ -88,6 +88,7 @@ export const AdminPage: React.FC = () => {
   const [isTestingConn, setIsTestingConn] = useState(false);
   const [rulesCopied, setRulesCopied] = useState(false);
   const [isResettingAll, setIsResettingAll] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isSettingLive, setIsSettingLive] = useState(false);
   const [isSyncingQuestions, setIsSyncingQuestions] = useState(false);
   const [isSyncingPractice, setIsSyncingPractice] = useState(false);
@@ -186,14 +187,10 @@ export const AdminPage: React.FC = () => {
     }
   };
 
+  // Confirmation is an on-screen panel (showResetConfirm) — the native
+  // window.confirm dialog never appears in this browser, so the purge
+  // silently never ran. The panel below is the only confirmation gate.
   const handleResetAllTournamentData = async () => {
-    if (
-      !window.confirm(
-        'Are you sure you want to RESET EVERYTHING? This will delete all leaderboard rankings, competitor quiz results, and winner contact records for a clean realtime test.'
-      )
-    ) {
-      return;
-    }
     setIsResettingAll(true);
     try {
       // 1. Purge leaderboard collection
@@ -873,7 +870,7 @@ export const AdminPage: React.FC = () => {
           {/* Action 3: Reset Everything */}
           <button
             type="button"
-            onClick={handleResetAllTournamentData}
+            onClick={() => setShowResetConfirm(true)}
             disabled={isResettingAll}
             className="flex flex-col items-start gap-1 p-3.5 rounded-lg border border-[#FF365B]/40 bg-[#FF365B]/5 hover:bg-[#FF365B]/10 transition-colors cursor-pointer text-left disabled:opacity-50"
           >
@@ -902,6 +899,35 @@ export const AdminPage: React.FC = () => {
             </p>
           </button>
         </div>
+
+        {showResetConfirm && (
+          <div className="rounded-lg border border-[#FF365B]/60 bg-[#FF365B]/10 p-4 space-y-3">
+            <p className="text-xs font-bold text-[#FF365B] leading-relaxed">
+              CONFIRM PURGE — this deletes ALL leaderboard rankings, quiz results, and winner contact records. This cannot be undone.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  setShowResetConfirm(false);
+                  await handleResetAllTournamentData();
+                }}
+                disabled={isResettingAll}
+                className="inline-flex items-center gap-2 rounded-md bg-[#FF365B] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#ff5270] disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>{isResettingAll ? 'Purging...' : 'Yes, purge everything'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(false)}
+                className="inline-flex items-center gap-2 rounded-md border border-[#252D38] bg-[#111722] px-5 py-2.5 text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Schedule & Timer Control for an Existing Competition */}
