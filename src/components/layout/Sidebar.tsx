@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   ShieldAlert,
   Trophy,
+  Award,
   UserCheck,
   LogIn,
   KeyRound,
@@ -30,6 +31,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
     { label: 'Overview', to: '/', icon: LayoutDashboard, group: 'primary' },
     { label: 'Competitions', to: '/competitions', icon: ShieldAlert, group: 'primary' },
     { label: 'Live Rankings', to: '/leaderboard', icon: Trophy, group: 'primary' },
+    ...(isAdmin
+      ? [
+          {
+            label: 'Certification',
+            to: '/certification',
+            icon: Award,
+            group: 'primary' as const,
+          },
+        ]
+      : []),
     { label: 'My Profile', to: '/profile', icon: UserCheck, group: 'operator' },
     {
       label: currentUser ? 'Operator Account' : 'Sign In',

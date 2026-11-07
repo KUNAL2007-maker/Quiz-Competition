@@ -15,6 +15,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminPage } from './pages/AdminPage';
+import { CertificationPage } from './pages/CertificationPage';
 import { AboutPage } from './pages/AboutPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="results" element={<Navigate to="/profile" replace />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="admin" element={<AdminPage />} />
+            <Route path="certification" element={<CertificationPage />} />
             <Route path="about" element={<AboutPage />} />
             <Route path="privacy" element={<PrivacyPolicyPage />} />
             <Route path="settings" element={<SettingsPage />} />
