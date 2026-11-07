@@ -1152,7 +1152,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     window.localStorage.setItem(`completed_email_${cleanEmail}_${activeCompId}`, 'true');
                   }
                   }
-                  window.localStorage.setItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`, reason);
+                  // Practice is repeatable: never persist a disqualification
+                  // flag for a practice quiz.
+                  if (!isPractice) {
+                    window.localStorage.setItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`, reason);
+                  }
                 }
               }
             } catch {}

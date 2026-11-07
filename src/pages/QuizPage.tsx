@@ -177,13 +177,15 @@ export const QuizPage: React.FC = () => {
             `nullorigin_disqualified_email_${cleanEmail}_${activeCompId}`
           );
         }
-        if (dqReason) {
+        // Practice quizzes are repeatable: a stale disqualification flag must
+        // never block a practice retake, even for the same email/account.
+        if (dqReason && !isPracticeQuiz) {
           setIsDisqualified(true);
           setDisqualificationReason(dqReason);
         }
       } catch {}
     }
-  }, [currentUser, activeCompId]);
+  }, [currentUser, activeCompId, isPracticeQuiz]);
 
   // Active quiz session state: automatically resumes if active session already started and deadline not passed
   const [isQuizActive, setIsQuizActive] = useState<boolean>(() => {
@@ -478,7 +480,10 @@ export const QuizPage: React.FC = () => {
           const fullReason = `Exceeded maximum permitted proctoring infractions (> 2 warnings: ${triggerReason}). Disqualified on the spot with score 0.`;
           setDisqualificationReason(fullReason);
           submitDisqualifiedQuizSession(fullReason);
-          if (currentUser?.email) {
+          // Practice is repeatable: never persist a disqualification or
+          // completed flag for a practice quiz, so the same email can retake
+          // it as many times as they like, even after a cheating disqualification.
+          if (!isPracticeQuiz && currentUser?.email) {
             const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
             try {
               window.localStorage.setItem(`nullorigin_disqualified_email_${cleanEmail}_${activeCompId}`, fullReason);
@@ -688,7 +693,9 @@ export const QuizPage: React.FC = () => {
             <div className="text-xs text-[#929DAC] uppercase tracking-wider">OFFICIAL SCORE RECORDED</div>
             <div className="text-5xl font-black text-[#FF365B] tracking-tight">0 PTS</div>
             <p className="text-[11px] text-[#929DAC] pt-2">
-              Status: Disqualified. Result permanently logged to scoreboard.
+              {isPracticeQuiz
+                ? 'Practice attempt ended with 0. Practice scores are never recorded — you can retake the practice quiz as many times as you like.'
+                : 'Status: Disqualified. Result permanently logged to scoreboard.'}
             </p>
           </div>
 
@@ -719,13 +726,6 @@ export const QuizPage: React.FC = () => {
             </div>
           )}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-[#252D38]">
-            <button
-              type="button"
-              onClick={() => navigate('/leaderboard')}
-              className="w-full sm:w-auto rounded-lg border border-[#252D38] bg-[#111722] px-6 py-2.5 font-mono text-xs font-medium text-[#F0F3F7] hover:border-[#B6FF3B] transition-colors cursor-pointer"
-            >
-              View Leaderboard
-            </button>
             <button
               type="button"
               onClick={() => navigate('/dashboard')}
