@@ -643,8 +643,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const profileDocRef = doc(db, 'profiles', currentUser.uid);
       try {
         const snap = await getDoc(profileDocRef);
+        // ownerId is set only on create. The profile update rule forbids
+        // changing ownerId (it is not in the allowed affectedKeys), so the
+        // update payload must not include it — otherwise a repeat save on an
+        // existing profile is rejected and the name silently stays blank.
         const payload = {
-          ownerId: currentUser.uid,
           displayName: trimmedName.slice(0, 64),
           username: sanitizedUsername,
           whatsappNumber: trimmedPhone.slice(0, 32),
@@ -659,6 +662,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (!snap.exists()) {
           await setDoc(profileDocRef, {
             ...payload,
+            ownerId: currentUser.uid,
             createdAt: serverTimestamp(),
           });
         } else {

@@ -160,11 +160,11 @@ service cloud.firestore {
     match /profiles/{userId} {
       allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
       allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
-      allow create: if isVerifiedUser() && isValidId(userId) &&
+      allow create: if isSignedIn() && isValidId(userId) &&
         isValidOperatorProfile(incoming(), userId) &&
         incoming().createdAt == request.time &&
         incoming().updatedAt == request.time;
-      allow update: if isVerifiedUser() && isValidId(userId) &&
+      allow update: if isSignedIn() && isValidId(userId) &&
         isValidOperatorProfile(incoming(), userId) &&
         existing().ownerId == request.auth.uid &&
         incoming().ownerId == existing().ownerId &&
