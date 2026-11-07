@@ -83,6 +83,19 @@ export const CompetitionsPage: React.FC = () => {
       competitions.filter((c) => c.title.toLowerCase().includes('practice')).map((c) => c.id)
     );
     practiceCompIds.forEach((pId) => ids.delete(pId));
+    // A competition that has not started yet cannot have been completed in this run.
+    // Ignore stale completed flags (left by test attempts) for upcoming competitions,
+    // so the countdown and the Upcoming filter stay correct.
+    const upcomingCompIds = new Set(
+      competitions
+        .filter(
+          (c) =>
+            c.status === 'upcoming' &&
+            (!c.startTime || new Date(c.startTime).getTime() > Date.now())
+        )
+        .map((c) => c.id)
+    );
+    upcomingCompIds.forEach((uId) => ids.delete(uId));
     return ids;
   }, [competitions, currentUser, results, leaderboard, quizSession?.isSubmitted, quizSession?.competitionId]);
 
