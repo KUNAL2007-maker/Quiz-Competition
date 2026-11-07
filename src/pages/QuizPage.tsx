@@ -205,7 +205,7 @@ export const QuizPage: React.FC = () => {
   const recordQuestionTime = useCallback(
     (qIndex: number) => {
       const q = questions[qIndex];
-      const limit = activeCompetition?.perQuestionTimerSeconds ?? q?.timeLimitSeconds ?? 30;
+      const limit = activeCompetition?.perQuestionTimerSeconds ?? q?.timeLimitSeconds ?? 15;
       const elapsed = Math.min(limit, Math.max(1, Math.round((Date.now() - questionStartTimeRef.current) / 1000)));
       questionTimesRef.current[qIndex] = Math.min(limit, (questionTimesRef.current[qIndex] || 0) + elapsed);
       questionStartTimeRef.current = Date.now();
@@ -284,11 +284,11 @@ export const QuizPage: React.FC = () => {
   const isNearDeadline =
     timerState.isValid && !timerState.isExpired && timerState.totalMs <= 5 * 60 * 1000;
 
-  // Per-Question countdown timer setting: defaults to 30s if not customized by admin
+  // Per-Question countdown timer setting: defaults to 15s if not customized by admin
   const questionTimeLimit =
     currentQuestion?.timeLimitSeconds ??
     activeCompetition?.perQuestionTimerSeconds ??
-    30;
+    15;
 
   const [questionSecondsLeft, setQuestionSecondsLeft] = useState<number>(questionTimeLimit);
 
@@ -588,7 +588,7 @@ export const QuizPage: React.FC = () => {
       const currIdx = quizSession.currentQuestionIndex;
       const totalQ = questions.length;
       const currQ = questions[currIdx];
-      const currLimit = activeCompetition?.perQuestionTimerSeconds ?? currQ?.timeLimitSeconds ?? 30;
+      const currLimit = activeCompetition?.perQuestionTimerSeconds ?? currQ?.timeLimitSeconds ?? 15;
       questionTimesRef.current[currIdx] = currLimit;
       questionStartTimeRef.current = Date.now();
 
@@ -640,7 +640,7 @@ export const QuizPage: React.FC = () => {
         setCurrentQuestionIndex(0);
         questionStartTimeRef.current = Date.now();
         questionTimesRef.current = {};
-        const firstLimit = activeCompetition?.perQuestionTimerSeconds ?? questions[0]?.timeLimitSeconds ?? 30;
+        const firstLimit = activeCompetition?.perQuestionTimerSeconds ?? questions[0]?.timeLimitSeconds ?? 15;
         setQuestionSecondsLeft(firstLimit);
         addToast(
           'Quiz Commenced',

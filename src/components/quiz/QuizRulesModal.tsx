@@ -133,7 +133,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
                   2. Strict Forward-Only
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                  Questions are strictly sequential. Once submitted or when the 30s timer expires, you <strong className="text-[#F0F3F7]">cannot go back</strong> to previous questions.
+                  Questions are strictly sequential. Once submitted or when the 15s timer expires, you <strong className="text-[#F0F3F7]">cannot go back</strong> to previous questions.
                 </p>
               </div>
             </div>

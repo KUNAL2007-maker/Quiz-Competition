@@ -337,7 +337,7 @@ export const AdminPage: React.FC = () => {
           prompt: item.prompt,
           options: item.options,
           correctOptionId: item.correctOptionId,
-          timeLimitSeconds: item.timeLimitSeconds || 30,
+          timeLimitSeconds: item.timeLimitSeconds || 15,
         });
       }
       addToast(
