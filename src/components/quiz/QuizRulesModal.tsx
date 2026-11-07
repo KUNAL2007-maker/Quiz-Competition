@@ -49,11 +49,11 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
         {/* Header Bar */}
         <div className="flex items-start justify-between gap-4 border-b border-[#252D38] pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 text-[#B6FF3B] shrink-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#FFB800]/40 bg-[#FFB800]/10 text-[#FFB800] shrink-0">
               <AlertTriangle className="h-6 w-6" />
             </div>
             <div>
-              <span className="font-mono text-[10px] sm:text-[11px] font-bold tracking-wider text-[#B6FF3B] uppercase block">
+              <span className="font-mono text-[10px] sm:text-[11px] font-bold tracking-wider text-[#929DAC] uppercase block">
                 CRITICAL OPERATIONAL RULES & CODE OF CONDUCT
               </span>
               <h2
@@ -69,26 +69,26 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
             type="button"
             onClick={onCancel}
             aria-label="Close rules dialog"
-            className="rounded-md border border-[#252D38] bg-[#111722] p-1.5 text-[#929DAC] hover:text-[#B6FF3B] hover:border-[#B6FF3B]/40 cursor-pointer shrink-0 transition-colors"
+            className="rounded-md border border-[#252D38] bg-[#111722] p-1.5 text-[#929DAC] hover:text-[#F0F3F7] hover:border-[#3A4656] cursor-pointer shrink-0 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Target Tournament Badge */}
-        <div className="mt-4 rounded-lg border border-[#B6FF3B]/30 bg-[#B6FF3B]/5 p-3 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
+        <div className="mt-4 rounded-lg border border-[#252D38] bg-[#111722] p-3 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
           <span className="text-[#929DAC]">Target Tournament:</span>
-          <span className="font-semibold text-[#B6FF3B]">
+          <span className="font-semibold text-[#F0F3F7]">
             {competition?.title || 'Cyber Quiz 2026'}
           </span>
         </div>
 
         {/* Admin Test Controls */}
         {isAdmin && (
-          <div className="mt-3 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="mt-3 rounded-lg border border-[#FFB800]/40 bg-[#FFB800]/10 p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <ShieldAlert className="h-4 w-4 text-[#B6FF3B] shrink-0" />
-              <span className="font-mono text-xs font-bold text-[#B6FF3B]">
+              <ShieldAlert className="h-4 w-4 text-[#FFB800] shrink-0" />
+              <span className="font-mono text-xs font-bold text-[#FFB800]">
                 ADMIN TEST MODE · UNRESTRICTED ACCESS
               </span>
             </div>
@@ -96,7 +96,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
               <button
                 type="button"
                 onClick={onResetAdminSession}
-                className="inline-flex items-center gap-1.5 rounded-md border border-[#B6FF3B]/50 bg-[#07090D] px-3 py-1 font-mono text-xs font-semibold text-[#B6FF3B] hover:bg-[#B6FF3B]/20 cursor-pointer shadow-sm transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-md border border-[#252D38] bg-[#07090D] px-3 py-1 font-mono text-xs font-semibold text-[#929DAC] hover:bg-[#111722] hover:text-[#F0F3F7] cursor-pointer shadow-sm transition-colors"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>Reset Everything (Clean Attempt)</span>
@@ -105,31 +105,31 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
           </div>
         )}
 
-        {/* Scrollable Rules Cards Grid (All Unified in Tactical Green) */}
+        {/* Scrollable Rules Cards Grid */}
         <div className="mt-4 space-y-3 max-h-[50vh] overflow-y-auto pr-1">
           {/* Rule 1: Tab-Switching Violation & Strike Policy */}
-          <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#B6FF3B]/50 transition-colors p-4 flex items-start gap-3.5">
-            <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/40 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
+          <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#3A4656] transition-colors p-4 flex items-start gap-3.5">
+            <div className="mt-0.5 rounded-lg border border-[#FFB800]/40 bg-[#FFB800]/10 p-2 text-[#FFB800] shrink-0">
               <ShieldAlert className="h-5 w-5" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-mono text-xs font-bold uppercase text-[#B6FF3B] tracking-wide">
+              <h3 className="font-mono text-xs font-bold uppercase text-[#F0F3F7] tracking-wide">
                 1. Tab-Switching Violation & Strike System (Max 2 Warnings)
               </h3>
               <p className="text-xs text-[#929DAC] leading-relaxed">
-                Leaving the exam window, switching tabs, minimizing the browser, or opening secondary applications will immediately trigger a proctoring infraction. You are allowed a maximum of <strong className="text-[#F0F3F7]">2 warnings</strong>. A 3rd infraction (&gt; 2 warnings) will <strong className="text-[#B6FF3B]">IMMEDIATELY TERMINATE YOUR EXAM ON THE SPOT and record your score as ZERO (0 PTS)</strong> on the official leaderboard.
+                Leaving the exam window, switching tabs, minimizing the browser, or opening secondary applications will immediately trigger a proctoring infraction. You are allowed a maximum of <strong className="text-[#F0F3F7]">2 warnings</strong>. A 3rd infraction (&gt; 2 warnings) will <strong className="text-[#FF365B]">IMMEDIATELY TERMINATE YOUR EXAM ON THE SPOT and record your score as ZERO (0 PTS)</strong> on the official leaderboard.
               </p>
             </div>
           </div>
 
           {/* Rule 2 & 3: Forward Progression & Timer */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#B6FF3B]/40 transition-colors p-3.5 flex items-start gap-3">
-              <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/30 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#3A4656] transition-colors p-3.5 flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg border border-[#252D38] bg-[#111722] p-2 text-[#929DAC] shrink-0">
                 <Lock className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#B6FF3B]">
+                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
                   2. Strict Forward-Only
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -138,12 +138,12 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
               </div>
             </div>
 
-            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#B6FF3B]/40 transition-colors p-3.5 flex items-start gap-3">
-              <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/30 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#3A4656] transition-colors p-3.5 flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg border border-[#252D38] bg-[#111722] p-2 text-[#929DAC] shrink-0">
                 <Hourglass className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#B6FF3B]">
+                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
                   3. {perQuestionSec}s Per Question
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -155,12 +155,12 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
 
           {/* Rule 4 & 5: Anti-Copy & Zero AI */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#B6FF3B]/40 transition-colors p-3.5 flex items-start gap-3">
-              <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/30 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#3A4656] transition-colors p-3.5 flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg border border-[#252D38] bg-[#111722] p-2 text-[#929DAC] shrink-0">
                 <AlertTriangle className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#B6FF3B]">
+                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
                   4. Anti-Copy & Screenshot Block
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -169,12 +169,12 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
               </div>
             </div>
 
-            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#B6FF3B]/40 transition-colors p-3.5 flex items-start gap-3">
-              <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/30 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
+            <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#3A4656] transition-colors p-3.5 flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg border border-[#252D38] bg-[#111722] p-2 text-[#929DAC] shrink-0">
                 <Bot className="h-4 w-4" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-mono text-xs font-semibold text-[#B6FF3B]">
+                <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
                   5. Zero AI Assistance
                 </h4>
                 <p className="text-[11px] text-[#929DAC] leading-relaxed">
@@ -185,16 +185,16 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
           </div>
 
           {/* Rule 6: Strictly One Attempt Per Email */}
-          <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#B6FF3B]/40 transition-colors p-3.5 flex items-start gap-3">
-            <div className="mt-0.5 rounded-lg border border-[#B6FF3B]/30 bg-[#B6FF3B]/10 p-2 text-[#B6FF3B] shrink-0">
+          <div className="rounded-xl border border-[#252D38] bg-[#111722]/80 hover:border-[#3A4656] transition-colors p-3.5 flex items-start gap-3">
+            <div className="mt-0.5 rounded-lg border border-[#252D38] bg-[#111722] p-2 text-[#929DAC] shrink-0">
               <Clock className="h-4 w-4" />
             </div>
             <div className="space-y-1">
-              <h4 className="font-mono text-xs font-semibold text-[#B6FF3B]">
+              <h4 className="font-mono text-xs font-semibold text-[#F0F3F7]">
                 6. Strictly One Attempt Per Email
               </h4>
               <p className="text-[11px] text-[#929DAC] leading-relaxed">
-                You are granted only <strong className="text-[#B6FF3B]">ONE attempt per registered email address</strong>. Questions and answer choices are uniquely randomized per candidate to prevent sharing. Once started, refreshing or leaving locks your score permanently on the leaderboard.
+                You are granted only <strong className="text-[#F0F3F7]">ONE attempt per registered email address</strong>. Questions and answer choices are uniquely randomized per candidate to prevent sharing. Once started, refreshing or leaving locks your score permanently on the leaderboard.
               </p>
             </div>
           </div>
@@ -202,7 +202,7 @@ export const QuizRulesModal: React.FC<QuizRulesModalProps> = ({
 
         {/* Mandatory Agreement Checkbox */}
         <div className="mt-4 border-t border-[#252D38] pt-4">
-          <label className="flex items-start gap-3 rounded-xl border border-[#252D38] bg-[#07090D] p-3.5 cursor-pointer hover:border-[#B6FF3B]/60 transition-colors">
+          <label className="flex items-start gap-3 rounded-xl border border-[#252D38] bg-[#07090D] p-3.5 cursor-pointer hover:border-[#3A4656] transition-colors">
             <input
               type="checkbox"
               id="rules-checkbox"
