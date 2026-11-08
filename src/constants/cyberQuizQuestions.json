@@ -901,188 +901,128 @@
   },
   {
     "index": 30,
-    "prompt": "What should you do if you receive an OTP you did not request?",
-    "category": "Easy (Q31–36)",
+    "prompt": "Which attack tricks users into revealing sensitive information through fake websites or emails?",
+    "category": "Easy (Q31–34)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
       {
         "id": "opt_a",
         "label": "A",
-        "text": "Share it with the person who asked for it"
+        "text": "Phishing"
       },
       {
         "id": "opt_b",
         "label": "B",
-        "text": "Use it quickly before it expires"
+        "text": "Spoofing"
       },
       {
         "id": "opt_c",
         "label": "C",
-        "text": "Ignore it and never share it"
+        "text": "Sniffing"
       },
       {
         "id": "opt_d",
         "label": "D",
-        "text": "Post it in a group chat to ask what it is"
-      }
-    ],
-    "correctOptionId": "opt_c"
-  },
-  {
-    "index": 31,
-    "prompt": "Which of these is the safest habit on public Wi-Fi?",
-    "category": "Easy (Q31–36)",
-    "points": 100,
-    "timeLimitSeconds": 15,
-    "options": [
-      {
-        "id": "opt_a",
-        "label": "A",
-        "text": "Use a VPN and avoid sensitive logins"
-      },
-      {
-        "id": "opt_b",
-        "label": "B",
-        "text": "Log in to your bank without protection"
-      },
-      {
-        "id": "opt_c",
-        "label": "C",
-        "text": "Turn off your device firewall"
-      },
-      {
-        "id": "opt_d",
-        "label": "D",
-        "text": "Connect to any network named 'Free WiFi'"
+        "text": "Brute Force"
       }
     ],
     "correctOptionId": "opt_a"
   },
   {
-    "index": 32,
-    "prompt": "What is malware that secretly records everything you type called?",
-    "category": "Easy (Q31–36)",
+    "index": 31,
+    "prompt": "What does the principle of least privilege mean?",
+    "category": "Easy (Q31–34)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
       {
         "id": "opt_a",
         "label": "A",
-        "text": "Adware"
+        "text": "Give users administrator access"
       },
       {
         "id": "opt_b",
         "label": "B",
-        "text": "Worm"
+        "text": "Give users only the permissions they need"
       },
       {
         "id": "opt_c",
         "label": "C",
-        "text": "Spyware"
+        "text": "Disable all user accounts"
       },
       {
         "id": "opt_d",
         "label": "D",
-        "text": "Keylogger"
+        "text": "Share credentials among users"
       }
     ],
-    "correctOptionId": "opt_d"
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 32,
+    "prompt": "Which tool is commonly used for network scanning and port discovery?",
+    "category": "Easy (Q31–34)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Metasploit"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Nmap"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "John the Ripper"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Hashcat"
+      }
+    ],
+    "correctOptionId": "opt_b"
   },
   {
     "index": 33,
-    "prompt": "What does a firewall mainly do?",
-    "category": "Easy (Q31–36)",
+    "prompt": "Which security mechanism helps prevent brute-force login attempts by limiting repeated requests?",
+    "category": "Easy (Q31–34)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
       {
         "id": "opt_a",
         "label": "A",
-        "text": "Blocks unauthorised network traffic"
+        "text": "Rate Limiting"
       },
       {
         "id": "opt_b",
         "label": "B",
-        "text": "Removes viruses from files"
+        "text": "Load Balancing"
       },
       {
         "id": "opt_c",
         "label": "C",
-        "text": "Speeds up your internet"
+        "text": "Packet Filtering"
       },
       {
         "id": "opt_d",
         "label": "D",
-        "text": "Encrypts your emails"
+        "text": "Data Encryption"
       }
     ],
     "correctOptionId": "opt_a"
   },
   {
     "index": 34,
-    "prompt": "Which of these passwords is the strongest?",
-    "category": "Easy (Q31–36)",
-    "points": 100,
-    "timeLimitSeconds": 15,
-    "options": [
-      {
-        "id": "opt_a",
-        "label": "A",
-        "text": "123456"
-      },
-      {
-        "id": "opt_b",
-        "label": "B",
-        "text": "P@ssw0rd!2026#Xy"
-      },
-      {
-        "id": "opt_c",
-        "label": "C",
-        "text": "password"
-      },
-      {
-        "id": "opt_d",
-        "label": "D",
-        "text": "qwerty"
-      }
-    ],
-    "correctOptionId": "opt_b"
-  },
-  {
-    "index": 35,
-    "prompt": "What is social engineering in cyber security?",
-    "category": "Easy (Q31–36)",
-    "points": 100,
-    "timeLimitSeconds": 15,
-    "options": [
-      {
-        "id": "opt_a",
-        "label": "A",
-        "text": "Building social media apps"
-      },
-      {
-        "id": "opt_b",
-        "label": "B",
-        "text": "Writing firewall rules"
-      },
-      {
-        "id": "opt_c",
-        "label": "C",
-        "text": "Tricking people into revealing information"
-      },
-      {
-        "id": "opt_d",
-        "label": "D",
-        "text": "A type of antivirus"
-      }
-    ],
-    "correctOptionId": "opt_c"
-  },
-  {
-    "index": 36,
     "prompt": "What does the 'S' in HTTPS stand for?",
-    "category": "Medium (Q37–44)",
+    "category": "Medium (Q35–42)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1110,9 +1050,9 @@
     "correctOptionId": "opt_a"
   },
   {
-    "index": 37,
+    "index": 35,
     "prompt": "Which tool is commonly used to crack password hashes offline?",
-    "category": "Medium (Q37–44)",
+    "category": "Medium (Q35–42)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1140,9 +1080,9 @@
     "correctOptionId": "opt_c"
   },
   {
-    "index": 38,
+    "index": 36,
     "prompt": "What is the main risk of using the same password on many sites?",
-    "category": "Medium (Q37–44)",
+    "category": "Medium (Q35–42)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1170,9 +1110,9 @@
     "correctOptionId": "opt_b"
   },
   {
-    "index": 39,
+    "index": 37,
     "prompt": "Which HTTP header tells the browser to only load resources from trusted sources?",
-    "category": "Medium (Q37–44)",
+    "category": "Medium (Q35–42)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1200,9 +1140,9 @@
     "correctOptionId": "opt_b"
   },
   {
-    "index": 40,
+    "index": 38,
     "prompt": "In a brute-force attack, the attacker...?",
-    "category": "Medium (Q37–44)",
+    "category": "Medium (Q35–42)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1230,9 +1170,9 @@
     "correctOptionId": "opt_d"
   },
   {
-    "index": 41,
+    "index": 39,
     "prompt": "What is a zero-day vulnerability?",
-    "category": "Medium (Q37–44)",
+    "category": "Medium (Q35–42)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1260,9 +1200,9 @@
     "correctOptionId": "opt_a"
   },
   {
-    "index": 42,
+    "index": 40,
     "prompt": "What does encryption at rest mean?",
-    "category": "Medium (Q37–44)",
+    "category": "Medium (Q35–42)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1290,9 +1230,9 @@
     "correctOptionId": "opt_c"
   },
   {
-    "index": 43,
+    "index": 41,
     "prompt": "What is Burp Suite mainly used for?",
-    "category": "Medium (Q37–44)",
+    "category": "Medium (Q35–42)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1320,9 +1260,9 @@
     "correctOptionId": "opt_b"
   },
   {
-    "index": 44,
+    "index": 42,
     "prompt": "Which attack exploits a race condition between a check and its use?",
-    "category": "Hard (Q45–50)",
+    "category": "Hard (Q43–48)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1350,9 +1290,9 @@
     "correctOptionId": "opt_b"
   },
   {
-    "index": 45,
+    "index": 43,
     "prompt": "What does ASLR protect against?",
-    "category": "Hard (Q45–50)",
+    "category": "Hard (Q43–48)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1380,9 +1320,9 @@
     "correctOptionId": "opt_a"
   },
   {
-    "index": 46,
+    "index": 44,
     "prompt": "In OAuth 2.0, what is the authorization code used for?",
-    "category": "Hard (Q45–50)",
+    "category": "Hard (Q43–48)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1410,9 +1350,9 @@
     "correctOptionId": "opt_c"
   },
   {
-    "index": 47,
+    "index": 45,
     "prompt": "Which of these is a sign of a secure JWT implementation?",
-    "category": "Hard (Q45–50)",
+    "category": "Hard (Q43–48)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1440,9 +1380,9 @@
     "correctOptionId": "opt_b"
   },
   {
-    "index": 48,
+    "index": 46,
     "prompt": "What is a side-channel attack?",
-    "category": "Hard (Q45–50)",
+    "category": "Hard (Q43–48)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -1470,9 +1410,9 @@
     "correctOptionId": "opt_d"
   },
   {
-    "index": 49,
+    "index": 47,
     "prompt": "Which HTTP response header prevents MIME-sniffing attacks?",
-    "category": "Hard (Q45–50)",
+    "category": "Hard (Q43–48)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
