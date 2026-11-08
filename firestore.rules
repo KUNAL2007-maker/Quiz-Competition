@@ -108,7 +108,7 @@ service cloud.firestore {
 
     function isValidCompetitionResult(data) {
       return data.keys().hasAll(['ownerId', 'competitionId', 'competitionName', 'finalScore', 'createdAt']) &&
-        data.keys().hasOnly(['ownerId', 'competitionId', 'competitionName', 'finalScore', 'maxScore', 'accuracyPercent', 'timeTakenSeconds', 'correctCount', 'incorrectCount', 'createdAt']) &&
+        data.keys().hasOnly(['ownerId', 'competitionId', 'competitionName', 'finalScore', 'maxScore', 'accuracyPercent', 'timeTakenSeconds', 'correctCount', 'incorrectCount', 'unwrittenCount', 'wrongAnswerCount', 'createdAt']) &&
         data.ownerId is string && data.ownerId == request.auth.uid &&
         isValidId(data.competitionId) &&
         data.competitionName is string && data.competitionName.size() >= 2 && data.competitionName.size() <= 120 &&
@@ -118,6 +118,8 @@ service cloud.firestore {
         (!('timeTakenSeconds' in data) || (data.timeTakenSeconds is number && data.timeTakenSeconds >= 0 && data.timeTakenSeconds <= 86400)) &&
         (!('correctCount' in data) || (data.correctCount is number && data.correctCount >= 0 && data.correctCount <= 30)) &&
         (!('incorrectCount' in data) || (data.incorrectCount is number && data.incorrectCount >= 0 && data.incorrectCount <= 30)) &&
+        (!('unwrittenCount' in data) || (data.unwrittenCount is number && data.unwrittenCount >= 0 && data.unwrittenCount <= 30)) &&
+        (!('wrongAnswerCount' in data) || (data.wrongAnswerCount is number && data.wrongAnswerCount >= 0 && data.wrongAnswerCount <= 30)) &&
         data.createdAt is timestamp;
     }
 
@@ -191,14 +193,15 @@ service cloud.firestore {
         isValidLeaderboardEntry(incoming()) &&
         incoming().createdAt == request.time &&
         exists(/databases/$(database)/documents/competitions/$(incoming().competitionId));
+      // Retakes overwrite the entry with the latest score, so update must allow
+      // the owner to replace a 'Completed' entry too (not only 'In Progress').
+      // The owner + competition must match and the new entry must be valid.
       allow update: if isSignedIn() && isValidId(entryId) &&
         isValidLeaderboardEntry(incoming()) &&
         existing().ownerId == request.auth.uid &&
+        incoming().ownerId == request.auth.uid &&
         incoming().ownerId == existing().ownerId &&
-        incoming().competitionId == existing().competitionId &&
-        incoming().createdAt == existing().createdAt &&
-        existing().completionStatus == 'In Progress' &&
-        incoming().diff(existing()).affectedKeys().hasOnly(['score', 'completionStatus', 'accuracyPercent', 'completionTimeSeconds']);
+        incoming().competitionId == existing().competitionId;
       allow delete: if isAdmin() && isValidId(entryId);
     }
 
@@ -216,6 +219,8 @@ service cloud.firestore {
     // NOTE: create uses isSignedIn (not isVerifiedUser) — same reason as
     // profiles: verification emails land in spam, so requiring verification
     // blocks real students' scores. Ownership + result validation still apply.
+    // Retakes overwrite the result with the latest score, so the owner may
+    // update their own result doc (admin-only update blocked retakes).
     match /results/{resultId} {
       allow get: if isSignedIn() && isValidId(resultId) && (existing().ownerId == request.auth.uid || isAdmin());
       allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
@@ -225,7 +230,13 @@ service cloud.firestore {
         isValidCompetitionResult(incoming()) &&
         incoming().createdAt == request.time &&
         exists(/databases/$(database)/documents/competitions/$(incoming().competitionId));
-      allow update, delete: if isAdmin() && isValidId(resultId);
+      allow update: if isSignedIn() && isValidId(resultId) &&
+        existing().ownerId == request.auth.uid &&
+        incoming().ownerId == request.auth.uid &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().competitionId == existing().competitionId &&
+        isValidCompetitionResult(incoming());
+      allow delete: if isAdmin() && isValidId(resultId);
     }
   }
 }
