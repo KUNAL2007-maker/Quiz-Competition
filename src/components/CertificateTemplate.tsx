@@ -27,7 +27,7 @@ const LEFT_SIGNATURE_PATH =
  * exactly as in cert.html, with only the recipient name being dynamic.
  * No cert ID, no QR code and no date appear on the certificate itself.
  */
-export default function CertificateTemplate({ name }: { name: string }) {
+export function CertificateTemplate({ name }: { name: string }) {
   const displayName = (name || '').trim() || 'Participant';
   const [fontSize, setFontSize] = useState(72);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -363,3 +363,5 @@ export default function CertificateTemplate({ name }: { name: string }) {
     </div>
   );
 }
+
+export default CertificateTemplate;
