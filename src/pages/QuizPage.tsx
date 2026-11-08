@@ -120,16 +120,57 @@ export const QuizPage: React.FC = () => {
     );
   }, [competitions, activeCompId]);
 
+  // ORGANISER RESET (live finale, 8 Nov 2026): the questions outage (~12:03 PM)
+  // locked out / disqualified many students. Those outage-era attempts (created
+  // BEFORE the reset fix went live) get exactly ONE fresh retake. Any attempt
+  // created AFTER the cutoff is a real post-fix attempt, so the single-attempt
+  // lock and anti-cheat apply normally — no unlimited retakes, no re-entry
+  // after copying/cheating. A fresh submission overwrites the old result.
+  const RESET_CUTOFF_ISO = '2026-11-08T06:41:00.000Z'; // 12:11 PM IST
+  const isOutageEraBlock = useMemo(() => {
+    if (activeCompId !== 'comp_1793963656835') return false;
+    const cutoff = new Date(RESET_CUTOFF_ISO).getTime();
+    const resultTime = previousResult?.completedAt
+      ? new Date(previousResult.completedAt).getTime()
+      : null;
+    const lbTime = previousLeaderboardEntry?.createdAt
+      ? new Date(previousLeaderboardEntry.createdAt).getTime()
+      : null;
+    // Outage-era if the stored attempt predates the cutoff. If there is a
+    // local completion/disqualification flag but NO Firestore result at all,
+    // treat it as outage-era too (the Firestore write likely failed then).
+    if (resultTime !== null) return resultTime < cutoff;
+    if (lbTime !== null) return lbTime < cutoff;
+    if (typeof window !== 'undefined' && currentUser && activeCompId) {
+      try {
+        const uidKey = `completed_comp_${currentUser.uid}_${activeCompId}`;
+        const dqKey = `nullorigin_disqualified_${currentUser.uid}_${activeCompId}`;
+        if (
+          window.localStorage.getItem(uidKey) === 'true' ||
+          window.localStorage.getItem(dqKey)
+        ) {
+          return true;
+        }
+        if (currentUser.email) {
+          const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+          if (
+            window.localStorage.getItem(`completed_email_${cleanEmail}_${activeCompId}`) === 'true' ||
+            window.localStorage.getItem(`nullorigin_disqualified_email_${cleanEmail}_${activeCompId}`)
+          ) {
+            return true;
+          }
+        }
+      } catch {}
+    }
+    return false;
+  }, [activeCompId, previousResult, previousLeaderboardEntry, currentUser]);
+
   const hasAlreadyAttempted = useMemo(() => {
     // Practice simulations allow repeatable calibration and training
     if (isPracticeQuiz) return false;
 
-    // ORGANISER RESET (live finale, 8 Nov 2026): the questions outage locked
-    // out / disqualified many students. Allow everyone a FRESH attempt on the
-    // Cyber Quiz 2026 by ignoring prior results, leaderboard entries,
-    // completion flags and disqualifications for this competition only.
-    // A fresh submission overwrites the old 0-score result in Firestore.
-    if (activeCompId === 'comp_1793963656835') return false;
+    // One fresh retake only for outage-era blocks on the Cyber Quiz 2026.
+    if (isOutageEraBlock) return false;
 
     // 1. Check if competitor has submitted results in Firestore
     if (previousResult) return true;
@@ -162,6 +203,7 @@ export const QuizPage: React.FC = () => {
     return false;
   }, [
     isPracticeQuiz,
+    isOutageEraBlock,
     previousResult,
     previousLeaderboardEntry,
     quizSession.competitionId,
@@ -173,9 +215,9 @@ export const QuizPage: React.FC = () => {
 
   // Anti-Cheat & Tab-Switching Proctoring States (Persisted in storage so reloads cannot erase warnings)
   const [tabSwitchWarnings, setTabSwitchWarnings] = useState<number>(() => {
-    // ORGANISER RESET (live finale, 8 Nov 2026): fresh attempt on the Cyber
-    // Quiz 2026 starts with 0 tab-switch warnings, ignoring any stored count.
-    if (activeCompId === 'comp_1793963656835') {
+    // ORGANISER RESET: an outage-era block starts its one fresh retake with
+    // 0 tab-switch warnings. Post-fix attempts keep their stored count.
+    if (isOutageEraBlock) {
       try {
         window.sessionStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
         window.localStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
@@ -212,16 +254,15 @@ export const QuizPage: React.FC = () => {
         }
         // Practice quizzes are repeatable: a stale disqualification flag must
         // never block a practice retake, even for the same email/account.
-        // ORGANISER RESET (live finale, 8 Nov 2026): also ignore stale
-        // disqualification flags on the Cyber Quiz 2026 so banned students
-        // get a fresh attempt.
-        if (dqReason && !isPracticeQuiz && activeCompId !== 'comp_1793963656835') {
+        // ORGANISER RESET: ignore the flag only for an outage-era block (one
+        // fresh retake). A post-fix disqualification still blocks re-entry.
+        if (dqReason && !isPracticeQuiz && !isOutageEraBlock) {
           setIsDisqualified(true);
           setDisqualificationReason(dqReason);
         }
       } catch {}
     }
-  }, [currentUser, activeCompId, isPracticeQuiz]);
+  }, [currentUser, activeCompId, isPracticeQuiz, isOutageEraBlock]);
 
   // Active quiz session state: automatically resumes if active session already started and deadline not passed
   const [isQuizActive, setIsQuizActive] = useState<boolean>(() => {
