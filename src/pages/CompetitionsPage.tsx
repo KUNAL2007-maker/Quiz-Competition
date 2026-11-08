@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ShieldAlert, X, Clock, Play, Lock } from 'lucide-react';
+import { Search, ShieldAlert, X, Clock, Play, Lock, Trophy } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { CompetitionCard } from '../components/competition/CompetitionCard';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
@@ -28,6 +28,7 @@ export const CompetitionsPage: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [concludedModalComp, setConcludedModalComp] = useState<Competition | null>(null);
   const [upcomingModalComp, setUpcomingModalComp] = useState<Competition | null>(null);
   const [isModalUnlocked, setIsModalUnlocked] = useState(false);
 
@@ -104,23 +105,35 @@ export const CompetitionsPage: React.FC = () => {
 
   const statusTabs: Array<{ id: StatusFilter; label: string; count: number }> = useMemo(() => {
     const allCount = allDisplayCompetitions.length;
-    const upcomingCount = allDisplayCompetitions.filter(
-      (c) =>
+    const upcomingCount = allDisplayCompetitions.filter((c) => {
+      const isEnded = !c.title.toLowerCase().includes('practice') && (
+        c.status === 'completed' || (c.endTime && new Date(c.endTime).getTime() <= Date.now())
+      );
+      return (
+        !isEnded &&
         c.status === 'upcoming' &&
         (!c.startTime || new Date(c.startTime).getTime() > Date.now()) &&
         !completedCompetitionIds.has(c.id)
-    ).length;
-    const liveCount = allDisplayCompetitions.filter((c) => {
-      const isLive =
-        c.status === 'live' ||
-        (c.startTime &&
-          new Date(c.startTime).getTime() <= Date.now() &&
-          c.status !== 'completed');
-      return isLive;
+      );
     }).length;
-    const completedCount = allDisplayCompetitions.filter(
-      (c) => c.status === 'completed' || completedCompetitionIds.has(c.id)
-    ).length;
+    const liveCount = allDisplayCompetitions.filter((c) => {
+      const isEnded = !c.title.toLowerCase().includes('practice') && (
+        c.status === 'completed' || (c.endTime && new Date(c.endTime).getTime() <= Date.now())
+      );
+      return (
+        !isEnded &&
+        (c.status === 'live' ||
+          (c.startTime &&
+            new Date(c.startTime).getTime() <= Date.now() &&
+            c.status !== 'completed'))
+      );
+    }).length;
+    const completedCount = allDisplayCompetitions.filter((c) => {
+      const isEnded = !c.title.toLowerCase().includes('practice') && (
+        c.status === 'completed' || (c.endTime && new Date(c.endTime).getTime() <= Date.now())
+      );
+      return isEnded || c.status === 'completed' || completedCompetitionIds.has(c.id);
+    }).length;
 
     return [
       { id: 'all', label: 'All', count: allCount },
@@ -132,13 +145,16 @@ export const CompetitionsPage: React.FC = () => {
 
   const filteredCompetitions = useMemo(() => {
     return allDisplayCompetitions.filter((comp) => {
+      const isEnded = !comp.title.toLowerCase().includes('practice') && (
+        comp.status === 'completed' || (comp.endTime && new Date(comp.endTime).getTime() <= Date.now())
+      );
       if (statusFilter === 'completed') {
         const isCompletedByUser = completedCompetitionIds.has(comp.id);
-        const isCompletedGlobally = comp.status === 'completed';
-        if (!isCompletedByUser && !isCompletedGlobally) {
+        if (!isCompletedByUser && !isEnded && comp.status !== 'completed') {
           return false;
         }
       } else if (statusFilter === 'live') {
+        if (isEnded) return false;
         const isLive =
           comp.status === 'live' ||
           (comp.startTime &&
@@ -148,6 +164,7 @@ export const CompetitionsPage: React.FC = () => {
           return false;
         }
       } else if (statusFilter === 'upcoming') {
+        if (isEnded) return false;
         const isUpcoming =
           comp.status === 'upcoming' &&
           (!comp.startTime || new Date(comp.startTime).getTime() > Date.now()) &&
@@ -208,14 +225,29 @@ export const CompetitionsPage: React.FC = () => {
   const handleSelectCompetition = useCallback(
     (comp: Competition) => {
       const isPractice = comp.title.toLowerCase().includes('practice');
-      // 1. Strictly ONE attempt only: once completed, no second attempt is allowed!
+      const isEnded = !isPractice && (
+        comp.status === 'completed' || (comp.endTime && new Date(comp.endTime).getTime() <= Date.now())
+      );
+
+      // 1. If tournament ended, show concluded dialog or view attempt
+      if (isEnded) {
+        if (completedCompetitionIds.has(comp.id)) {
+          selectCompetition(comp);
+          navigate('/quiz');
+          return;
+        }
+        setConcludedModalComp(comp);
+        return;
+      }
+
+      // 2. Strictly ONE attempt only: once completed, no second attempt is allowed!
       if (!isPractice && completedCompetitionIds.has(comp.id)) {
         selectCompetition(comp);
         navigate('/quiz');
         return;
       }
 
-      // 2. Check if live now OR admin testing mode
+      // 3. Check if live now OR admin testing mode
       const isLive =
         isAdmin ||
         comp.status === 'live' ||
@@ -228,9 +260,11 @@ export const CompetitionsPage: React.FC = () => {
         return;
       }
 
-      // 3. If upcoming (not live), show the timer directly to the user
-      setIsModalUnlocked(false);
-      setUpcomingModalComp(comp);
+      // 4. If upcoming (strictly future start time and not ended), show countdown modal
+      if (comp.startTime && new Date(comp.startTime).getTime() > Date.now()) {
+        setIsModalUnlocked(false);
+        setUpcomingModalComp(comp);
+      }
     },
     [completedCompetitionIds, handleEnterLiveQuiz, selectCompetition, navigate, isAdmin]
   );
@@ -498,6 +532,64 @@ export const CompetitionsPage: React.FC = () => {
               </p>
             </div>
           )}
+        </div>
+      </ModalDialog>
+
+      {/* Concluded Competition Dialog */}
+      <ModalDialog
+        isOpen={Boolean(concludedModalComp)}
+        onClose={() => setConcludedModalComp(null)}
+        title={concludedModalComp?.title || 'Tournament Concluded'}
+        subtitle={"Ended: " + (concludedModalComp?.endTime ? new Date(concludedModalComp.endTime).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '5:00 PM IST')}
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <button
+              type="button"
+              onClick={() => setConcludedModalComp(null)}
+              className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-4 py-2 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setConcludedModalComp(null);
+                navigate('/leaderboard');
+              }}
+              className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-5 py-2 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-md"
+            >
+              <Trophy className="h-3.5 w-3.5" />
+              <span>View Leaderboard & Winners</span>
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4 py-4 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#a4d65e]/30 bg-[#a4d65e]/10 text-[#a4d65e] shadow-lg shadow-[#8dc63f]/5">
+            <Trophy className="h-7 w-7 text-[#8dc63f]" />
+          </div>
+          <div className="space-y-2">
+            <span className="rounded bg-[#2e2e2a] px-3 py-1 font-mono text-[11px] font-bold text-[#a4d65e] tracking-wider uppercase">
+              Tournament Concluded
+            </span>
+            <h3 className="text-xl font-display font-bold text-[#f5f5f2]">
+              {concludedModalComp?.title || 'Cyber Quiz 2026'}
+            </h3>
+            <p className="text-xs text-[#a8a8a2] leading-relaxed max-w-md mx-auto pt-1">
+              The competition window closed at{' '}
+              <span className="font-mono text-[#f5f5f2] font-semibold">
+                {concludedModalComp?.endTime
+                  ? new Date(concludedModalComp.endTime).toLocaleString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : '5:00 PM IST'}
+              </span>
+              . Test access is now locked. All verified scores, accuracy, and podium rankings are published on the live leaderboard.
+            </p>
+          </div>
         </div>
       </ModalDialog>
     </div>
