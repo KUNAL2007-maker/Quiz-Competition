@@ -4,7 +4,6 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  sendEmailVerification,
   signOut as firebaseSignOut,
   User as FirebaseUser,
 } from 'firebase/auth';
@@ -41,8 +40,6 @@ import {
   AppSettings,
   ToastMessage,
 } from '../types';
-import { applyCalibration } from '../utils/leaderboardCalibration';
-import leaderboardSeed from '../constants/leaderboardSeed.json';
 
 interface AppContextValue {
   // Auth & Backend Engine Status
@@ -181,7 +178,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => leaderboardSeed as LeaderboardEntry[]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   // Do NOT initialise results from the shared localStorage key
   // ('nullorigin_user_results'). That key is global to the browser, not
   // per-user, so a fresh signup on the same device would inherit the
@@ -286,20 +283,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const data = d.data();
           const rawStatus = (data.status as Competition['status']) || 'upcoming';
           const startMs = data.startTime ? new Date(data.startTime).getTime() : NaN;
-
-          // Extend Cyber Quiz 2026 closing deadline to 5:00 PM IST (2026-11-08T11:30:00.000Z)
-          let effectiveEndTime = data.endTime ? String(data.endTime) : undefined;
-          const isCyberQuiz =
-            d.id === 'comp_1793963656835' ||
-            String(data.title || '').toLowerCase().includes('cyber quiz 2026');
-          const EXTENDED_5PM_IST = '2026-11-08T11:30:00.000Z'; // 5:00 PM IST
-          if (isCyberQuiz) {
-            if (!effectiveEndTime || new Date(effectiveEndTime).getTime() < new Date(EXTENDED_5PM_IST).getTime()) {
-              effectiveEndTime = EXTENDED_5PM_IST;
-            }
-          }
-
-          const endMs = effectiveEndTime ? new Date(effectiveEndTime).getTime() : NaN;
+          const endMs = data.endTime ? new Date(data.endTime).getTime() : NaN;
           const isTimerDone =
             rawStatus === 'upcoming' && !Number.isNaN(startMs) && startMs <= now;
           const isPastEnd =
@@ -318,7 +302,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             description: data.description ? String(data.description) : undefined,
             status: effectiveStatus,
             startTime: data.startTime ? String(data.startTime) : undefined,
-            endTime: effectiveEndTime,
+            endTime: data.endTime ? String(data.endTime) : undefined,
             durationMinutes:
               typeof data.durationMinutes === 'number' ? data.durationMinutes : undefined,
             difficulty: data.difficulty,
@@ -389,7 +373,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Firestore returns documents in an undefined order, so the client-side
     // rank was computed over the wrong set and a perfect 3000 could show as
     // rank #38. Order by score desc so the top 100 are the actual leaders.
-    const lbQuery = query(collection(db, 'leaderboard'), where('score', '>=', 0), orderBy('score', 'desc'), limit(100));
+    const lbQuery = query(collection(db, 'leaderboard'), orderBy('score', 'desc'), limit(100));
     const unsubscribe = onSnapshot(
       lbQuery,
       (snapshot) => {
@@ -406,7 +390,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (compId === 'comp_1793963656835') {
             accuracyPercent = Math.round((score / 3000) * 100);
           }
-          const entry: LeaderboardEntry = {
+          return {
             rank: i + 1,
             participantId: d.id,
             competitionId: compId,
@@ -426,10 +410,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 : undefined,
             isCurrentUser: currentUser ? data.ownerId === currentUser.uid : false,
           };
-          return applyCalibration(entry);
         });
 
         if (rawEntries.length === 0) {
+          setLeaderboard([]);
           return;
         }
 
@@ -465,7 +449,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setLeaderboard(rawEntries.map((item, idx) => ({ ...item, rank: idx + 1 })));
       },
       (error) => {
-        console.warn('Leaderboard stream warning, preserving calibrated standing:', error.message);
+        handleFirestoreError(error, OperationType.LIST, 'leaderboard');
       }
     );
     return () => unsubscribe();
@@ -495,7 +479,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               data.isProfileComplete ||
               (data.displayName && String(data.displayName).trim().length >= 2 && data.whatsappNumber && String(data.whatsappNumber).trim().length >= 6)
             ),
-            isVerified: Boolean(currentUser.emailVerified),
+            // Every signed-in user is treated as verified directly —
+            // no email confirmation link is required (Google and
+            // email/password alike). This is what makes a new user
+            // eligible for the quiz and certificates immediately.
+            isVerified: true,
           }));
         } else {
           setProfile((prev) => ({
@@ -649,15 +637,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const signUpWithEmail = useCallback(
     async (email: string, pass: string) => {
       try {
-        const cred = await createUserWithEmailAndPassword(auth, email.trim(), pass);
-        // New accounts must verify their email: the security rules only let
-        // verified users record quiz results / leaderboard entries. Without
-        // this email, an email/password student could play the quiz but their
-        // score would be rejected. (Google sign-in is verified automatically.)
-        try {
-          await sendEmailVerification(cred.user);
-        } catch {}
-        addToast('Account Registered', 'Welcome! We sent a verification link to your email — please verify it, then complete your competitor profile.', 'success');
+        await createUserWithEmailAndPassword(auth, email.trim(), pass);
+        // No verification email is sent. Every signed-in user is treated as
+        // verified directly (Google and email/password alike), so a new
+        // student can complete their profile and take the quiz immediately
+        // with no confirmation link.
+        addToast('Account Registered', 'Welcome! Your account is ready — please complete your competitor profile.', 'success');
         return { success: true };
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Failed to create account.';
