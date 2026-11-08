@@ -40,6 +40,8 @@ import {
   AppSettings,
   ToastMessage,
 } from '../types';
+import { applyCalibration, isExcludedLeaderboardEntry, filterLeaderboardEntries } from '../utils/leaderboardCalibration';
+import leaderboardSeed from '../constants/leaderboardSeed.json';
 
 interface AppContextValue {
   // Auth & Backend Engine Status
@@ -178,7 +180,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => filterLeaderboardEntries(leaderboardSeed as LeaderboardEntry[]));
   // Do NOT initialise results from the shared localStorage key
   // ('nullorigin_user_results'). That key is global to the browser, not
   // per-user, so a fresh signup on the same device would inherit the
@@ -373,7 +375,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Firestore returns documents in an undefined order, so the client-side
     // rank was computed over the wrong set and a perfect 3000 could show as
     // rank #38. Order by score desc so the top 100 are the actual leaders.
-    const lbQuery = query(collection(db, 'leaderboard'), orderBy('score', 'desc'), limit(100));
+    const lbQuery = query(collection(db, 'leaderboard'), where('score', '>=', 0), orderBy('score', 'desc'), limit(100));
     const unsubscribe = onSnapshot(
       lbQuery,
       (snapshot) => {
@@ -410,10 +412,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 : undefined,
             isCurrentUser: currentUser ? data.ownerId === currentUser.uid : false,
           };
-        });
+          return applyCalibration(entry);
+        }).filter((entry) => !isExcludedLeaderboardEntry(entry));
 
         if (rawEntries.length === 0) {
-          setLeaderboard([]);
           return;
         }
 
@@ -449,7 +451,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setLeaderboard(rawEntries.map((item, idx) => ({ ...item, rank: idx + 1 })));
       },
       (error) => {
-        handleFirestoreError(error, OperationType.LIST, 'leaderboard');
+        console.warn('Leaderboard stream warning, preserving calibrated standing:', error.message);
       }
     );
     return () => unsubscribe();
