@@ -180,22 +180,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [results, setResults] = useState<CompetitionResult[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved =
-          window.localStorage.getItem('nullorigin_user_results') ||
-          window.localStorage.getItem('aegis_cipher_user_results');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) return parsed;
-        }
-      } catch {
-        // Ignore storage read errors
-      }
-    }
-    return [];
-  });
+  // Do NOT initialise results from the shared localStorage key
+  // ('nullorigin_user_results'). That key is global to the browser, not
+  // per-user, so a fresh signup on the same device would inherit the
+  // PREVIOUS user's results — a brand-new account would wrongly show
+  // "already taken the quiz with zero points". The Firestore listener
+  // (scoped by ownerId == currentUser.uid) is the only source of truth
+  // and populates this correctly for the signed-in user.
+  const [results, setResults] = useState<CompetitionResult[]>([]);
   const [activities] = useState<ActivityRecord[]>([]);
 
   const [targetStartTime, setTargetStartTime] = useState<string | null>(() => {
