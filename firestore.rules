@@ -157,14 +157,18 @@ service cloud.firestore {
     }
 
     // Operator Profiles (Restricted: only the user or admin can read)
+    // NOTE: profile create/update use isSignedIn (not isVerifiedUser) because
+    // Firebase verification emails land in spam, blocking real students from
+    // saving their Full Legal Name and entering the quiz. Ownership + field
+    // validation still apply; only the owner can write their own profile.
     match /profiles/{userId} {
       allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
       allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
-      allow create: if isVerifiedUser() && isValidId(userId) &&
+      allow create: if isSignedIn() && isValidId(userId) &&
         isValidOperatorProfile(incoming(), userId) &&
         incoming().createdAt == request.time &&
         incoming().updatedAt == request.time;
-      allow update: if isVerifiedUser() && isValidId(userId) &&
+      allow update: if isSignedIn() && isValidId(userId) &&
         isValidOperatorProfile(incoming(), userId) &&
         existing().ownerId == request.auth.uid &&
         incoming().ownerId == existing().ownerId &&
@@ -175,16 +179,19 @@ service cloud.firestore {
     }
 
     // Public Leaderboard Standings (Free of PII like WhatsApp and Email)
+    // NOTE: create/update use isSignedIn (not isVerifiedUser) — same reason as
+    // profiles: verification emails land in spam, so requiring verification
+    // blocks real students' scores. Ownership + entry validation still apply.
     match /leaderboard/{entryId} {
       allow get: if isValidId(entryId) && existing().score >= 0;
       allow list: if existing().score >= 0;
-      allow create: if isVerifiedUser() && isValidId(entryId) &&
+      allow create: if isSignedIn() && isValidId(entryId) &&
         entryId == request.auth.uid + '_' + incoming().competitionId &&
         !exists(/databases/$(database)/documents/leaderboard/$(entryId)) &&
         isValidLeaderboardEntry(incoming()) &&
         incoming().createdAt == request.time &&
         exists(/databases/$(database)/documents/competitions/$(incoming().competitionId));
-      allow update: if isVerifiedUser() && isValidId(entryId) &&
+      allow update: if isSignedIn() && isValidId(entryId) &&
         isValidLeaderboardEntry(incoming()) &&
         existing().ownerId == request.auth.uid &&
         incoming().ownerId == existing().ownerId &&
@@ -198,7 +205,7 @@ service cloud.firestore {
     // Winner Contacts (Strictly admin-accessible for prize fulfillment)
     match /winner_contacts/{entryId} {
       allow get, list: if isAdmin();
-      allow create: if isVerifiedUser() && isValidId(entryId) &&
+      allow create: if isSignedIn() && isValidId(entryId) &&
         isValidWinnerContact(incoming()) &&
         incoming().createdAt == request.time &&
         exists(/databases/$(database)/documents/competitions/$(incoming().competitionId));
@@ -206,10 +213,13 @@ service cloud.firestore {
     }
 
     // Private Operator Results (Strictly scoped to ownerId)
+    // NOTE: create uses isSignedIn (not isVerifiedUser) — same reason as
+    // profiles: verification emails land in spam, so requiring verification
+    // blocks real students' scores. Ownership + result validation still apply.
     match /results/{resultId} {
       allow get: if isSignedIn() && isValidId(resultId) && (existing().ownerId == request.auth.uid || isAdmin());
       allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
-      allow create: if isVerifiedUser() && isValidId(resultId) &&
+      allow create: if isSignedIn() && isValidId(resultId) &&
         resultId == request.auth.uid + '_' + incoming().competitionId &&
         !exists(/databases/$(database)/documents/results/$(resultId)) &&
         isValidCompetitionResult(incoming()) &&

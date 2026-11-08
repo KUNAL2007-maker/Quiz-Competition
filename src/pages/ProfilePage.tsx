@@ -130,7 +130,7 @@ export const ProfilePage: React.FC = () => {
       return;
     }
 
-    await updateProfile({
+    const saved = await updateProfile({
       displayName: trimmedName,
       username: username.trim() || `user_${(currentUser?.uid || 'opr').slice(0, 8)}`,
       whatsappNumber: whatsappNumber.trim(),
@@ -139,7 +139,13 @@ export const ProfilePage: React.FC = () => {
       isProfileComplete: true,
     });
 
-    setIsEditing(false);
+    // Only close the editor when the save actually persisted. If it failed
+    // (e.g. a Firestore permission error), keep the editor open so the
+    // student sees the error instead of thinking it saved and then finding
+    // the name reverted on refresh.
+    if (saved) {
+      setIsEditing(false);
+    }
   };
 
   // Find user's standing for completed quizzes, synthesizing local records if Firestore sync is pending

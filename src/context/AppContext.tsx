@@ -81,7 +81,7 @@ interface AppContextValue {
 
   // Operator Profile
   profile: OperatorProfile;
-  updateProfile: (updated: Partial<OperatorProfile>) => Promise<void>;
+  updateProfile: (updated: Partial<OperatorProfile>) => Promise<boolean>;
 
   // Settings
   settings: AppSettings;
@@ -1318,7 +1318,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [selectedCompetition, quizSession.competitionId, resetQuizSession, currentUser, addToast]);
 
   const updateProfile = useCallback(
-    async (updated: Partial<OperatorProfile>) => {
+    async (updated: Partial<OperatorProfile>): Promise<boolean> => {
       const merged = {
         ...profile,
         ...updated,
@@ -1343,14 +1343,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               Object.values(valResult.errors || {}).join(' '),
               'alert'
             );
-            return;
+            return false;
           }
         }
       } catch {
         // Fallback to local state if offline
       }
-
-      setProfile(merged);
 
       if (currentUser && merged.displayName.trim().length >= 2 && merged.username.trim().length >= 3) {
         const profilePath = `profiles/${currentUser.uid}`;
@@ -1384,22 +1382,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               updatedAt: serverTimestamp(),
             });
           }
+          // Only update local state AFTER the Firestore write succeeds, so a
+          // failed save never looks saved and then reverts on refresh.
+          setProfile(merged);
           addToast(
             'Operator Profile Synced to Firestore',
             'Validated by Python engine and saved to Firebase Firestore.',
             'success'
           );
-          return;
+          return true;
         } catch (error) {
           handleFirestoreError(error, OperationType.WRITE, profilePath);
+          return false;
         }
       }
 
+      // No signed-in user or name too short: keep it local only.
+      setProfile(merged);
       addToast(
         'Operator Profile Updated',
         'Validated by Python engine and stored in session state. Sign in with Google to persist to Firestore.',
         'success'
       );
+      return true;
     },
     [profile, currentUser, addToast]
   );
