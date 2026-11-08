@@ -132,7 +132,7 @@ export function CertificateTemplate({ name }: { name: string }) {
             position: 'absolute',
             left: 0,
             right: 0,
-            top: 238,
+            top: 222,
             textAlign: 'center',
           }}
         >
@@ -159,7 +159,7 @@ export function CertificateTemplate({ name }: { name: string }) {
             position: 'absolute',
             left: 0,
             right: 0,
-            top: 314,
+            top: 300,
             textAlign: 'center',
           }}
         >
@@ -184,7 +184,7 @@ export function CertificateTemplate({ name }: { name: string }) {
             position: 'absolute',
             left: 0,
             right: 0,
-            top: 372,
+            top: 358,
             textAlign: 'center',
           }}
         >
@@ -212,7 +212,7 @@ export function CertificateTemplate({ name }: { name: string }) {
             position: 'absolute',
             left: 230,
             right: 230,
-            top: 476,
+            top: 460,
             textAlign: 'center',
           }}
         >
