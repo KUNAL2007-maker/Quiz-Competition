@@ -1,128 +1,38 @@
 [
   {
     "index": 0,
-    "prompt": "Which of these is a sign of a phishing email?",
-    "category": "Easy (Q1–10)",
+    "prompt": "Which port is commonly used by HTTPS?",
+    "category": "Medium (Q1–10)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
       {
         "id": "opt_a",
         "label": "A",
-        "text": "Sender address matches the company exactly"
+        "text": "21"
       },
       {
         "id": "opt_b",
         "label": "B",
-        "text": "Urgent threat + suspicious link"
+        "text": "80"
       },
       {
         "id": "opt_c",
         "label": "C",
-        "text": "Proper grammar"
+        "text": "443"
       },
       {
         "id": "opt_d",
         "label": "D",
-        "text": "Personalised greeting"
+        "text": "25"
       }
     ],
-    "correctOptionId": "opt_b"
+    "correctOptionId": "opt_c"
   },
   {
     "index": 1,
-    "prompt": "What does HTTPS protect against?",
-    "category": "Easy (Q1–10)",
-    "points": 100,
-    "timeLimitSeconds": 15,
-    "options": [
-      {
-        "id": "opt_a",
-        "label": "A",
-        "text": "Phishing"
-      },
-      {
-        "id": "opt_b",
-        "label": "B",
-        "text": "Eavesdropping on the connection"
-      },
-      {
-        "id": "opt_c",
-        "label": "C",
-        "text": "Weak passwords"
-      },
-      {
-        "id": "opt_d",
-        "label": "D",
-        "text": "Malware downloads"
-      }
-    ],
-    "correctOptionId": "opt_b"
-  },
-  {
-    "index": 2,
-    "prompt": "Which of these should you never share online?",
-    "category": "Easy (Q1–10)",
-    "points": 100,
-    "timeLimitSeconds": 15,
-    "options": [
-      {
-        "id": "opt_a",
-        "label": "A",
-        "text": "Your favourite movie"
-      },
-      {
-        "id": "opt_b",
-        "label": "B",
-        "text": "Your OTP"
-      },
-      {
-        "id": "opt_c",
-        "label": "C",
-        "text": "Your city"
-      },
-      {
-        "id": "opt_d",
-        "label": "D",
-        "text": "Your hobby"
-      }
-    ],
-    "correctOptionId": "opt_b"
-  },
-  {
-    "index": 3,
-    "prompt": "What is the safest way to verify a suspicious bank message?",
-    "category": "Easy (Q1–10)",
-    "points": 100,
-    "timeLimitSeconds": 15,
-    "options": [
-      {
-        "id": "opt_a",
-        "label": "A",
-        "text": "Click the link in it"
-      },
-      {
-        "id": "opt_b",
-        "label": "B",
-        "text": "Call the bank's official number"
-      },
-      {
-        "id": "opt_c",
-        "label": "C",
-        "text": "Reply to the message"
-      },
-      {
-        "id": "opt_d",
-        "label": "D",
-        "text": "Forward it to friends"
-      }
-    ],
-    "correctOptionId": "opt_b"
-  },
-  {
-    "index": 4,
-    "prompt": "Which attack floods a server with traffic until it crashes?",
-    "category": "Easy (Q1–10)",
+    "prompt": "Which attack floods a server with excessive traffic?",
+    "category": "Medium (Q1–10)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
@@ -139,165 +49,255 @@
       {
         "id": "opt_c",
         "label": "C",
-        "text": "SQL injection"
+        "text": "Spoofing"
       },
       {
         "id": "opt_d",
         "label": "D",
-        "text": "Spoofing"
+        "text": "Sniffing"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 2,
+    "prompt": "What does XSS stand for?",
+    "category": "Medium (Q1–10)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Cross-Site Scripting"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "External Security System"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Cross Server Security"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Extended Site Scanning"
+      }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 3,
+    "prompt": "Which protocol securely transfers files over SSH?",
+    "category": "Medium (Q1–10)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "FTP"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "HTTP"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "SFTP"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "SMTP"
+      }
+    ],
+    "correctOptionId": "opt_c"
+  },
+  {
+    "index": 4,
+    "prompt": "Which tool is commonly used for network packet analysis?",
+    "category": "Medium (Q1–10)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Nmap"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Wireshark"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Metasploit"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "John the Ripper"
       }
     ],
     "correctOptionId": "opt_b"
   },
   {
     "index": 5,
-    "prompt": "A strong password should be...",
-    "category": "Easy (Q1–10)",
+    "prompt": "Which encryption algorithm uses a 256-bit key?",
+    "category": "Medium (Q1–10)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
       {
         "id": "opt_a",
         "label": "A",
-        "text": "Your birthdate"
+        "text": "DES"
       },
       {
         "id": "opt_b",
         "label": "B",
-        "text": "Long, random and unique"
+        "text": "AES-256"
       },
       {
         "id": "opt_c",
         "label": "C",
-        "text": "Same everywhere"
+        "text": "MD5"
       },
       {
         "id": "opt_d",
         "label": "D",
-        "text": "Short and easy"
+        "text": "SHA-1"
       }
     ],
     "correctOptionId": "opt_b"
   },
   {
     "index": 6,
-    "prompt": "What does antivirus software mainly do?",
-    "category": "Easy (Q1–10)",
+    "prompt": "What is the default port of SSH?",
+    "category": "Medium (Q1–10)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
       {
         "id": "opt_a",
         "label": "A",
-        "text": "Speed up your PC"
+        "text": "22"
       },
       {
         "id": "opt_b",
         "label": "B",
-        "text": "Detect and remove malware"
+        "text": "23"
       },
       {
         "id": "opt_c",
         "label": "C",
-        "text": "Block ads"
+        "text": "53"
       },
       {
         "id": "opt_d",
         "label": "D",
-        "text": "Encrypt files"
+        "text": "110"
       }
     ],
-    "correctOptionId": "opt_b"
+    "correctOptionId": "opt_a"
   },
   {
     "index": 7,
-    "prompt": "Which of these is a type of malware that demands money?",
-    "category": "Easy (Q1–10)",
+    "prompt": "Which attack exploits unsanitized database queries?",
+    "category": "Medium (Q1–10)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
       {
         "id": "opt_a",
         "label": "A",
-        "text": "Spyware"
+        "text": "CSRF"
       },
       {
         "id": "opt_b",
         "label": "B",
-        "text": "Ransomware"
+        "text": "SQL Injection"
       },
       {
         "id": "opt_c",
         "label": "C",
-        "text": "Adware"
+        "text": "DDoS"
       },
       {
         "id": "opt_d",
         "label": "D",
-        "text": "Rootkit"
+        "text": "ARP Spoofing"
       }
     ],
     "correctOptionId": "opt_b"
   },
   {
     "index": 8,
-    "prompt": "What is two-factor authentication (2FA)?",
-    "category": "Easy (Q1–10)",
+    "prompt": "What does CVE stand for?",
+    "category": "Medium (Q1–10)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
       {
         "id": "opt_a",
         "label": "A",
-        "text": "Two passwords"
+        "text": "Common Vulnerabilities and Exposures"
       },
       {
         "id": "opt_b",
         "label": "B",
-        "text": "Password + a second proof like OTP"
+        "text": "Cyber Verification Engine"
       },
       {
         "id": "opt_c",
         "label": "C",
-        "text": "Two usernames"
+        "text": "Common Virus Evaluation"
       },
       {
         "id": "opt_d",
         "label": "D",
-        "text": "Two devices"
+        "text": "Critical Vulnerability Encryption"
       }
     ],
-    "correctOptionId": "opt_b"
+    "correctOptionId": "opt_a"
   },
   {
     "index": 9,
-    "prompt": "Which port does HTTPS use by default?",
-    "category": "Easy (Q1–10)",
+    "prompt": "Which Linux command displays active network connections?",
+    "category": "Medium (Q1–10)",
     "points": 100,
     "timeLimitSeconds": 15,
     "options": [
       {
         "id": "opt_a",
         "label": "A",
-        "text": "80"
+        "text": "ls"
       },
       {
         "id": "opt_b",
         "label": "B",
-        "text": "443"
+        "text": "pwd"
       },
       {
         "id": "opt_c",
         "label": "C",
-        "text": "22"
+        "text": "ss"
       },
       {
         "id": "opt_d",
         "label": "D",
-        "text": "21"
+        "text": "mkdir"
       }
     ],
-    "correctOptionId": "opt_b"
+    "correctOptionId": "opt_c"
   },
   {
     "index": 10,
