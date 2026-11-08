@@ -172,13 +172,13 @@ service cloud.firestore {
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time &&
         incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'username', 'biography', 'avatarPreset', 'whatsappNumber', 'email', 'avatarUrl', 'isProfileComplete', 'updatedAt']);
-      allow delete: if isAdmin() && isValidId(userId);
+      allow delete: if isAdmin() && isValidId(entryId);
     }
 
     // Public Leaderboard Standings (Free of PII like WhatsApp and Email)
     match /leaderboard/{entryId} {
-      allow get: if isValidId(entryId) && existing().score >= 0;
-      allow list: if existing().score >= 0;
+      allow get: if isValidId(entryId);
+      allow list: if true;
       allow create: if isVerifiedUser() && isValidId(entryId) &&
         entryId == request.auth.uid + '_' + incoming().competitionId &&
         !exists(/databases/$(database)/documents/leaderboard/$(entryId)) &&
