@@ -392,7 +392,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (compId === 'comp_1793963656835') {
             accuracyPercent = Math.round((score / 3000) * 100);
           }
-          return {
+          const entry: LeaderboardEntry = {
             rank: i + 1,
             participantId: d.id,
             competitionId: compId,
