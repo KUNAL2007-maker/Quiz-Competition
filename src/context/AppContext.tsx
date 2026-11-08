@@ -28,6 +28,7 @@ import {
   handleFirestoreError,
   OperationType,
 } from '../lib/firebase';
+import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
 import {
   Competition,
   QuizQuestion,
@@ -354,7 +355,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           };
         });
         loaded.sort((a, b) => a.index - b.index);
-        setQuestions(loaded);
+        // Fallback: if Firestore has no questions for the live Cyber Quiz 2026,
+        // use the bundled 50-question bank so scoring (which reads this same
+        // list) does not compute over zero questions and return 0 marks.
+        if (loaded.length === 0 && selectedCompetition?.id === 'comp_1793963656835') {
+          const fallback: QuizQuestion[] = (
+            cyberQuizQuestions as unknown as QuizQuestion[]
+          ).map((q, i) => ({ ...q, id: q.id || `json_${q.index ?? i}` }));
+          setQuestions(fallback);
+        } else {
+          setQuestions(loaded);
+        }
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, qPath);

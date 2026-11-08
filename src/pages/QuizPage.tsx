@@ -126,6 +126,9 @@ export const QuizPage: React.FC = () => {
   // created AFTER the cutoff is a real post-fix attempt, so the single-attempt
   // lock and anti-cheat apply normally — no unlimited retakes, no re-entry
   // after copying/cheating. A fresh submission overwrites the old result.
+  // ALSO: a 0-score result with no correct answers and NO disqualification flag
+  // is the scoring-bug case (correct answers scored 0) — those students also
+  // get one fresh retake, so the bug does not cost them the quiz.
   const RESET_CUTOFF_ISO = '2026-11-08T06:41:00.000Z'; // 12:11 PM IST
   const isOutageEraBlock = useMemo(() => {
     if (activeCompId !== 'comp_1793963656835') return false;
@@ -136,6 +139,26 @@ export const QuizPage: React.FC = () => {
     const lbTime = previousLeaderboardEntry?.createdAt
       ? new Date(previousLeaderboardEntry.createdAt).getTime()
       : null;
+    // Scoring-bug retake: 0 marks with nothing correct and no DQ flag means
+    // the submit scored over an empty question list. Grant one fresh retake.
+    const hasDqFlag = (() => {
+      try {
+        if (window.localStorage.getItem(`nullorigin_disqualified_${currentUser?.uid}_${activeCompId}`)) return true;
+        if (currentUser?.email) {
+          const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+          if (window.localStorage.getItem(`nullorigin_disqualified_email_${cleanEmail}_${activeCompId}`)) return true;
+        }
+      } catch {}
+      return false;
+    })();
+    if (
+      previousResult &&
+      previousResult.finalScore === 0 &&
+      (previousResult.correctCount === 0 || previousResult.correctCount === undefined) &&
+      !hasDqFlag
+    ) {
+      return true;
+    }
     // Outage-era if the stored attempt predates the cutoff. If there is a
     // local completion/disqualification flag but NO Firestore result at all,
     // treat it as outage-era too (the Firestore write likely failed then).
