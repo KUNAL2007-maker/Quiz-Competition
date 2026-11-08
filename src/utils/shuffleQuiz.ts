@@ -46,11 +46,13 @@ export function difficultyOf(q: QuizQuestion): Difficulty {
 
 /**
  * Stratified pick: every candidate gets the SAME difficulty mix, so no one
- * draws an all-easy or all-hard paper by luck. Counts are proportional to
- * the bank composition (Easy 6 / Medium 30 / Hard 14 of 50) for a 30-question
- * paper: Easy 4, Medium 18, Hard 8. Each bucket is shuffled with the seeded
- * PRNG, so which specific questions each candidate gets still differs.
+ * draws an all-easy or all-hard paper by luck. Fixed mix set by the organiser
+ * for a 30-question paper: Easy 4, Medium 16, Hard 10. Each bucket is shuffled
+ * with the seeded PRNG, so which specific questions each candidate gets still
+ * differs. Counts are capped by availability in the bank.
  */
+export const FIXED_MIX: Record<Difficulty, number> = { easy: 4, medium: 16, hard: 10 };
+
 export function stratifiedCounts(
   bank: QuizQuestion[],
   maxQuestions: number
@@ -58,14 +60,14 @@ export function stratifiedCounts(
   const counts: Record<Difficulty, number> = { easy: 0, medium: 0, hard: 0 };
   for (const q of bank) counts[difficultyOf(q)]++;
 
-  const total = bank.length;
-  const target: Record<Difficulty, number> = { easy: 0, medium: 0, hard: 0 };
-  let assigned = 0;
-  (['easy', 'medium', 'hard'] as Difficulty[]).forEach((d) => {
-    target[d] = Math.min(counts[d], Math.round((maxQuestions * counts[d]) / total));
-    assigned += target[d];
-  });
-  // Fix rounding so the three buckets sum to exactly maxQuestions.
+  const target: Record<Difficulty, number> = {
+    easy: Math.min(FIXED_MIX.easy, counts.easy),
+    medium: Math.min(FIXED_MIX.medium, counts.medium),
+    hard: Math.min(FIXED_MIX.hard, counts.hard),
+  };
+  let assigned = target.easy + target.medium + target.hard;
+  // Safety: if caps ever leave us short of (or over) maxQuestions, fill/trim
+  // from buckets with spare questions so the three buckets sum to exactly maxQuestions.
   const order: Difficulty[] = ['medium', 'hard', 'easy'];
   let i = 0;
   while (assigned < maxQuestions) {
@@ -92,7 +94,7 @@ export function stratifiedCounts(
 /**
  * Shuffles questions AND options deterministically per user session.
  * - Every candidate gets a different question set, but the SAME difficulty mix
- *   (stratified: e.g. 4 Easy + 18 Medium + 8 Hard for a 30-question paper).
+ *   (stratified: 4 Easy + 16 Medium + 10 Hard for a 30-question paper).
  * - Every question gets a different option sequence.
  * - Preserves option IDs and correctOptionId for 100% accurate scoring.
  */
