@@ -385,10 +385,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const rawEntries: LeaderboardEntry[] = snapshot.docs.map((d, i) => {
           const data = d.data();
           const compIdFromId = d.id.includes('_') ? d.id.split('_').slice(1).join('_') : undefined;
+          const compId = data.competitionId ? String(data.competitionId) : compIdFromId;
+          const score = Number(data.score || 0);
+          // Correct stored accuracy that was computed on the 50-question bank:
+          // for the Cyber Quiz 2026 the paper is 30 questions (3000 max), so
+          // accuracy is score/3000. The score itself was already correct.
+          let accuracyPercent =
+            typeof data.accuracyPercent === 'number' ? data.accuracyPercent : undefined;
+          if (compId === 'comp_1793963656835') {
+            accuracyPercent = Math.round((score / 3000) * 100);
+          }
           return {
             rank: i + 1,
             participantId: d.id,
-            competitionId: data.competitionId ? String(data.competitionId) : compIdFromId,
+            competitionId: compId,
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : (typeof data.createdAt === 'string' ? data.createdAt : null),
             category: data.category ? String(data.category) : undefined,
             displayName: String(data.displayName || 'Operator'),
@@ -396,10 +406,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             whatsappNumber: data.whatsappNumber ? String(data.whatsappNumber) : undefined,
             email: data.email ? String(data.email) : undefined,
             avatarUrl: data.avatarUrl ? String(data.avatarUrl) : undefined,
-            score: Number(data.score || 0),
+            score,
             completionStatus: data.completionStatus || 'Completed',
-            accuracyPercent:
-              typeof data.accuracyPercent === 'number' ? data.accuracyPercent : undefined,
+            accuracyPercent,
             completionTimeSeconds:
               typeof data.completionTimeSeconds === 'number'
                 ? data.completionTimeSeconds
@@ -502,26 +511,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       (snap) => {
         const items: CompetitionResult[] = snap.docs.map((d) => {
           const data = d.data();
+          const compId = String(data.competitionId || '');
+          const finalScore = Number(data.finalScore || 0);
+          const correctCount =
+            typeof data.correctCount === 'number' ? data.correctCount : undefined;
+          const wrongAnswerCount =
+            typeof data.wrongAnswerCount === 'number' ? data.wrongAnswerCount : undefined;
+          // Correct stored scores that were computed on the 50-question bank:
+          // the paper is 30 questions, so maxScore is 3000 and accuracy is
+          // correct/30. Recompute from correctCount/wrongAnswerCount (source
+          // of truth) for the Cyber Quiz 2026 so every previous result shows
+          // the right numbers.
+          let maxScore = typeof data.maxScore === 'number' ? data.maxScore : undefined;
+          let accuracyPercent =
+            typeof data.accuracyPercent === 'number' ? data.accuracyPercent : undefined;
+          let incorrectCount =
+            typeof data.incorrectCount === 'number' ? data.incorrectCount : undefined;
+          let unwrittenCount =
+            typeof data.unwrittenCount === 'number' ? data.unwrittenCount : undefined;
+          if (compId === 'comp_1793963656835' && correctCount !== undefined) {
+            const wrong = wrongAnswerCount ?? 0;
+            maxScore = 3000;
+            accuracyPercent = Math.round((correctCount / 30) * 100);
+            unwrittenCount = Math.max(0, 30 - correctCount - wrong);
+            incorrectCount = 30 - correctCount;
+          }
           return {
             id: d.id,
-            competitionId: String(data.competitionId || ''),
+            competitionId: compId,
             competitionName: String(data.competitionName || ''),
             completedAt:
               data.createdAt?.toDate?.()?.toISOString?.() || new Date().toISOString(),
-            finalScore: Number(data.finalScore || 0),
-            maxScore: typeof data.maxScore === 'number' ? data.maxScore : undefined,
-            accuracyPercent:
-              typeof data.accuracyPercent === 'number' ? data.accuracyPercent : undefined,
+            finalScore,
+            maxScore,
+            accuracyPercent,
             timeTakenSeconds:
               typeof data.timeTakenSeconds === 'number' ? data.timeTakenSeconds : undefined,
-            correctCount:
-              typeof data.correctCount === 'number' ? data.correctCount : undefined,
-            incorrectCount:
-              typeof data.incorrectCount === 'number' ? data.incorrectCount : undefined,
-            unwrittenCount:
-              typeof data.unwrittenCount === 'number' ? data.unwrittenCount : undefined,
-            wrongAnswerCount:
-              typeof data.wrongAnswerCount === 'number' ? data.wrongAnswerCount : undefined,
+            correctCount,
+            incorrectCount,
+            unwrittenCount,
+            wrongAnswerCount,
           };
         });
         setResults((prev) => {
