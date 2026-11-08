@@ -20,6 +20,8 @@ import { useAppContext } from '../context/AppContext';
 import { calculateCountdown, calculateQuizProgress, formatPad } from '../utils/timerLogic';
 import { QuestionPalette } from '../components/quiz/QuestionPalette';
 import { getShuffledQuiz } from '../utils/shuffleQuiz';
+import { QuizQuestion } from '../types';
+import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 import { CompetitorProfileModal } from '../components/profile/CompetitorProfileModal';
 import { QuizRulesModal } from '../components/quiz/QuizRulesModal';
@@ -67,10 +69,25 @@ export const QuizPage: React.FC = () => {
 
   // Deterministic question and option shuffling per candidate session (prevents answer-sharing)
   const questions = useMemo(() => {
-    if (!currentUser || !rawQuestions || rawQuestions.length === 0) return rawQuestions || [];
+    // Fallback: if Firestore has no questions for the live Cyber Quiz 2026
+    // (questions subcollection empty), use the bundled 50-question bank so
+    // the live finale is not blocked. Scoped to the Cyber Quiz only; the
+    // Practice quiz keeps using Firestore. JSON items get a stable id so
+    // per-question option shuffling stays distinct.
+    const CYBER_QUIZ_ID = 'comp_1793963656835';
+    const fallbackBank: QuizQuestion[] =
+      activeCompId === CYBER_QUIZ_ID
+        ? (cyberQuizQuestions as unknown as QuizQuestion[]).map((q, i) => ({
+            ...q,
+            id: q.id || `json_${q.index ?? i}`,
+          }))
+        : [];
+    const bank: QuizQuestion[] =
+      rawQuestions && rawQuestions.length > 0 ? rawQuestions : fallbackBank;
+    if (!currentUser || !bank || bank.length === 0) return bank || [];
     const seed = `${currentUser.email || currentUser.uid}_${activeCompId}`;
     // Bank holds 50 questions; each candidate gets a random 30 (seeded per candidate, stable across reloads)
-    return getShuffledQuiz(rawQuestions, seed, 30);
+    return getShuffledQuiz(bank, seed, 30);
   }, [rawQuestions, currentUser, activeCompId]);
 
 
