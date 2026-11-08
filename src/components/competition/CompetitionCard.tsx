@@ -134,9 +134,20 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
       <div className="mt-6 border-t border-[#2e2e2a] pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3.5 font-mono text-xs text-[#a8a8a2]">
           {competition.startTime && (
-            <span className="inline-flex items-center gap-1.5" title={`Scheduled: ${new Date(competition.startTime).toLocaleString()}`}>
+            <span className="inline-flex items-center gap-1.5" title={`Starts: ${new Date(competition.startTime).toLocaleString()}`}>
               <Clock className="h-3.5 w-3.5 text-[#a8a8a2]" aria-hidden="true" />
               {new Date(competition.startTime).toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+          )}
+          {competition.endTime && (
+            <span className="inline-flex items-center gap-1.5" title={`Ends: ${new Date(competition.endTime).toLocaleString()}`}>
+              <Clock className="h-3.5 w-3.5 text-[#FF365B]" aria-hidden="true" />
+              Ends {new Date(competition.endTime).toLocaleString(undefined, {
                 month: 'short',
                 day: 'numeric',
                 hour: '2-digit',

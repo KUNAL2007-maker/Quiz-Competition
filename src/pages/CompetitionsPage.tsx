@@ -399,6 +399,16 @@ export const CompetitionsPage: React.FC = () => {
                 minute: '2-digit',
               })
             : 'Pending Start Time'
+        }${
+          upcomingModalComp?.endTime
+            ? `  •  Ends: ${new Date(upcomingModalComp.endTime).toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}`
+            : ''
         }`}
         footer={
           <div className="flex items-center justify-between w-full">
