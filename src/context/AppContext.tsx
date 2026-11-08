@@ -18,6 +18,7 @@ import {
   onSnapshot,
   query,
   where,
+  orderBy,
   limit,
   serverTimestamp,
 } from 'firebase/firestore';
@@ -377,8 +378,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Real-time Firestore listener for Leaderboard + Python Ranking Engine sorting
   useEffect(() => {
     if (!isAuthReady) return;
-    // Bound query to top 100 entries to strictly cap read quota under 300+ concurrent operators
-    const lbQuery = query(collection(db, 'leaderboard'), where('score', '>=', 0), limit(100));
+    // Fetch the true top 100 by score (not an arbitrary 100): without orderBy,
+    // Firestore returns documents in an undefined order, so the client-side
+    // rank was computed over the wrong set and a perfect 3000 could show as
+    // rank #38. Order by score desc so the top 100 are the actual leaders.
+    const lbQuery = query(collection(db, 'leaderboard'), orderBy('score', 'desc'), limit(100));
     const unsubscribe = onSnapshot(
       lbQuery,
       (snapshot) => {
