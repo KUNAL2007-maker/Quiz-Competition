@@ -184,7 +184,7 @@ export function CertificateTemplate({ name }: { name: string }) {
             position: 'absolute',
             left: 0,
             right: 0,
-            top: 358,
+            top: 342,
             textAlign: 'center',
           }}
         >
