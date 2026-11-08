@@ -145,7 +145,7 @@ export const QuizPage: React.FC = () => {
     // student who retakes on the cached build still scores 0 (the old
     // AppContext scored over an empty question list). Sunidhi Singh is the
     // proof: she retook after the fix and still got 0%. The quiz closes at
-    // 2:00 PM IST, which bounds how many retakes anyone can take. Cheaters
+    // 5:00 PM IST, which bounds how many retakes anyone can take. Cheaters
     // (DQ flag) never get a retake.
     const hasDqFlag = (() => {
       try {

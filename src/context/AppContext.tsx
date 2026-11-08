@@ -286,7 +286,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const data = d.data();
           const rawStatus = (data.status as Competition['status']) || 'upcoming';
           const startMs = data.startTime ? new Date(data.startTime).getTime() : NaN;
-          const endMs = data.endTime ? new Date(data.endTime).getTime() : NaN;
+
+          // Extend Cyber Quiz 2026 closing deadline to 5:00 PM IST (2026-11-08T11:30:00.000Z)
+          let effectiveEndTime = data.endTime ? String(data.endTime) : undefined;
+          const isCyberQuiz =
+            d.id === 'comp_1793963656835' ||
+            String(data.title || '').toLowerCase().includes('cyber quiz 2026');
+          const EXTENDED_5PM_IST = '2026-11-08T11:30:00.000Z'; // 5:00 PM IST
+          if (isCyberQuiz) {
+            if (!effectiveEndTime || new Date(effectiveEndTime).getTime() < new Date(EXTENDED_5PM_IST).getTime()) {
+              effectiveEndTime = EXTENDED_5PM_IST;
+            }
+          }
+
+          const endMs = effectiveEndTime ? new Date(effectiveEndTime).getTime() : NaN;
           const isTimerDone =
             rawStatus === 'upcoming' && !Number.isNaN(startMs) && startMs <= now;
           const isPastEnd =
@@ -305,7 +318,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             description: data.description ? String(data.description) : undefined,
             status: effectiveStatus,
             startTime: data.startTime ? String(data.startTime) : undefined,
-            endTime: data.endTime ? String(data.endTime) : undefined,
+            endTime: effectiveEndTime,
             durationMinutes:
               typeof data.durationMinutes === 'number' ? data.durationMinutes : undefined,
             difficulty: data.difficulty,
