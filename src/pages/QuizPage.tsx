@@ -139,11 +139,14 @@ export const QuizPage: React.FC = () => {
     const lbTime = previousLeaderboardEntry?.createdAt
       ? new Date(previousLeaderboardEntry.createdAt).getTime()
       : null;
-    // Low-score retake: 0% or 3% accuracy with no DQ flag, from BEFORE the
-    // scoring fix went live. These are scoring-bug victims (correct answers
-    // scored 0 / almost 0). Only pre-fix results qualify, so a low score
-    // AFTER the fix is legitimate and does NOT grant another retake.
-    const SCORING_FIX_ISO = '2026-11-08T06:57:00.000Z'; // 12:27 PM IST
+    // Low-score retake: 0% or 3% accuracy with no DQ flag gets a fresh
+    // attempt, REGARDLESS of when the result was created. The scoring fix
+    // went live at 12:27 PM IST, but browsers cache the old bundle, so a
+    // student who retakes on the cached build still scores 0 (the old
+    // AppContext scored over an empty question list). Sunidhi Singh is the
+    // proof: she retook after the fix and still got 0%. The quiz closes at
+    // 2:00 PM IST, which bounds how many retakes anyone can take. Cheaters
+    // (DQ flag) never get a retake.
     const hasDqFlag = (() => {
       try {
         if (window.localStorage.getItem(`nullorigin_disqualified_${currentUser?.uid}_${activeCompId}`)) return true;
@@ -156,8 +159,6 @@ export const QuizPage: React.FC = () => {
     })();
     if (
       previousResult &&
-      resultTime !== null &&
-      resultTime < new Date(SCORING_FIX_ISO).getTime() &&
       (previousResult.accuracyPercent ?? 100) <= 3 &&
       !hasDqFlag
     ) {
