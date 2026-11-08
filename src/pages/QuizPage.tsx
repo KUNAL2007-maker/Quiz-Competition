@@ -333,7 +333,9 @@ export const QuizPage: React.FC = () => {
       }
       totalCompletionTimeSec = Math.max(1, totalCompletionTimeSec);
 
-      await submitQuizSession(totalCompletionTimeSec);
+      // Pass the 30 shuffled questions actually shown, so scoring (maxScore,
+      // accuracy) is computed on the paper, not the 50-question bank.
+      await submitQuizSession(totalCompletionTimeSec, questions);
       navigate('/profile');
     } catch (err) {
       addToast(
@@ -346,7 +348,7 @@ export const QuizPage: React.FC = () => {
     isSubmitting,
     quizSession.isSubmitted,
     quizSession.currentQuestionIndex,
-    questions.length,
+    questions,
     recordQuestionTime,
     submitQuizSession,
     navigate,

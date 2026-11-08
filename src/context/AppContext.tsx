@@ -74,7 +74,7 @@ interface AppContextValue {
   selectQuizAnswer: (questionId: string, optionId: string) => void;
   toggleMarkForReview: (questionId: string) => void;
   setCurrentQuestionIndex: (index: number) => void;
-  submitQuizSession: (customTimeTakenSec?: number) => Promise<void>;
+  submitQuizSession: (customTimeTakenSec?: number, questionsToScore?: QuizQuestion[]) => Promise<void>;
   submitDisqualifiedQuizSession: (reason?: string) => Promise<void>;
   resetAdminTestSession: () => Promise<void>;
   resetQuizSession: () => void;
@@ -847,7 +847,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   }, []);
 
-  const submitQuizSession = useCallback(async (customTimeTakenSec?: number) => {
+  const submitQuizSession = useCallback(async (customTimeTakenSec?: number, questionsToScore?: QuizQuestion[]) => {
     if (quizSession.isSubmitted || isSubmitting) {
       return;
     }
@@ -866,6 +866,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           ? Math.min(86400, Math.round(customTimeTakenSec))
           : Math.max(1, Math.min(86400, Math.floor((now - estStart) / 1000)));
 
+      // Score ONLY the questions the student was actually shown (the 30-question
+      // paper), not the full 50-question bank. The caller (QuizPage) passes its
+      // shuffled 30; fall back to the context bank only if none is passed.
+      const scoringQuestions =
+        questionsToScore && questionsToScore.length > 0 ? questionsToScore : questions;
+
       // Evaluate submission through the Python backend logic engine
       let evaluated = {
         finalScore: 0,
@@ -882,7 +888,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            questions,
+            questions: scoringQuestions,
             selectedAnswers: quizSession.selectedAnswers,
             markedForReview: quizSession.markedForReview,
             timeTakenSeconds: timeTakenSec,
@@ -898,7 +904,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         let correct = 0;
         let wrongAnswers = 0;
         let unwritten = 0;
-        for (const q of questions) {
+        for (const q of scoringQuestions) {
           const pts = typeof q.points === 'number' ? q.points : 100;
           totalPossible += pts;
           const chosen = quizSession.selectedAnswers[q.id];
@@ -917,7 +923,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         evaluated = {
           finalScore: earned,
           maxScore: totalPossible,
-          accuracyPercent: questions.length > 0 ? Math.round((correct / questions.length) * 100) : 0,
+          accuracyPercent: scoringQuestions.length > 0 ? Math.round((correct / scoringQuestions.length) * 100) : 0,
           correctCount: correct,
           incorrectCount: wrongAnswers + unwritten,
           unwrittenCount: unwritten,
@@ -1089,7 +1095,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const activeCompId = selectedCompetition?.id || quizSession.competitionId;
         const activeCompTitle =
           selectedCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Quiz Competition';
-        const totalQ = questions.length || 30;
+        // Score out of the 30-question paper, not the 50-question bank.
+        const totalQ = selectedCompetition?.quizFormat?.totalQuestions || 30;
 
         if (currentUser && activeCompId) {
           const resultId = `${currentUser.uid}_${activeCompId}`;
