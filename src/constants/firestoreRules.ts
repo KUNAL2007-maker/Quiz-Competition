@@ -193,7 +193,7 @@ service cloud.firestore {
         incoming().createdAt == existing().createdAt &&
         existing().completionStatus == 'In Progress' &&
         incoming().diff(existing()).affectedKeys().hasOnly(['score', 'completionStatus', 'accuracyPercent', 'completionTimeSeconds']);
-      allow delete: if isAdmin() && isValidId(entryId);
+      allow delete: if isAdmin() && isValidId(userId);
     }
 
     // Winner Contacts (Strictly admin-accessible for prize fulfillment)

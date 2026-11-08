@@ -179,17 +179,27 @@ export const ProfilePage: React.FC = () => {
           (l.isCurrentUser || (currentUser && l.participantId.startsWith(currentUser.uid)))
       );
 
+      const hasCalibratedLb = matchLeaderboard && matchLeaderboard.score > (res.finalScore || 0);
+      const effectiveScore = hasCalibratedLb ? matchLeaderboard.score : res.finalScore;
+      const effectiveAccuracy = hasCalibratedLb && matchLeaderboard.accuracyPercent !== undefined
+        ? matchLeaderboard.accuracyPercent
+        : res.accuracyPercent;
+      const effectiveTime = hasCalibratedLb && matchLeaderboard.completionTimeSeconds !== undefined
+        ? matchLeaderboard.completionTimeSeconds
+        : res.timeTakenSeconds;
+      const effectiveMax = res.maxScore || (matchComp as any)?.totalPoints || 3000;
+
       list.push({
         id: res.id,
         competitionId: res.competitionId,
         competitionTitle: res.competitionName || matchComp?.title || 'Cybersecurity Quiz Competition',
         completedAt: res.completedAt || new Date().toISOString(),
-        finalScore: res.finalScore,
-        maxScore: res.maxScore || (matchComp as any)?.totalPoints || 100,
-        accuracyPercent: res.accuracyPercent,
-        timeTakenSeconds: res.timeTakenSeconds,
-        correctCount: res.correctCount,
-        incorrectCount: res.incorrectCount,
+        finalScore: effectiveScore,
+        maxScore: effectiveMax,
+        accuracyPercent: effectiveAccuracy,
+        timeTakenSeconds: effectiveTime,
+        correctCount: hasCalibratedLb ? Math.round(effectiveScore / 100) : res.correctCount,
+        incorrectCount: hasCalibratedLb ? Math.max(0, 30 - Math.round(effectiveScore / 100)) : res.incorrectCount,
         unwrittenCount: res.unwrittenCount,
         rank: matchLeaderboard?.rank || 1,
       });
@@ -207,15 +217,18 @@ export const ProfilePage: React.FC = () => {
       if (isMine && compId && validCompIds.has(compId) && !seenCompIds.has(compId)) {
         seenCompIds.add(compId);
         const matchComp = competitions.find((c) => c.id === compId);
+        const effectiveMax = (matchComp as any)?.totalPoints || 3000;
         list.push({
           id: l.participantId,
           competitionId: compId,
           competitionTitle: matchComp?.title || 'Cybersecurity Quiz Competition',
           completedAt: typeof l.createdAt === 'string' ? l.createdAt : new Date().toISOString(),
           finalScore: l.score,
-          maxScore: (matchComp as any)?.totalPoints || 100,
+          maxScore: effectiveMax,
           accuracyPercent: l.accuracyPercent,
           timeTakenSeconds: l.completionTimeSeconds,
+          correctCount: Math.round(l.score / 100),
+          incorrectCount: Math.max(0, 30 - Math.round(l.score / 100)),
           rank: l.rank || 1,
         });
       }

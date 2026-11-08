@@ -30,10 +30,16 @@ export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const finalScore = result?.finalScore ?? leaderboardEntry?.score ?? 0;
-  const maxScore = result?.maxScore;
-  const accuracy = result?.accuracyPercent ?? leaderboardEntry?.accuracyPercent;
-  const timeTakenSec = result?.timeTakenSeconds ?? leaderboardEntry?.completionTimeSeconds;
+  const lbScore = leaderboardEntry?.score ?? 0;
+  const hasCalibratedLb = lbScore > (result?.finalScore || 0);
+  const finalScore = hasCalibratedLb ? lbScore : (result?.finalScore ?? lbScore);
+  const maxScore = result?.maxScore || 3000;
+  const accuracy = hasCalibratedLb && leaderboardEntry?.accuracyPercent !== undefined
+    ? leaderboardEntry.accuracyPercent
+    : (result?.accuracyPercent ?? leaderboardEntry?.accuracyPercent);
+  const timeTakenSec = hasCalibratedLb && leaderboardEntry?.completionTimeSeconds !== undefined
+    ? leaderboardEntry.completionTimeSeconds
+    : (result?.timeTakenSeconds ?? leaderboardEntry?.completionTimeSeconds);
 
   return (
     <div className="mx-auto max-w-xl py-8 space-y-6">

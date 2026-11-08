@@ -196,13 +196,13 @@ service cloud.firestore {
       // Retakes overwrite the entry with the latest score, so update must allow
       // the owner to replace a 'Completed' entry too (not only 'In Progress').
       // The owner + competition must match and the new entry must be valid.
-      allow update: if isSignedIn() && isValidId(entryId) &&
+      allow update: if (isSignedIn() && isValidId(entryId) &&
         isValidLeaderboardEntry(incoming()) &&
         existing().ownerId == request.auth.uid &&
         incoming().ownerId == request.auth.uid &&
         incoming().ownerId == existing().ownerId &&
-        incoming().competitionId == existing().competitionId;
-      allow delete: if isAdmin() && isValidId(entryId);
+        incoming().competitionId == existing().competitionId) || (isAdmin() && isValidId(entryId));
+      allow delete: if isAdmin() && isValidId(userId);
     }
 
     // Winner Contacts (Strictly admin-accessible for prize fulfillment)

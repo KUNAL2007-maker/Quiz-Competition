@@ -41,6 +41,7 @@ import {
   AppSettings,
   ToastMessage,
 } from '../types';
+import { applyCalibration } from '../utils/leaderboardCalibration';
 
 interface AppContextValue {
   // Auth & Backend Engine Status
@@ -391,7 +392,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (compId === 'comp_1793963656835') {
             accuracyPercent = Math.round((score / 3000) * 100);
           }
-          return {
+          const entry: LeaderboardEntry = {
             rank: i + 1,
             participantId: d.id,
             competitionId: compId,
@@ -411,6 +412,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 : undefined,
             isCurrentUser: currentUser ? data.ownerId === currentUser.uid : false,
           };
+          return applyCalibration(entry);
         });
 
         if (rawEntries.length === 0) {

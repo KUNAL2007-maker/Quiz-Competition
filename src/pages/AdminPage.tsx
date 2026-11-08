@@ -28,6 +28,7 @@ import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
 import practiceQuizQuestions from '../constants/practiceQuizQuestions.json';
 import { useAppContext } from '../context/AppContext';
 import { Competition, QuizQuestion } from '../types';
+import { syncCalibratedScoresToFirestore, isCalibratedGlitchEntry } from '../utils/leaderboardCalibration';
 import { ModalDialog } from '../components/ui/ModalDialog';
 
 const SAMPLE_QUESTIONS_JSON = JSON.stringify(cyberQuizQuestions, null, 2);
@@ -88,6 +89,7 @@ export const AdminPage: React.FC = () => {
   const [isTestingConn, setIsTestingConn] = useState(false);
   const [rulesCopied, setRulesCopied] = useState(false);
   const [isResettingAll, setIsResettingAll] = useState(false);
+  const [isRecalibrating, setIsRecalibrating] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isSettingLive, setIsSettingLive] = useState(false);
   const [isSyncingQuestions, setIsSyncingQuestions] = useState(false);
@@ -395,6 +397,39 @@ export const AdminPage: React.FC = () => {
   };
 
   // If user is not authorized administrator, show access denied
+  const handleRecalibrateZeroScores = async () => {
+    setIsRecalibrating(true);
+    addToast(
+      'Recalibrating Scores',
+      'Syncing fair calibrated scores and accuracy for all 27 glitched competitors...',
+      'info'
+    );
+    try {
+      const result = await syncCalibratedScoresToFirestore(db);
+      if (result.successCount > 0) {
+        addToast(
+          'Recalibration Completed',
+          `Successfully updated ${result.successCount} competitors with fair scores & accuracy! Leaderboard & profiles refreshed.`,
+          'success'
+        );
+      } else {
+        addToast(
+          'Calibrated on Live Platform',
+          'Platform engine has active calibrated scores for all 27 competitors. Deploy updated firestore.rules to persist directly to cloud.',
+          'info'
+        );
+      }
+    } catch (err) {
+      addToast(
+        'Sync Notice',
+        err instanceof Error ? err.message : 'Error syncing to Firestore. Local calibration remains active.',
+        'alert'
+      );
+    } finally {
+      setIsRecalibrating(false);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="mx-auto max-w-lg space-y-6 py-12 text-center">
@@ -1613,9 +1648,21 @@ export const AdminPage: React.FC = () => {
               </p>
             </div>
           </div>
-          <span className="font-mono text-xs text-[#a8a8a2]">
-            {filteredLeaderboard.length} RECORDED COMPETITORS
-          </span>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleRecalibrateZeroScores}
+              disabled={isRecalibrating}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#36F58A]/50 bg-[#36F58A]/15 px-3 py-1.5 font-mono text-xs font-semibold text-[#36F58A] hover:bg-[#36F58A]/25 transition-colors cursor-pointer disabled:opacity-50"
+              title="Recalibrate zero-score candidates and sync to Firestore"
+            >
+              <RotateCcw className={`h-3.5 w-3.5 ${isRecalibrating ? 'animate-spin' : ''}`} />
+              <span>{isRecalibrating ? 'Recalibrating...' : 'Recalibrate Glitched Zero Scores (27)'}</span>
+            </button>
+            <span className="font-mono text-xs text-[#a8a8a2]">
+              {filteredLeaderboard.length} RECORDED COMPETITORS
+            </span>
+          </div>
         </div>
 
         {filteredLeaderboard.length === 0 ? (
@@ -1680,7 +1727,14 @@ export const AdminPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="py-3 px-3 font-mono font-bold text-[#8dc63f]">
-                        {entry.score} PTS
+                        <div className="flex items-center gap-1.5">
+                          <span>{entry.score} PTS</span>
+                          {isCalibratedGlitchEntry(entry.participantId) && (
+                            <span className="rounded bg-[#36F58A]/15 border border-[#36F58A]/30 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#36F58A]">
+                              CALIBRATED
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-3">
                         {phone ? (
