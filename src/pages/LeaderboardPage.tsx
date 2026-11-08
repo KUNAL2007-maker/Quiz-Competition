@@ -4,6 +4,7 @@ import { Trophy, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 import { formatDurationSeconds } from '../utils/timerLogic';
+import { isExcludedLeaderboardEntry } from '../utils/leaderboardCalibration';
 
 export const LeaderboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export const LeaderboardPage: React.FC = () => {
     const cyberCompId = cyberQuizComp?.id;
     return leaderboard
       .filter((entry) => {
+        if (isExcludedLeaderboardEntry(entry)) return false;
         const entryCompId =
           entry.competitionId ||
           (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');

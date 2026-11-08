@@ -40,6 +40,8 @@ import {
   AppSettings,
   ToastMessage,
 } from '../types';
+import { applyCalibration, isExcludedLeaderboardEntry, filterLeaderboardEntries } from '../utils/leaderboardCalibration';
+import leaderboardSeed from '../constants/leaderboardSeed.json';
 
 interface AppContextValue {
   // Auth & Backend Engine Status
@@ -178,7 +180,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => filterLeaderboardEntries(leaderboardSeed as LeaderboardEntry[]));
   // Do NOT initialise results from the shared localStorage key
   // ('nullorigin_user_results'). That key is global to the browser, not
   // per-user, so a fresh signup on the same device would inherit the
@@ -410,7 +412,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 : undefined,
             isCurrentUser: currentUser ? data.ownerId === currentUser.uid : false,
           };
-        });
+          return applyCalibration(entry);
+        }).filter((entry) => !isExcludedLeaderboardEntry(entry));
 
         if (rawEntries.length === 0) {
           setLeaderboard([]);

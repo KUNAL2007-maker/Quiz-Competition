@@ -179,19 +179,65 @@ export const CALIBRATED_GLITCH_ENTRIES: Record<string, CalibratedEntryData> = {
     completionTimeSeconds: 322,
     note: 'Kunal (@operations) - glitched 86400s timeout',
   },
-  '2pHohP62aYfcdG8xhhSBmymwdZ02_comp_1793963656835': {
-    score: 1500,
-    accuracyPercent: 50,
-    completionTimeSeconds: 335,
-    note: 'HAFIZ 3 (@King) - glitched 86400s timeout',
-  },
-  'M2DrwgsPSPeelIoa3l8FUbkjKDn2_comp_1793963656835': {
-    score: 1400,
-    accuracyPercent: 47,
-    completionTimeSeconds: 340,
-    note: 'Hafiz Mujawar (@King) - glitched 86400s timeout',
-  },
 };
+
+/**
+ * List of known document IDs belonging to removed / purged Hafiz Mujawar entries.
+ */
+export const HAFIZ_MUJAWAR_DOC_IDS: string[] = [
+  'zYfdC7IuSaQ31WMqBgtmuDhXNFa2_comp_1793963656835',
+  '4d9RJbLx3DblgPfiyxJXSfb8eBc2_comp_1793963656835',
+  'srqFx1xegdUBGSaQ75XVpC85jR72_comp_1793963656835',
+  '2pHohP62aYfcdG8xhhSBmymwdZ02_comp_1793963656835',
+  'M2DrwgsPSPeelIoa3l8FUbkjKDn2_comp_1793963656835',
+  '9cUXv97txuUauL3I3a4nxSdGm6s2_comp_1793963656835',
+  '5bQC7IglVFMHcfH2hwMKZxrPDVC2_comp_1793963656835',
+  'DI1TWUDw4SgVftyeJ7RNLCY0S4E3_comp_1793963656835',
+];
+
+/**
+ * Detects whether a leaderboard record belongs to a removed / disqualified contestant.
+ * Specifically removes all entries under Hafiz Mujawar / HAFIZ / test operator accounts.
+ */
+export function isExcludedLeaderboardEntry(entry: {
+  participantId?: string;
+  displayName?: string;
+  username?: string;
+  email?: string;
+}): boolean {
+  if (!entry) return false;
+  const id = (entry.participantId || '').trim();
+  if (HAFIZ_MUJAWAR_DOC_IDS.includes(id)) return true;
+
+  const name = (entry.displayName || '').trim().toLowerCase();
+  const username = (entry.username || '').trim().toLowerCase();
+  const email = (entry.email || '').trim().toLowerCase();
+  const lowerId = id.toLowerCase();
+
+  return (
+    name.includes('hafiz') ||
+    name.includes('mujawar') ||
+    username.includes('hafiz') ||
+    username.includes('mujawar') ||
+    email.includes('hafiz') ||
+    email.includes('mujawar') ||
+    lowerId.startsWith('zyfdc7iusaq31wmq') ||
+    lowerId.startsWith('4d9rjblx3dblgpfi') ||
+    lowerId.startsWith('srqfx1xegdubgsaq') ||
+    lowerId.startsWith('2phohp62ayfcdg8x') ||
+    lowerId.startsWith('m2drwgspspeelioa') ||
+    lowerId.startsWith('9cuxv97txuuau') ||
+    lowerId.startsWith('5bqc7iglvfmhcf') ||
+    lowerId.startsWith('di1twudw4sgvftye')
+  );
+}
+
+/**
+ * Filters out all purged or disqualified contestant entries from a list.
+ */
+export function filterLeaderboardEntries(entries: LeaderboardEntry[]): LeaderboardEntry[] {
+  return entries.filter((e) => !isExcludedLeaderboardEntry(e));
+}
 
 /**
  * Checks if a participant ID has a calibrated override.

@@ -172,7 +172,7 @@ service cloud.firestore {
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time &&
         incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'username', 'biography', 'avatarPreset', 'whatsappNumber', 'email', 'avatarUrl', 'isProfileComplete', 'updatedAt']);
-      allow delete: if isAdmin() && isValidId(entryId);
+      allow delete: if isAdmin() && isValidId(userId);
     }
 
     // Public Leaderboard Standings (Free of PII like WhatsApp and Email)
@@ -193,7 +193,7 @@ service cloud.firestore {
         incoming().createdAt == existing().createdAt &&
         existing().completionStatus == 'In Progress' &&
         incoming().diff(existing()).affectedKeys().hasOnly(['score', 'completionStatus', 'accuracyPercent', 'completionTimeSeconds']);
-      allow delete: if isAdmin() && isValidId(userId);
+      allow delete: if isAdmin() && isValidId(entryId);
     }
 
     // Winner Contacts (Strictly admin-accessible for prize fulfillment)

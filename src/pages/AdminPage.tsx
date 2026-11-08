@@ -28,7 +28,7 @@ import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
 import practiceQuizQuestions from '../constants/practiceQuizQuestions.json';
 import { useAppContext } from '../context/AppContext';
 import { Competition, QuizQuestion } from '../types';
-import { syncCalibratedScoresToFirestore, isCalibratedGlitchEntry } from '../utils/leaderboardCalibration';
+import { syncCalibratedScoresToFirestore, isCalibratedGlitchEntry, isExcludedLeaderboardEntry, HAFIZ_MUJAWAR_DOC_IDS } from '../utils/leaderboardCalibration';
 import { ModalDialog } from '../components/ui/ModalDialog';
 
 const SAMPLE_QUESTIONS_JSON = JSON.stringify(cyberQuizQuestions, null, 2);
@@ -90,6 +90,43 @@ export const AdminPage: React.FC = () => {
   const [rulesCopied, setRulesCopied] = useState(false);
   const [isResettingAll, setIsResettingAll] = useState(false);
   const [isRecalibrating, setIsRecalibrating] = useState(false);
+  const [isPurgingHafiz, setIsPurgingHafiz] = useState(false);
+
+  const handlePurgeHafizEntries = async () => {
+    setIsPurgingHafiz(true);
+    addToast(
+      'Purging Entries',
+      'Removing all Hafiz Mujawar entries from database...',
+      'info'
+    );
+    try {
+      for (const id of HAFIZ_MUJAWAR_DOC_IDS) {
+        try {
+          await deleteDoc(doc(db, 'leaderboard', id));
+        } catch {
+          // ignore if already deleted
+        }
+        try {
+          await deleteDoc(doc(db, 'winner_contacts', id));
+        } catch {
+          // ignore
+        }
+      }
+      addToast(
+        'Entries Purged',
+        'Successfully removed Hafiz Mujawar entries from leaderboard directory.',
+        'success'
+      );
+    } catch (err) {
+      addToast(
+        'Notice',
+        err instanceof Error ? err.message : 'Error removing documents. Filter remains fully active.',
+        'alert'
+      );
+    } finally {
+      setIsPurgingHafiz(false);
+    }
+  };
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isSettingLive, setIsSettingLive] = useState(false);
   const [isSyncingQuestions, setIsSyncingQuestions] = useState(false);
@@ -136,6 +173,7 @@ export const AdminPage: React.FC = () => {
     const cyberCompId = cyberComp?.id;
     return leaderboard
       .filter((entry) => {
+        if (isExcludedLeaderboardEntry(entry)) return false;
         const entryCompId =
           entry.competitionId ||
           (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');
@@ -1658,6 +1696,16 @@ export const AdminPage: React.FC = () => {
             >
               <RotateCcw className={`h-3.5 w-3.5 ${isRecalibrating ? 'animate-spin' : ''}`} />
               <span>{isRecalibrating ? 'Recalibrating...' : 'Recalibrate Glitched Zero Scores (27)'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handlePurgeHafizEntries}
+              disabled={isPurgingHafiz}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#FF365B]/50 bg-[#FF365B]/15 px-3 py-1.5 font-mono text-xs font-semibold text-[#FF365B] hover:bg-[#FF365B]/25 transition-colors cursor-pointer disabled:opacity-50"
+              title="Remove all Hafiz Mujawar entries from leaderboard"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>{isPurgingHafiz ? 'Purging...' : 'Purge Hafiz Mujawar Entries'}</span>
             </button>
             <span className="font-mono text-xs text-[#a8a8a2]">
               {filteredLeaderboard.length} RECORDED COMPETITORS

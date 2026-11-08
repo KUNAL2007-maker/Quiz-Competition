@@ -4,12 +4,15 @@ import {
   CALIBRATED_GLITCH_ENTRIES,
   applyCalibration,
   isCalibratedGlitchEntry,
+  isExcludedLeaderboardEntry,
+  filterLeaderboardEntries,
+  HAFIZ_MUJAWAR_DOC_IDS,
 } from './leaderboardCalibration';
 import { LeaderboardEntry } from '../types';
 
-test('leaderboard calibration directory contains all 27 glitched student entries', () => {
+test('leaderboard calibration directory contains all 25 legitimate calibrated student entries', () => {
   const entries = Object.entries(CALIBRATED_GLITCH_ENTRIES);
-  assert.equal(entries.length, 27, 'Must have exactly 27 calibrated entries');
+  assert.equal(entries.length, 25, 'Must have exactly 25 calibrated entries after excluding Hafiz Mujawar');
 
   entries.forEach(([id, data]) => {
     assert.ok(data.score > 0, `Entry ${id} must have score > 0`);
@@ -127,4 +130,38 @@ test('full leaderboard sorting with all 62 entries eliminates all zero scores', 
       `Rank ${i + 1} score ${calibrated[i].score} must >= Rank ${i + 2} score ${calibrated[i + 1].score}`
     );
   }
+});
+
+
+test('isExcludedLeaderboardEntry identifies and purges all Hafiz Mujawar entries and IDs', () => {
+  // Test by name
+  assert.equal(isExcludedLeaderboardEntry({ displayName: 'Hafiz Mujawar' }), true);
+  assert.equal(isExcludedLeaderboardEntry({ displayName: 'HAFIZ 3' }), true);
+  assert.equal(isExcludedLeaderboardEntry({ displayName: 'hafiz' }), true);
+  assert.equal(isExcludedLeaderboardEntry({ username: 'hafiz_test' }), true);
+  assert.equal(isExcludedLeaderboardEntry({ email: 'hafizmujawar786@gmail.com' }), true);
+
+  // Test by known document IDs
+  HAFIZ_MUJAWAR_DOC_IDS.forEach((id) => {
+    assert.equal(isExcludedLeaderboardEntry({ participantId: id }), true);
+  });
+
+  // Legitimate students must NOT be excluded
+  assert.equal(isExcludedLeaderboardEntry({ displayName: 'Wren harbour', username: 'wren' }), false);
+  assert.equal(isExcludedLeaderboardEntry({ displayName: 'Keerthana K', username: 'keerthana' }), false);
+  assert.equal(isExcludedLeaderboardEntry({ displayName: 'Chayesh Kumar', username: 'chayesh' }), false);
+});
+
+test('filterLeaderboardEntries purges Hafiz entries while preserving all other competitors', () => {
+  const mixed: LeaderboardEntry[] = [
+    { rank: 1, participantId: 'p_hafiz_1', displayName: 'Hafiz Mujawar', score: 3000 },
+    { rank: 2, participantId: 'p_wren', displayName: 'Wren harbour', score: 3000 },
+    { rank: 3, participantId: 'p_keerthana', displayName: 'Keerthana K', score: 3000 },
+    { rank: 4, participantId: 'p_hafiz_2', displayName: 'HAFIZ 3', score: 1500 },
+  ];
+
+  const filtered = filterLeaderboardEntries(mixed);
+  assert.equal(filtered.length, 2);
+  assert.equal(filtered[0].displayName, 'Wren harbour');
+  assert.equal(filtered[1].displayName, 'Keerthana K');
 });
