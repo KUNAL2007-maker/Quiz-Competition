@@ -97,41 +97,18 @@ export const DashboardPage: React.FC = () => {
     <div className="space-y-8">
       {/* Main Cinematic Welcome Banner */}
       <section className="relative overflow-hidden rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-6 md:p-10">
-        {/* 3D "NULL ORIGIN" Roman Typography Element (No Border) */}
+        {/* Technical SVG Background Accent */}
         <div
-          className="pointer-events-none absolute right-0 top-0 bottom-0 w-1/2 hidden md:flex items-center justify-end pr-8 lg:pr-14 select-none"
+          className="pointer-events-none absolute right-0 top-0 bottom-0 w-1/2 opacity-15 hidden md:flex items-center justify-end pr-8"
           aria-hidden="true"
         >
-          {/* Subtle Ambient Emerald Backglow */}
-          <div className="absolute right-4 w-72 h-72 rounded-full bg-[#8dc63f]/15 blur-3xl pointer-events-none" />
-
-          {/* 3D Floating Roman Typography */}
-          <div
-            className="relative z-10 text-right font-['Playfair_Display',Georgia,serif] transform transition-transform duration-700 hover:rotate-0"
-            style={{
-              transform: 'perspective(900px) rotateX(12deg) rotateY(-14deg)',
-              transformStyle: 'preserve-3d',
-            }}
-          >
-            <div
-              className="text-5xl lg:text-6xl xl:text-7xl font-black uppercase tracking-[0.2em] text-[#f5f5f2]"
-              style={{
-                textShadow:
-                  '0 1px 0 #a4d65e, 0 2px 0 #8dc63f, 0 3px 0 #689627, 0 4px 0 #415e19, 0 5px 2px rgba(0,0,0,0.7), 0 8px 18px rgba(0,0,0,0.95), 0 0 35px rgba(141,198,63,0.5)',
-              }}
-            >
-              NULL
-            </div>
-            <div
-              className="text-4xl lg:text-5xl xl:text-6xl font-black uppercase tracking-[0.22em] text-[#8dc63f] -mt-1 lg:-mt-2"
-              style={{
-                textShadow:
-                  '0 1px 0 #a4d65e, 0 2px 0 #7ab32e, 0 3px 0 #547a20, 0 4px 0 #334914, 0 5px 2px rgba(0,0,0,0.7), 0 8px 18px rgba(0,0,0,0.95), 0 0 40px rgba(141,198,63,0.65)',
-              }}
-            >
-              ORIGIN
-            </div>
-          </div>
+          <svg className="h-64 w-64 text-[#8dc63f]" viewBox="0 0 240 240" fill="none">
+            <circle cx="120" cy="120" r="105" stroke="currentColor" strokeWidth="1" strokeDasharray="6 6" />
+            <circle cx="120" cy="120" r="75" stroke="currentColor" strokeWidth="1" />
+            <polygon points="120,30 200,75 200,165 120,210 40,165 40,75" stroke="currentColor" strokeWidth="1" />
+            <line x1="120" y1="0" x2="120" y2="240" stroke="currentColor" strokeWidth="0.75" />
+            <line x1="0" y1="120" x2="240" y2="120" stroke="currentColor" strokeWidth="0.75" />
+          </svg>
         </div>
 
         <div className="relative z-10 max-w-2xl">
