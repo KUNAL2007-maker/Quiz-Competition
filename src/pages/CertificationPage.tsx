@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -14,22 +14,14 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAppContext } from '../context/AppContext';
 import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 import { certRegistry } from '../constants/certRegistry';
-import { CERT_TEMPLATE_DATA_URI } from '../constants/certTemplate';
+import { CertificateTemplate } from '../components/CertificateTemplate';
 
 const REFERRAL_URL = 'https://agentrouter.org/register?aff=p772';
-const TEMPLATE_SRC = CERT_TEMPLATE_DATA_URI;
-const CERT_W = 2000;
-const CERT_H = 1414;
-const NAME_MAX_WIDTH = 1180;
-const NAME_START_SIZE = 96;
-const NAME_MIN_SIZE = 34;
-const NAME_X = 1000;
-const NAME_Y = 608;
-const ID_X = 132;
-const ID_Y = 1324;
-const ID_COVER = { x: 128, y: 1320, w: 260, h: 38 };
-const CREAM = '#f7f2e6';
+// Certificate artwork is 1200x900 (the CertificateTemplate component).
+const CERT_W = 1200;
+const CERT_H = 900;
 
 function generateCertId(email: string, name: string): string {
   let hash = 0;
@@ -52,7 +44,9 @@ interface FoundParticipant {
 export const CertificationPage: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser, isAdmin } = useAppContext();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const certRef = useRef<HTMLDivElement>(null);
+  const previewOuterRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(0.7);
 
   const [email, setEmail] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -61,73 +55,21 @@ export const CertificationPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
 
-  const renderCertificate = useCallback(async (name: string, certId: string): Promise<boolean> => {
-    const canvas = canvasRef.current;
-    if (!canvas) return false;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return false;
-    setRenderError(null);
-    setIsRendering(true);
-    try {
-      canvas.width = CERT_W;
-      canvas.height = CERT_H;
-      const img = new Image();
-      img.src = TEMPLATE_SRC;
-      await img.decode();
-      ctx.drawImage(img, 0, 0, CERT_W, CERT_H);
-
-      try {
-        await Promise.race([
-          Promise.all([
-            document.fonts.load('italic 700 96px "Playfair Display"'),
-            document.fonts.load('600 28px Manrope'),
-          ]),
-          new Promise((resolve) => setTimeout(resolve, 3000)),
-        ]);
-      } catch {
-        // Fall back to Georgia / system serif and sans-serif below.
-      }
-
-      // Participant name (auto-shrinking italic serif, centred in the name slot).
-      let size = NAME_START_SIZE;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillStyle = '#141310';
-      const setNameFont = (s: number) => {
-        ctx.font = `italic 700 ${s}px "Playfair Display", Georgia, serif`;
-      };
-      setNameFont(size);
-      while (ctx.measureText(name).width > NAME_MAX_WIDTH && size > NAME_MIN_SIZE) {
-        size -= 2;
-        setNameFont(size);
-      }
-      ctx.fillText(name, NAME_X, NAME_Y);
-
-      // Cover the template's placeholder ID, then draw the real certificate ID.
-      ctx.fillStyle = CREAM;
-      ctx.fillRect(ID_COVER.x, ID_COVER.y, ID_COVER.w, ID_COVER.h);
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillStyle = '#2b2b26';
-      ctx.font = '600 28px Manrope, Arial, sans-serif';
-      ctx.fillText(certId, ID_X, ID_Y);
-      return true;
-    } catch (err) {
-      setRenderError(err instanceof Error ? err.message : 'Could not render the certificate.');
-      return false;
-    } finally {
-      setIsRendering(false);
-    }
-  }, []);
-
-  // Render only AFTER the preview canvas has mounted. Calling renderCertificate
-  // directly after setParticipant() runs before React re-renders, so the canvas
-  // does not exist yet and the draw is silently skipped (blank preview/downloads).
+  // Scale the 1200x900 certificate preview to fit the card width.
+  // The html2canvas capture targets certRef (the unscaled 1200x900 div),
+  // so downloads stay full resolution regardless of the preview scale.
   useEffect(() => {
-    if (participant) {
-      renderCertificate(participant.name, participant.certId);
-    }
-  }, [participant, renderCertificate]);
+    const el = previewOuterRef.current;
+    if (!el) return;
+    const update = () => {
+      const w = el.clientWidth;
+      if (w > 0) setPreviewScale(w / CERT_W);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [participant]);
 
   // If user is not authorized administrator, show access denied (same pattern as AdminPage)
   if (!isAdmin) {
@@ -229,8 +171,30 @@ export const CertificationPage: React.FC = () => {
     ? `NullOrigin-Certificate-${participant.name.replace(/\s+/g, '-')}`
     : 'NullOrigin-Certificate';
 
-  const downloadPNG = () => {
-    const canvas = canvasRef.current;
+  // Render the visible CertificateTemplate to a high-resolution canvas
+  // (scale 2 => 2400x1800) and reuse it for both downloads.
+  const captureCertificate = async (): Promise<HTMLCanvasElement | null> => {
+    const node = certRef.current;
+    if (!node || !participant) return null;
+    setRenderError(null);
+    setIsRendering(true);
+    try {
+      const canvas = await html2canvas(node, {
+        scale: 2,
+        backgroundColor: '#f7f3ea',
+        useCORS: true,
+      });
+      return canvas;
+    } catch (err) {
+      setRenderError(err instanceof Error ? err.message : 'Could not render the certificate.');
+      return null;
+    } finally {
+      setIsRendering(false);
+    }
+  };
+
+  const downloadPNG = async () => {
+    const canvas = await captureCertificate();
     if (!canvas || !participant) return;
     canvas.toBlob((blob) => {
       if (!blob) return;
@@ -243,12 +207,16 @@ export const CertificationPage: React.FC = () => {
     }, 'image/png');
   };
 
-  const downloadPDF = () => {
-    const canvas = canvasRef.current;
+  const downloadPDF = async () => {
+    const canvas = await captureCertificate();
     if (!canvas || !participant) return;
     const dataUrl = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    pdf.addImage(dataUrl, 'PNG', 0, 0, 297, 210);
+    // Certificate is 1200x900 (4:3) — fit it inside A4 landscape without stretching.
+    const w = 280;
+    const h = 210;
+    const x = (297 - w) / 2;
+    pdf.addImage(dataUrl, 'PNG', x, 0, w, h);
     pdf.save(`${fileBase}.pdf`);
   };
 
@@ -330,7 +298,26 @@ export const CertificationPage: React.FC = () => {
             </div>
           </div>
           <div className="overflow-hidden rounded-lg border border-[#2e2e2a] bg-[#151513]">
-            <canvas ref={canvasRef} className="block h-auto w-full" aria-label="Certificate preview" />
+            <div
+              ref={previewOuterRef}
+              style={{ position: 'relative', width: '100%', height: CERT_H * previewScale, overflow: 'hidden' }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: CERT_W,
+                  height: CERT_H,
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: 'top left',
+                }}
+              >
+                <div ref={certRef} style={{ width: CERT_W, height: CERT_H }}>
+                  <CertificateTemplate name={participant.name} />
+                </div>
+              </div>
+            </div>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
