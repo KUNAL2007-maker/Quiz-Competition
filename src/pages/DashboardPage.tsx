@@ -72,7 +72,7 @@ export const DashboardPage: React.FC = () => {
   const quickNavLinks = [
     {
       title: 'Browse Competitions',
-      subtitle: 'Inspect upcoming and active security tournaments',
+      subtitle: 'Inspect upcoming and active quiz tournaments',
       icon: ShieldAlert,
       path: '/competitions',
       code: 'DIR · 01',
@@ -113,15 +113,15 @@ export const DashboardPage: React.FC = () => {
 
         <div className="relative z-10 max-w-2xl">
           <p className="font-mono text-xs tracking-widest text-[#8dc63f]">
-            RESTRICTED TOURNAMENT COMMAND NETWORK
+            GLOBAL COMPETITIVE QUIZ TOURNAMENT NETWORK
           </p>
 
           <h1 className="mt-3 font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#f5f5f2]">
-            ENTER THE NETWORK
+            ENTER THE ARENA
           </h1>
 
           <p className="mt-4 text-sm sm:text-base text-[#a8a8a2] leading-relaxed">
-            Compete in timed cybersecurity quiz tournaments, cryptography challenges, and digital forensics evaluations. Enter live competitions directly, monitor the ranking ledger, and manage your operator profile.
+            Compete in real-time quiz tournaments and skill competitions across technology, science, cybersecurity, and specialized arenas. Challenge peers on the live leaderboard, earn verified certificates, and test your speed.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -214,7 +214,7 @@ export const DashboardPage: React.FC = () => {
             visualType="radar"
             codeLabel="DIRECTORY · NO ACTIVE TOURNAMENTS"
             title="No Competition Information Available"
-            description="There are currently no scheduled or active cybersecurity competitions connected to your session. When tournament rounds are published, their entry criteria, rules, and countdown schedules will appear here."
+            description="There are currently no scheduled or active competitions connected to your session. When tournament rounds are published, their entry criteria, rules, and countdown schedules will appear here."
             actionLabel="Explore Competitions Page"
             onAction={() => navigate('/competitions')}
             secondaryActionLabel="Live Rankings"
