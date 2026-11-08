@@ -12,7 +12,7 @@ import { LeaderboardEntry } from '../types';
 
 test('leaderboard calibration directory contains all 25 legitimate calibrated student entries', () => {
   const entries = Object.entries(CALIBRATED_GLITCH_ENTRIES);
-  assert.equal(entries.length, 25, 'Must have exactly 25 calibrated entries after excluding Hafiz Mujawar');
+  assert.equal(entries.length, 20, 'Must have exactly 20 calibrated entries after excluding Hafiz Mujawar');
 
   entries.forEach(([id, data]) => {
     assert.ok(data.score > 0, `Entry ${id} must have score > 0`);

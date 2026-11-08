@@ -365,19 +365,6 @@
   },
   {
     "rank": 29,
-    "participantId": "LTUyos3MwJOWCkf9qtICPOuXbeN2_comp_1793963656835",
-    "competitionId": "comp_1793963656835",
-    "createdAt": "2026-11-08T08:13:38.547Z",
-    "displayName": "Gaurav Mukherjee",
-    "username": "Cyber-Mukherjee",
-    "score": 2600,
-    "completionStatus": "Completed",
-    "accuracyPercent": 87,
-    "completionTimeSeconds": 105,
-    "isCurrentUser": false
-  },
-  {
-    "rank": 30,
     "participantId": "Be99kn7m3rccW27UkNCKrqnH0gs1_comp_1793963656835",
     "competitionId": "comp_1793963656835",
     "createdAt": "2026-11-08T06:42:01.176Z",
@@ -390,7 +377,7 @@
     "isCurrentUser": false
   },
   {
-    "rank": 31,
+    "rank": 30,
     "participantId": "IXVORdtyhqTGvH6EdzjvpgXsNNF3_comp_1793963656835",
     "competitionId": "comp_1793963656835",
     "createdAt": "2026-11-08T07:44:08.966Z",
@@ -403,7 +390,7 @@
     "isCurrentUser": false
   },
   {
-    "rank": 32,
+    "rank": 31,
     "participantId": "FWX8uISHRRY1wrRH7t4IaDTu8V43_comp_1793963656835",
     "competitionId": "comp_1793963656835",
     "createdAt": "2026-11-08T06:36:12.808Z",
@@ -416,7 +403,7 @@
     "isCurrentUser": false
   },
   {
-    "rank": 33,
+    "rank": 32,
     "participantId": "6ew1afykc9R7exoHvftOBK9FezG2_comp_1793963656835",
     "competitionId": "comp_1793963656835",
     "createdAt": "2026-11-08T08:20:12.635Z",
@@ -429,7 +416,7 @@
     "isCurrentUser": false
   },
   {
-    "rank": 34,
+    "rank": 33,
     "participantId": "XiO01D1JYwOT352e5CnRNdbEGJM2_comp_1793963656835",
     "competitionId": "comp_1793963656835",
     "createdAt": "2026-11-08T07:39:23.419Z",
@@ -442,7 +429,7 @@
     "isCurrentUser": false
   },
   {
-    "rank": 35,
+    "rank": 34,
     "participantId": "aGZva4LD2WO1gcgj3uF0No3qh6w1_comp_1793963656835",
     "competitionId": "comp_1793963656835",
     "createdAt": "2026-11-08T08:22:49.202Z",
@@ -455,7 +442,7 @@
     "isCurrentUser": false
   },
   {
-    "rank": 36,
+    "rank": 35,
     "participantId": "P6fj2DVVBeWYaEicnexBtn6iXuP2_comp_1793963656835",
     "competitionId": "comp_1793963656835",
     "createdAt": "2026-11-08T06:53:08.251Z",
@@ -468,7 +455,7 @@
     "isCurrentUser": false
   },
   {
-    "rank": 37,
+    "rank": 36,
     "participantId": "kv6Bopb0ElcFKGapFyqvYKhqprB2_comp_1793963656835",
     "competitionId": "comp_1793963656835",
     "createdAt": "2026-11-08T07:52:34.933Z",
@@ -481,7 +468,7 @@
     "isCurrentUser": false
   },
   {
-    "rank": 38,
+    "rank": 37,
     "participantId": "sWYEFCtNTnQtKs17bd9HRi5Ff643_comp_1793963656835",
     "competitionId": "comp_1793963656835",
     "createdAt": "2026-11-08T08:16:53.702Z",
@@ -494,7 +481,7 @@
     "isCurrentUser": false
   },
   {
-    "rank": 39,
+    "rank": 38,
     "participantId": "D0kewscz5WYywMduZsTcPS7H8Pg1_comp_1793963656835",
     "competitionId": "comp_1793963656835",
     "createdAt": "2026-11-08T07:45:11.213Z",
@@ -504,6 +491,19 @@
     "completionStatus": "Completed",
     "accuracyPercent": 77,
     "completionTimeSeconds": 324,
+    "isCurrentUser": false
+  },
+  {
+    "rank": 39,
+    "participantId": "LTUyos3MwJOWCkf9qtICPOuXbeN2_comp_1793963656835",
+    "competitionId": "comp_1793963656835",
+    "createdAt": "2026-11-08T08:13:38.547Z",
+    "displayName": "Gaurav Mukherjee",
+    "username": "Cyber-Mukherjee",
+    "score": 2200,
+    "completionStatus": "Completed",
+    "accuracyPercent": 73,
+    "completionTimeSeconds": 105,
     "isCurrentUser": false
   },
   {
@@ -893,7 +893,7 @@
     "score": 800,
     "completionStatus": "Completed",
     "accuracyPercent": 27,
-    "completionTimeSeconds": 1,
+    "completionTimeSeconds": 185,
     "isCurrentUser": false
   },
   {

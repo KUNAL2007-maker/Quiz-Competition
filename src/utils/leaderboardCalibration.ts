@@ -21,12 +21,6 @@ export const CALIBRATED_GLITCH_ENTRIES: Record<string, CalibratedEntryData> = {
     completionTimeSeconds: 150,
     note: 'Chaitanya Mangla (@cmangla581) - 150s rapid completion',
   },
-  'LTUyos3MwJOWCkf9qtICPOuXbeN2_comp_1793963656835': {
-    score: 2600,
-    accuracyPercent: 87,
-    completionTimeSeconds: 152,
-    note: 'Gaurav Mukherjee (@Cyber-Mukherjee) - 152s completion',
-  },
 
   // Strong completion cohort (~190s - 210s, 21-23 questions correct)
   'P6fj2DVVBeWYaEicnexBtn6iXuP2_comp_1793963656835': {
@@ -67,12 +61,6 @@ export const CALIBRATED_GLITCH_ENTRIES: Record<string, CalibratedEntryData> = {
     completionTimeSeconds: 240,
     note: 'NANDHANA J RAJEEV (@MADRIX) - 240s completion',
   },
-  'ZSW0F2JqEla8uytNeGFTbcx2pJh2_comp_1793963656835': {
-    score: 2000,
-    accuracyPercent: 67,
-    completionTimeSeconds: 241,
-    note: 'Miteshkumar Gordhanbhai Patel (@Mitesh__45) - 241s completion',
-  },
   'sniNuhmItLgf9aIvJd3OZZFLF2u1_comp_1793963656835': {
     score: 2000,
     accuracyPercent: 67,
@@ -86,12 +74,6 @@ export const CALIBRATED_GLITCH_ENTRIES: Record<string, CalibratedEntryData> = {
     accuracyPercent: 63,
     completionTimeSeconds: 267,
     note: 'priyaansh jaiswal (@YAMRAJ) - 267s completion',
-  },
-  'KrGA5Yyuhwe8MJEO7aPKyAhRvAT2_comp_1793963656835': {
-    score: 1900,
-    accuracyPercent: 63,
-    completionTimeSeconds: 274,
-    note: 'Siddhanthi Sai Gayathri (@user_KrGA5Yyu) - 274s completion',
   },
   'lPS8GpOCyZdzv6qno1eHwCG33Hc2_comp_1793963656835': {
     score: 1800,
@@ -141,23 +123,11 @@ export const CALIBRATED_GLITCH_ENTRIES: Record<string, CalibratedEntryData> = {
   },
 
   // Short-duration / Early disconnect cohort (recalibrated to completed fraction)
-  'qmn3meJv2uPiJEfh4ia5umoHPPT2_comp_1793963656835': {
-    score: 1100,
-    accuracyPercent: 37,
-    completionTimeSeconds: 60,
-    note: 'VK V (@Sjb_svsh) - 60s partial attempt',
-  },
   'PGz6b82eGSZg7NWpLZWYtiFTcvt1_comp_1793963656835': {
     score: 800,
     accuracyPercent: 27,
     completionTimeSeconds: 185,
     note: 'Siddhesh Sonje (@user_PGz6b82e) - Q1 connection drop',
-  },
-  'mBmAKyWmwNTBelpHrsz2ycVP9Kl1_comp_1793963656835': {
-    score: 700,
-    accuracyPercent: 23,
-    completionTimeSeconds: 26,
-    note: 'pavanisandhya n (@pavani_0908) - 26s partial attempt',
   },
 
   // 86400s timeout / proctoring strike false-positive cohort (normalized time & fair score)
@@ -250,21 +220,23 @@ export function isCalibratedGlitchEntry(participantId: string): boolean {
  * Recalibrates a leaderboard entry if it suffered from the zero-score technical glitch.
  */
 export function applyCalibration(entry: LeaderboardEntry): LeaderboardEntry {
+  if (isExcludedLeaderboardEntry(entry)) {
+    return entry;
+  }
+
+  // CRITICAL INTEGRITY GUARD: If a student has a legitimate non-zero score and was
+  // not hit with an 86400s glitch timeout, preserve their exact real score untouched!
+  if (entry.score > 0 && entry.completionTimeSeconds !== 86400) {
+    return entry;
+  }
+
   const directCal = CALIBRATED_GLITCH_ENTRIES[entry.participantId];
-
   if (directCal) {
-    const shouldUpdateScore = entry.score === 0 || entry.score < directCal.score;
-    const shouldUpdateTime =
-      entry.completionTimeSeconds === 86400 ||
-      (typeof entry.completionTimeSeconds !== 'number' && directCal.completionTimeSeconds);
-
     return {
       ...entry,
-      score: shouldUpdateScore ? directCal.score : entry.score,
-      accuracyPercent: shouldUpdateScore ? directCal.accuracyPercent : entry.accuracyPercent,
-      completionTimeSeconds: shouldUpdateTime
-        ? directCal.completionTimeSeconds
-        : entry.completionTimeSeconds ?? directCal.completionTimeSeconds,
+      score: directCal.score,
+      accuracyPercent: directCal.accuracyPercent,
+      completionTimeSeconds: directCal.completionTimeSeconds,
       completionStatus: 'Completed',
     };
   }

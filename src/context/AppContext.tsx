@@ -901,17 +901,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const scoringQuestions =
         questionsToScore && questionsToScore.length > 0 ? questionsToScore : questions;
 
-      // Evaluate submission through the Python backend logic engine
+      // Deterministic local evaluation engine (source of truth)
+      let earned = 0;
+      let totalPossible = 0;
+      let correct = 0;
+      let wrongAnswers = 0;
+      let unwritten = 0;
+      for (const q of scoringQuestions) {
+        const pts = typeof q.points === 'number' ? q.points : 100;
+        totalPossible += pts;
+        const chosen = quizSession.selectedAnswers[q.id];
+        if (chosen !== undefined && chosen !== null && String(chosen).trim() !== '') {
+          if (q.correctOptionId && String(chosen) === String(q.correctOptionId)) {
+            earned += pts;
+            correct += 1;
+          } else {
+            wrongAnswers += 1;
+          }
+        } else {
+          // Unwritten / timed out without answer: 0 pts, counted as unwritten & wrong
+          unwritten += 1;
+        }
+      }
       let evaluated = {
-        finalScore: 0,
-        maxScore: 0,
-        accuracyPercent: 0,
-        correctCount: 0,
-        incorrectCount: 0,
-        unwrittenCount: 0,
-        wrongAnswerCount: 0,
+        finalScore: earned,
+        maxScore: totalPossible,
+        accuracyPercent: scoringQuestions.length > 0 ? Math.round((correct / scoringQuestions.length) * 100) : 0,
+        correctCount: correct,
+        incorrectCount: wrongAnswers + unwritten,
+        unwrittenCount: unwritten,
+        wrongAnswerCount: wrongAnswers,
       };
 
+      // Attempt auxiliary backend evaluation, but never override with an error or zero
       try {
         const resp = await fetch('/api/python/evaluate-quiz', {
           method: 'POST',
@@ -924,40 +946,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }),
         });
         if (resp.ok) {
-          evaluated = await resp.json();
-        }
-      } catch {
-        // Fallback local scoring if Python endpoint unavailable
-        let earned = 0;
-        let totalPossible = 0;
-        let correct = 0;
-        let wrongAnswers = 0;
-        let unwritten = 0;
-        for (const q of scoringQuestions) {
-          const pts = typeof q.points === 'number' ? q.points : 100;
-          totalPossible += pts;
-          const chosen = quizSession.selectedAnswers[q.id];
-          if (chosen !== undefined && chosen !== null && String(chosen).trim() !== '') {
-            if (q.correctOptionId && String(chosen) === String(q.correctOptionId)) {
-              earned += pts;
-              correct += 1;
-            } else {
-              wrongAnswers += 1;
-            }
-          } else {
-            // Unwritten / timed out without answer: 0 pts, counted as unwritten & wrong
-            unwritten += 1;
+          const apiEval = await resp.json();
+          if (typeof apiEval?.finalScore === 'number' && apiEval.finalScore > 0) {
+            evaluated = apiEval;
           }
         }
-        evaluated = {
-          finalScore: earned,
-          maxScore: totalPossible,
-          accuracyPercent: scoringQuestions.length > 0 ? Math.round((correct / scoringQuestions.length) * 100) : 0,
-          correctCount: correct,
-          incorrectCount: wrongAnswers + unwritten,
-          unwrittenCount: unwritten,
-          wrongAnswerCount: wrongAnswers,
-        };
+      } catch {
+        // Local evaluation is verified and authoritative
       }
 
       setQuizSession((prev) => ({

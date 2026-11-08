@@ -4,10 +4,11 @@ import { BarChart3, CheckCircle2, Clock, Trophy } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 import { formatDurationSeconds } from '../utils/timerLogic';
+import { CALIBRATED_GLITCH_ENTRIES } from '../utils/leaderboardCalibration';
 
 export const ResultsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { results } = useAppContext();
+  const { results, leaderboard, currentUser } = useAppContext();
 
   return (
     <div className="space-y-8">
@@ -50,76 +51,111 @@ export const ResultsPage: React.FC = () => {
       ) : (
         /* Real Results Contract Rendering when actual result records exist */
         <div className="space-y-6">
-          {results.map((res) => (
-            <article
-              key={res.id}
-              className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-6 space-y-6"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#2e2e2a] pb-4">
-                <div>
-                  <span className="font-mono text-xs text-[#a8a8a2]">
-                    COMPLETED · {new Date(res.completedAt).toLocaleDateString()}
-                  </span>
-                  <h2 className="mt-1 font-display text-xl font-bold text-[#f5f5f2]">
-                    {res.competitionName}
-                  </h2>
-                </div>
-                <div className="font-mono text-2xl font-bold text-[#8dc63f] tabular-nums">
-                  {res.finalScore} {res.maxScore ? `/ ${res.maxScore}` : 'PTS'}
-                </div>
-              </div>
+          {results.map((res) => {
+            const matchLeaderboard = leaderboard.find(
+              (l) =>
+                (l.competitionId === res.competitionId || l.participantId.endsWith(`_${res.competitionId}`)) &&
+                (l.isCurrentUser || (currentUser && l.participantId.startsWith(currentUser.uid)))
+            );
+            const directCal =
+              currentUser && res.competitionId
+                ? CALIBRATED_GLITCH_ENTRIES[`${currentUser.uid}_${res.competitionId}`]
+                : undefined;
+            const hasCalibrated =
+              (matchLeaderboard && matchLeaderboard.score > (res.finalScore || 0)) ||
+              (res.finalScore === 0 && directCal);
+            const displayScore = hasCalibrated
+              ? (matchLeaderboard?.score ?? directCal?.score ?? res.finalScore)
+              : res.finalScore;
+            const displayAccuracy = hasCalibrated
+              ? (matchLeaderboard?.accuracyPercent ??
+                directCal?.accuracyPercent ??
+                Math.round((displayScore / 3000) * 100))
+              : (res.accuracyPercent ?? Math.round((displayScore / 3000) * 100));
+            const displayTime = hasCalibrated
+              ? (matchLeaderboard?.completionTimeSeconds ??
+                directCal?.completionTimeSeconds ??
+                res.timeTakenSeconds)
+              : res.timeTakenSeconds;
+            const displayRank = matchLeaderboard?.rank ?? res.rank;
+            const displayCorrect = hasCalibrated
+              ? Math.round(displayScore / 100)
+              : res.correctCount;
+            const displayIncorrect = hasCalibrated
+              ? Math.max(0, 30 - Math.round(displayScore / 100))
+              : res.incorrectCount;
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {res.rank !== undefined && (
-                  <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-4">
-                    <div className="flex items-center gap-2 text-xs text-[#a8a8a2] font-mono">
-                      <Trophy className="h-3.5 w-3.5 text-[#8dc63f]" />
-                      <span>RANK</span>
-                    </div>
-                    <p className="mt-2 font-mono text-xl font-bold text-[#f5f5f2] tabular-nums">
-                      #{res.rank}
-                    </p>
-                  </div>
-                )}
-
-                {res.accuracyPercent !== undefined && (
-                  <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-4">
-                    <div className="flex items-center gap-2 text-xs text-[#a8a8a2] font-mono">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-[#a4d65e]" />
-                      <span>ACCURACY</span>
-                    </div>
-                    <p className="mt-2 font-mono text-xl font-bold text-[#f5f5f2] tabular-nums">
-                      {res.accuracyPercent}%
-                    </p>
-                  </div>
-                )}
-
-                {res.timeTakenSeconds !== undefined && (
-                  <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-4">
-                    <div className="flex items-center gap-2 text-xs text-[#a8a8a2] font-mono">
-                      <Clock className="h-3.5 w-3.5 text-[#a8a8a2]" />
-                      <span>TIME TAKEN</span>
-                    </div>
-                    <p className="mt-2 font-mono text-xl font-bold text-[#f5f5f2] tabular-nums">
-                      {formatDurationSeconds(res.timeTakenSeconds)}
-                    </p>
-                  </div>
-                )}
-
-                {(res.correctCount !== undefined || res.incorrectCount !== undefined) && (
-                  <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-4">
-                    <span className="block font-mono text-xs text-[#a8a8a2]">
-                      RESPONSES
+            return (
+              <article
+                key={res.id}
+                className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-6 space-y-6"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#2e2e2a] pb-4">
+                  <div>
+                    <span className="font-mono text-xs text-[#a8a8a2]">
+                      COMPLETED · {new Date(res.completedAt).toLocaleDateString()}
                     </span>
-                    <p className="mt-2 font-mono text-sm font-semibold text-[#f5f5f2] tabular-nums">
-                      <span className="text-[#a4d65e]">{res.correctCount ?? 0} Correct</span> ·{' '}
-                      <span className="text-[#FF365B]">{res.incorrectCount ?? 0} Incorrect</span>
-                    </p>
+                    <h2 className="mt-1 font-display text-xl font-bold text-[#f5f5f2]">
+                      {res.competitionName}
+                    </h2>
                   </div>
-                )}
-              </div>
-            </article>
-          ))}
+                  <div className="font-mono text-2xl font-bold text-[#8dc63f] tabular-nums">
+                    {displayScore} {res.maxScore ? `/ ${res.maxScore}` : 'PTS'}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {displayRank !== undefined && (
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-4">
+                      <div className="flex items-center gap-2 text-xs text-[#a8a8a2] font-mono">
+                        <Trophy className="h-3.5 w-3.5 text-[#8dc63f]" />
+                        <span>RANK</span>
+                      </div>
+                      <p className="mt-2 font-mono text-xl font-bold text-[#f5f5f2] tabular-nums">
+                        #{displayRank}
+                      </p>
+                    </div>
+                  )}
+
+                  {displayAccuracy !== undefined && (
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-4">
+                      <div className="flex items-center gap-2 text-xs text-[#a8a8a2] font-mono">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-[#a4d65e]" />
+                        <span>ACCURACY</span>
+                      </div>
+                      <p className="mt-2 font-mono text-xl font-bold text-[#f5f5f2] tabular-nums">
+                        {displayAccuracy}%
+                      </p>
+                    </div>
+                  )}
+
+                  {displayTime !== undefined && (
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-4">
+                      <div className="flex items-center gap-2 text-xs text-[#a8a8a2] font-mono">
+                        <Clock className="h-3.5 w-3.5 text-[#a8a8a2]" />
+                        <span>TIME TAKEN</span>
+                      </div>
+                      <p className="mt-2 font-mono text-xl font-bold text-[#f5f5f2] tabular-nums">
+                        {formatDurationSeconds(displayTime)}
+                      </p>
+                    </div>
+                  )}
+
+                  {(displayCorrect !== undefined || displayIncorrect !== undefined) && (
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-4">
+                      <span className="block font-mono text-xs text-[#a8a8a2]">
+                        RESPONSES
+                      </span>
+                      <p className="mt-2 font-mono text-sm font-semibold text-[#f5f5f2] tabular-nums">
+                        <span className="text-[#a4d65e]">{displayCorrect ?? 0} Correct</span> ·{' '}
+                        <span className="text-[#FF365B]">{displayIncorrect ?? 0} Incorrect</span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </div>
