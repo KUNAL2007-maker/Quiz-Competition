@@ -45,6 +45,7 @@ export const CertificationPage: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser, isAdmin } = useAppContext();
   const certRef = useRef<HTMLDivElement>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
   const previewOuterRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(0.7);
 
@@ -119,6 +120,8 @@ export const CertificationPage: React.FC = () => {
     setIsSearching(true);
     try {
       // Primary lookup: Firestore profiles collection by email.
+      // The certificate name always comes from the profile (current/updated
+      // name), never from the leaderboard (which keeps the name from quiz time).
       let displayName: string | null = null;
       try {
         const q = query(collection(db, 'profiles'), where('email', '==', normalized));
@@ -145,7 +148,9 @@ export const CertificationPage: React.FC = () => {
         displayName = null;
       }
 
-      // Fallback lookup: registration mapping (covers participants with no Firestore profile).
+      // Fallback lookup: registration mapping (covers registered users with no Firestore profile).
+      // Certificates are for everyone who registered, whatever their score —
+      // no leaderboard check. The profile name (above) always wins when present.
       const reg = certRegistry[normalized];
       if (!displayName && !reg) {
         setError('This email is not in the registered participants list.');
@@ -173,12 +178,33 @@ export const CertificationPage: React.FC = () => {
 
   // Render the visible CertificateTemplate to a high-resolution canvas
   // (scale 2 => 2400x1800) and reuse it for both downloads.
+  // IMPORTANT: capture from the hidden off-screen container (captureRef),
+  // NOT from the scaled preview (certRef). html2canvas mis-measures text
+  // when the target sits inside a transformed (scaled) ancestor, which
+  // produced overlapping/garbled text in the downloaded PNG/PDF.
+  // We also wait for the certificate fonts to be fully loaded before
+  // capturing, so html2canvas measures text with the real fonts.
   const captureCertificate = async (): Promise<HTMLCanvasElement | null> => {
-    const node = certRef.current;
+    const node = captureRef.current ?? certRef.current;
     if (!node || !participant) return null;
     setRenderError(null);
     setIsRendering(true);
     try {
+      if (typeof document !== 'undefined' && document.fonts) {
+        try {
+          await Promise.all([
+            document.fonts.load('800 48px "Inter"'),
+            document.fonts.load('800 38px "Inter"'),
+            document.fonts.load('400 22px "Inter"'),
+            document.fonts.load('400 19px "Inter"'),
+            document.fonts.load('500 19px "Inter"'),
+            document.fonts.load('700 72px "Playfair Display"'),
+          ]);
+          await document.fonts.ready;
+        } catch {
+          // Font loading is best-effort; proceed with the capture anyway.
+        }
+      }
       const canvas = await html2canvas(node, {
         scale: 2,
         backgroundColor: '#f7f3ea',
@@ -233,6 +259,9 @@ export const CertificationPage: React.FC = () => {
         <p className="text-sm text-[#a8a8a2] leading-relaxed">
           Enter a participant&apos;s registered email address to generate their official
           Certificate of Participation, ready to download as a high-resolution PNG or PDF.
+          Certificates are available to everyone who registered — whatever their score —
+          and the name on the certificate is taken from the participant&apos;s current
+          profile, not the leaderboard.
         </p>
       </div>
 
@@ -338,6 +367,29 @@ export const CertificationPage: React.FC = () => {
               <FileText className="h-4 w-4" />
               <span>Download PDF</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden off-screen render target for downloads. This is a second,
+          full-size (1200x900, unscaled, no transformed ancestors) copy of
+          the certificate used ONLY by html2canvas. Capturing the scaled
+          preview produced overlapping/garbled text. */}
+      {participant && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            left: -10000,
+            top: 0,
+            width: CERT_W,
+            height: CERT_H,
+            overflow: 'hidden',
+            pointerEvents: 'none',
+          }}
+        >
+          <div ref={captureRef} style={{ width: CERT_W, height: CERT_H }}>
+            <CertificateTemplate name={participant.name} />
           </div>
         </div>
       )}
