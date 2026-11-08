@@ -139,8 +139,11 @@ export const QuizPage: React.FC = () => {
     const lbTime = previousLeaderboardEntry?.createdAt
       ? new Date(previousLeaderboardEntry.createdAt).getTime()
       : null;
-    // Scoring-bug retake: 0 marks with nothing correct and no DQ flag means
-    // the submit scored over an empty question list. Grant one fresh retake.
+    // Low-score retake: 0% or 3% accuracy with no DQ flag, from BEFORE the
+    // scoring fix went live. These are scoring-bug victims (correct answers
+    // scored 0 / almost 0). Only pre-fix results qualify, so a low score
+    // AFTER the fix is legitimate and does NOT grant another retake.
+    const SCORING_FIX_ISO = '2026-11-08T06:57:00.000Z'; // 12:27 PM IST
     const hasDqFlag = (() => {
       try {
         if (window.localStorage.getItem(`nullorigin_disqualified_${currentUser?.uid}_${activeCompId}`)) return true;
@@ -153,8 +156,9 @@ export const QuizPage: React.FC = () => {
     })();
     if (
       previousResult &&
-      previousResult.finalScore === 0 &&
-      (previousResult.correctCount === 0 || previousResult.correctCount === undefined) &&
+      resultTime !== null &&
+      resultTime < new Date(SCORING_FIX_ISO).getTime() &&
+      (previousResult.accuracyPercent ?? 100) <= 3 &&
       !hasDqFlag
     ) {
       return true;
