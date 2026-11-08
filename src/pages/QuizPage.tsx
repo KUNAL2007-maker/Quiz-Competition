@@ -124,6 +124,13 @@ export const QuizPage: React.FC = () => {
     // Practice simulations allow repeatable calibration and training
     if (isPracticeQuiz) return false;
 
+    // ORGANISER RESET (live finale, 8 Nov 2026): the questions outage locked
+    // out / disqualified many students. Allow everyone a FRESH attempt on the
+    // Cyber Quiz 2026 by ignoring prior results, leaderboard entries,
+    // completion flags and disqualifications for this competition only.
+    // A fresh submission overwrites the old 0-score result in Firestore.
+    if (activeCompId === 'comp_1793963656835') return false;
+
     // 1. Check if competitor has submitted results in Firestore
     if (previousResult) return true;
 
@@ -166,6 +173,15 @@ export const QuizPage: React.FC = () => {
 
   // Anti-Cheat & Tab-Switching Proctoring States (Persisted in storage so reloads cannot erase warnings)
   const [tabSwitchWarnings, setTabSwitchWarnings] = useState<number>(() => {
+    // ORGANISER RESET (live finale, 8 Nov 2026): fresh attempt on the Cyber
+    // Quiz 2026 starts with 0 tab-switch warnings, ignoring any stored count.
+    if (activeCompId === 'comp_1793963656835') {
+      try {
+        window.sessionStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+        window.localStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+      } catch {}
+      return 0;
+    }
     if (typeof window !== 'undefined' && activeCompId) {
       try {
         const saved =
@@ -196,7 +212,10 @@ export const QuizPage: React.FC = () => {
         }
         // Practice quizzes are repeatable: a stale disqualification flag must
         // never block a practice retake, even for the same email/account.
-        if (dqReason && !isPracticeQuiz) {
+        // ORGANISER RESET (live finale, 8 Nov 2026): also ignore stale
+        // disqualification flags on the Cyber Quiz 2026 so banned students
+        // get a fresh attempt.
+        if (dqReason && !isPracticeQuiz && activeCompId !== 'comp_1793963656835') {
           setIsDisqualified(true);
           setDisqualificationReason(dqReason);
         }
