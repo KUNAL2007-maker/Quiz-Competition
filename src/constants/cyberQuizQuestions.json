@@ -1438,5 +1438,65 @@
       }
     ],
     "correctOptionId": "opt_a"
+  },
+  {
+    "index": 48,
+    "prompt": "What is two-factor authentication (2FA)?",
+    "category": "Easy (Q49–50)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Using the same password on two websites"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Verifying your identity using two different methods, like a password and an OTP"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Logging in from two different devices at once"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Changing your password every two weeks"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 49,
+    "prompt": "Which type of malware encrypts your files and demands payment to unlock them?",
+    "category": "Easy (Q49–50)",
+    "points": 100,
+    "timeLimitSeconds": 15,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Spyware"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Adware"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Ransomware"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Keylogger"
+      }
+    ],
+    "correctOptionId": "opt_c"
   }
 ]
