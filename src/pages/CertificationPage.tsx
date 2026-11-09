@@ -112,35 +112,37 @@ export const CertificationPage: React.FC = () => {
     return () => ro.disconnect();
   }, [excellence]);
 
-  // If user is not authorized administrator, show access denied (same pattern as AdminPage)
-  if (!isAdmin) {
+  // Non-admins look up their OWN certificate, so lock the email field to
+  // their signed-in account (admins keep the free-form lookup).
+  useEffect(() => {
+    if (currentUser && !isAdmin) {
+      setEmail(currentUser.email ?? '');
+    }
+  }, [currentUser, isAdmin]);
+
+  // The certificate page is open to everyone — but you must be signed in,
+  // so the page knows which participant you are (a certificate is tied to
+  // your quiz entry). Non-admins can only fetch their OWN certificate;
+  // admins can look up any registered email.
+  if (!currentUser) {
     return (
       <div className="mx-auto max-w-lg space-y-6 py-12 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#FF365B] bg-[#FF365B]/10 text-[#FF365B]">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#8dc63f] bg-[#8dc63f]/10 text-[#8dc63f]">
           <ShieldAlert className="h-8 w-8" />
         </div>
         <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#f5f5f2]">
-          Restricted Command Console
+          Sign in to get your certificate
         </h1>
         <p className="text-sm text-[#a8a8a2] leading-relaxed">
-          Access to the certificate generation interface requires verified administrator authorization.
+          Certificates are only for students who entered Cyber Security Quiz 2026. Sign in with the account you used for the quiz to download yours.
         </p>
-        {currentUser ? (
-          <p className="text-xs font-mono text-[#FF365B]">
-            Currently signed in with insufficient clearance
-          </p>
-        ) : (
-          <p className="text-xs font-mono text-[#a8a8a2]">
-            No authenticated operator session detected.
-          </p>
-        )}
         <div className="pt-2">
           <button
             type="button"
             onClick={() => navigate('/login')}
             className="inline-flex items-center gap-2 rounded-md bg-[#8dc63f] px-5 py-2.5 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer"
           >
-            <span>Go to Operator Sign-In</span>
+            <span>Go to Sign-In</span>
           </button>
         </div>
       </div>
@@ -149,7 +151,11 @@ export const CertificationPage: React.FC = () => {
 
   const handleFind = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    const normalized = email.trim().toLowerCase();
+    // Non-admins can only fetch their OWN certificate, so the lookup uses
+    // their signed-in account. Admins can look up any registered email.
+    const normalized = isAdmin
+      ? email.trim().toLowerCase()
+      : (currentUser?.email ?? '').trim().toLowerCase();
     if (!normalized || !normalized.includes('@')) {
       setError('Enter a valid registered email address.');
       setParticipant(null);
@@ -161,39 +167,56 @@ export const CertificationPage: React.FC = () => {
     setExcellence(null);
     setIsSearching(true);
     try {
-      // Primary lookup: Firestore profiles collection by email.
-      // The certificate name always comes from the profile (current/updated
-      // name), never from the leaderboard (which keeps the name from quiz time).
+      // Primary lookup: the participant's profile (for the current/updated
+      // name — never the leaderboard, which keeps the name from quiz time).
       // We also capture the profile uid: only a user who ENTERED the quiz
       // has a leaderboard entry, and that entry is keyed by uid.
       let displayName: string | null = null;
       let uid: string | null = null;
-      try {
-        const q = query(collection(db, 'profiles'), where('email', '==', normalized));
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-          uid = snap.docs[0].id;
-          const data = snap.docs[0].data() as { displayName?: string; email?: string };
-          if (data.displayName && data.displayName.trim()) {
-            displayName = data.displayName.trim();
-          }
-        }
-        // Retry with the as-entered casing in case the stored email is not lowercased.
-        if (!displayName && normalized !== email.trim()) {
-          const q2 = query(collection(db, 'profiles'), where('email', '==', email.trim()));
-          const snap2 = await getDocs(q2);
-          if (!snap2.empty) {
-            if (!uid) uid = snap2.docs[0].id;
-            const data2 = snap2.docs[0].data() as { displayName?: string };
-            if (data2.displayName && data2.displayName.trim()) {
-              displayName = data2.displayName.trim();
+      if (isAdmin) {
+        try {
+          const q = query(collection(db, 'profiles'), where('email', '==', normalized));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            uid = snap.docs[0].id;
+            const data = snap.docs[0].data() as { displayName?: string; email?: string };
+            if (data.displayName && data.displayName.trim()) {
+              displayName = data.displayName.trim();
             }
           }
+          // Retry with the as-entered casing in case the stored email is not lowercased.
+          if (!displayName && normalized !== email.trim()) {
+            const q2 = query(collection(db, 'profiles'), where('email', '==', email.trim()));
+            const snap2 = await getDocs(q2);
+            if (!snap2.empty) {
+              if (!uid) uid = snap2.docs[0].id;
+              const data2 = snap2.docs[0].data() as { displayName?: string };
+              if (data2.displayName && data2.displayName.trim()) {
+                displayName = data2.displayName.trim();
+              }
+            }
+          }
+        } catch {
+          // Firestore lookup failed (offline / permissions) — fall through to the registry.
+          displayName = null;
+          uid = null;
         }
-      } catch {
-        // Firestore lookup failed (offline / permissions) — fall through to the registry.
-        displayName = null;
-        uid = null;
+      } else {
+        // Self-service: read the signed-in user's OWN profile doc by uid.
+        // (A plain email query is not allowed for non-admins by the rules,
+        // but reading your own profile by id is.)
+        uid = currentUser!.uid;
+        try {
+          const profSnap = await getDoc(doc(db, 'profiles', uid));
+          if (profSnap.exists()) {
+            const data = profSnap.data() as { displayName?: string };
+            if (data.displayName && data.displayName.trim()) {
+              displayName = data.displayName.trim();
+            }
+          }
+        } catch {
+          displayName = null;
+        }
       }
 
       // Fallback lookup: registration mapping (covers registered users with no Firestore profile).
@@ -411,7 +434,7 @@ export const CertificationPage: React.FC = () => {
           participant&apos;s current profile, not the leaderboard. The top 3 winners also
           receive a second certificate — the Certificate of Excellence with their rank
           (1st Place, 1st Runner Up, 2nd Runner Up) — shown below their participation
-          certificate.
+          certificate. {isAdmin ? 'As an admin you can look up any registered email.' : 'You are signed in, so this looks up your own certificate.'}
         </p>
       </div>
 
@@ -436,7 +459,8 @@ export const CertificationPage: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your registered email..."
               autoComplete="email"
-              className="w-full rounded-lg border border-[#33332f] bg-[#151513] py-3 pl-10 pr-4 text-sm text-[#f5f5f2] placeholder:text-[#6f7d8c] focus:border-[#7ab32e] focus:outline-none focus:ring-2 focus:ring-[#8dc63f]/20"
+              disabled={!isAdmin}
+              className="w-full rounded-lg border border-[#33332f] bg-[#151513] py-3 pl-10 pr-4 text-sm text-[#f5f5f2] placeholder:text-[#6f7d8c] focus:border-[#7ab32e] focus:outline-none focus:ring-2 focus:ring-[#8dc63f]/20 disabled:opacity-70"
             />
           </div>
           <button
