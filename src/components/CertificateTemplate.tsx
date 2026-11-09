@@ -133,14 +133,19 @@ export function CertificateTemplate({ name, certId }: { name: string; certId?: s
           height: 900,
         }}
       >
-        {/* Brand name: NULL ORIGIN — vertically centred on the hexagon logo
-            (logo centre y=140; top 118 — measured exact, 9 Nov 2026; top 96
-            sat 22px too high). */}
+        {/* Brand name: NULL ORIGIN — top 96 is the DOWNLOAD-correct value
+            (html2canvas renders the text centre on the logo centre, y=140,
+            measured on a real downloaded PNG, 9 Nov 2026). The on-screen
+            preview lays the same text out ~22px higher (browser text layout
+            differs from html2canvas) — that is acceptable: the downloaded
+            certificate is the artifact students keep/share, so the download
+            is what must be aligned. Do NOT "fix" the preview by raising
+            this to 118 — that pushes the download ~20px too low. */}
         <div
           style={{
             position: 'absolute',
             left: 236,
-            top: 118,
+            top: 96,
             fontFamily: SANS,
             fontWeight: 800,
             fontSize: 48,

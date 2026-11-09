@@ -27,9 +27,9 @@ const LEFT_SIGNATURE_PATH =
  * artwork SVG, paper, colours, hexagon logo, signatures, QR top-right),
  * but titled CERTIFICATE OF EXCELLENCE with the winner's rank
  * (1st Place / 1st Runner Up / 2nd Runner Up) in orange under the name
- * and a citation that names the rank. The brand name is vertically
- * centred on the hexagon logo (logo centre y=140; top 118 — measured
- * exact, 9 Nov 2026; top 96 sat 22px too high).
+ * and a citation that names the rank. The brand name uses top 96 — the
+ * DOWNLOAD-correct value (html2canvas); the on-screen preview sits ~22px
+ * high, which is acceptable — the download is the artifact that matters.
  * The QR encodes the hidden verification URL for the Excellence cert id
  * (NO26-EXC-###-XX). The verify page reads the `certificates` doc and
  * shows Certificate of Excellence + rank for these ids.
@@ -132,13 +132,19 @@ export function ExcellenceCertificateTemplate({ name, certId, rank }: { name: st
           height: 900,
         }}
       >
-        {/* Brand name: NULL ORIGIN — vertically centred on the hexagon logo
-            (logo centre y=140; top 118 — measured exact, 9 Nov 2026). */}
+        {/* Brand name: NULL ORIGIN — top 96 is the DOWNLOAD-correct value
+            (html2canvas renders the text centre on the logo centre, y=140,
+            measured on a real downloaded PNG, 9 Nov 2026). The on-screen
+            preview lays the same text out ~22px higher (browser text layout
+            differs from html2canvas) — that is acceptable: the downloaded
+            certificate is the artifact students keep/share, so the download
+            is what must be aligned. Do NOT "fix" the preview by raising
+            this to 118 — that pushes the download ~20px too low. */}
         <div
           style={{
             position: 'absolute',
             left: 236,
-            top: 118,
+            top: 96,
             fontFamily: SANS,
             fontWeight: 800,
             fontSize: 48,
