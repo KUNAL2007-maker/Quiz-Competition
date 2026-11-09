@@ -213,7 +213,11 @@ export const ProfilePage: React.FC = () => {
           ? l.participantId.replace(`${currentUser.uid}_`, '')
           : '');
       const isMine =
-        l.isCurrentUser || (currentUser && l.participantId.startsWith(currentUser.uid));
+        l.isCurrentUser ||
+        (currentUser && l.participantId.startsWith(currentUser.uid)) ||
+        (profile.username && l.username && l.username.toLowerCase() === profile.username.toLowerCase()) ||
+        (currentUser?.email && l.email && l.email.toLowerCase() === currentUser.email.toLowerCase()) ||
+        (currentUser?.displayName && l.displayName && l.displayName.toLowerCase() === currentUser.displayName.toLowerCase());
       if (isMine && compId && validCompIds.has(compId) && !seenCompIds.has(compId)) {
         seenCompIds.add(compId);
         const matchComp = competitions.find((c) => c.id === compId);
@@ -259,11 +263,37 @@ export const ProfilePage: React.FC = () => {
     return list;
   }, [results, competitions, leaderboard, currentUser, quizSession]);
 
-  // Competitions not yet attempted
-  const pendingCompetitions = useMemo(() => {
-    const completedIds = new Set(enrichedResults.map((r) => r.competitionId));
-    return competitions.filter((comp) => !completedIds.has(comp.id));
-  }, [competitions, enrichedResults]);
+  // Categorize competitions into Live, Coming Soon, and Completed
+  const completedIds = useMemo(
+    () => new Set(enrichedResults.map((r) => r.competitionId)),
+    [enrichedResults]
+  );
+
+  const compStatusStats = useMemo(() => {
+    const now = Date.now();
+    let live = 0;
+    let upcoming = 0;
+    let completed = 0;
+
+    competitions.forEach((comp) => {
+      const isPractice = comp.title.toLowerCase().includes('practice');
+      const isEnded =
+        !isPractice &&
+        (comp.status === 'completed' || (comp.endTime && new Date(comp.endTime).getTime() <= now));
+      if (isEnded || comp.status === 'completed') {
+        completed++;
+      } else if (
+        comp.status === 'live' ||
+        (comp.startTime && new Date(comp.startTime).getTime() <= now && comp.status !== 'completed')
+      ) {
+        live++;
+      } else {
+        upcoming++;
+      }
+    });
+
+    return { live, upcoming, completed };
+  }, [competitions]);
 
   return (
     <div className="space-y-8">
@@ -590,7 +620,7 @@ export const ProfilePage: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <span className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-3 py-1 font-mono text-xs text-[#a8a8a2]">
-              {enrichedResults.length} Completed · {pendingCompetitions.length} Available
+              {compStatusStats.live} Live · {compStatusStats.upcoming} Coming · {compStatusStats.completed} Completed
             </span>
           </div>
         </div>
@@ -729,94 +759,159 @@ export const ProfilePage: React.FC = () => {
           )}
         </div>
 
-        {/* 2. Pending / Available Competitions */}
-        {pendingCompetitions.length > 0 && (
+        {/* 2. Tournament Directory & Status (Completed, Live, and Upcoming) */}
+        {competitions.length > 0 && (
           <div className="space-y-4 pt-4 border-t border-[#2e2e2a]">
-            <h3 className="font-display text-sm font-semibold text-[#f5f5f2] uppercase tracking-wide">
-              Pending & Available Competitions ({pendingCompetitions.length})
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-sm font-semibold text-[#f5f5f2] uppercase tracking-wide">
+                Competitions & Tournament Status ({competitions.length})
+              </h3>
+              <span className="font-mono text-xs text-[#a8a8a2]">
+                Official Tournament Ledger
+              </span>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {pendingCompetitions.map((comp) => (
-                <div
-                  key={comp.id}
-                  className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5 space-y-4 flex flex-col justify-between"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 font-mono text-[11px]">
-                      <span
-                        className={`rounded px-2 py-0.5 font-bold ${
-                          comp.status === 'live'
-                            ? 'bg-[#a4d65e]/15 text-[#a4d65e] border border-[#a4d65e]/30'
-                            : 'bg-[#8dc63f]/10 text-[#8dc63f] border border-[#7ab32e]/30'
-                        }`}
-                      >
-                        {comp.status === 'live' ? 'LIVE NOW' : 'PENDING / SCHEDULED'}
-                      </span>
-                    </div>
+              {competitions.map((comp) => {
+                const isPractice = comp.title.toLowerCase().includes('practice');
+                const now = Date.now();
+                const isCompletedByUser = completedIds.has(comp.id);
+                const isEnded =
+                  !isPractice &&
+                  (comp.status === 'completed' || (comp.endTime && new Date(comp.endTime).getTime() <= now));
 
-                    <h4 className="font-display text-base font-semibold text-[#f5f5f2]">
-                      {comp.title}
-                    </h4>
+                const statusType: 'completed' | 'live' | 'upcoming' =
+                  isEnded || comp.status === 'completed'
+                    ? 'completed'
+                    : comp.status === 'live' ||
+                      (comp.startTime &&
+                        new Date(comp.startTime).getTime() <= now &&
+                        comp.status !== 'completed')
+                    ? 'live'
+                    : 'upcoming';
 
-                    {comp.description && (
-                      <p className="text-xs text-[#a8a8a2] line-clamp-2 leading-relaxed">
-                        {comp.description}
-                      </p>
-                    )}
-                  </div>
+                return (
+                  <div
+                    key={comp.id}
+                    className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5 space-y-4 flex flex-col justify-between hover:border-[#7ab32e]/50 transition-colors"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 font-mono text-[11px]">
+                        {statusType === 'completed' ? (
+                          <span className="inline-flex items-center gap-1 rounded bg-[#2e2e2a] border border-[#3e3e38] px-2 py-0.5 font-mono text-[10px] font-bold text-[#a8a8a2]">
+                            <CheckCircle2 className="h-3 w-3 text-[#8dc63f]" />
+                            COMPLETED
+                          </span>
+                        ) : statusType === 'live' ? (
+                          <span className="inline-flex items-center gap-1.5 rounded bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#8dc63f] animate-ping" />
+                            LIVE NOW
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded bg-[#00E5FF]/15 border border-[#00E5FF]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#00E5FF]">
+                            <Clock className="h-3 w-3" />
+                            COMING SOON
+                          </span>
+                        )}
 
-                  <div className="border-t border-[#2e2e2a] pt-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 font-mono text-xs text-[#a8a8a2]">
-                      {comp.startTime && (
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {new Date(comp.startTime).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
+                        {isCompletedByUser && statusType !== 'completed' && (
+                          <span className="inline-flex items-center gap-1 rounded bg-[#a4d65e]/10 border border-[#a4d65e]/30 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#a4d65e]">
+                            ATTEMPT RECORDED
+                          </span>
+                        )}
+                      </div>
+
+                      <h4 className="font-display text-base font-semibold text-[#f5f5f2]">
+                        {comp.title}
+                      </h4>
+
+                      {comp.description && (
+                        <p className="text-xs text-[#a8a8a2] line-clamp-2 leading-relaxed">
+                          {comp.description}
+                        </p>
                       )}
-                      <span>{comp.durationMinutes || 15}m</span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        selectCompetition(comp);
-                        if (!is100PercentComplete) {
-                          handleOpenEdit();
-                        } else {
-                          const isLive =
-                            comp.status === 'live' ||
-                            (comp.startTime &&
-                              new Date(comp.startTime).getTime() <= Date.now() &&
-                              comp.status !== 'completed');
-                          if (isLive) {
-                            navigate('/quiz');
-                          } else {
-                            navigate('/competitions');
-                          }
-                        }
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#2e2e2a] px-3 py-1.5 text-xs font-semibold text-[#f5f5f2] hover:border-[#7ab32e] hover:text-[#8dc63f] transition-colors cursor-pointer"
-                    >
-                      <span>
-                        {!is100PercentComplete
-                          ? 'Complete Profile First'
-                          : comp.status === 'live'
-                          ? 'Enter Quiz Directly'
-                          : 'View Start Timer'}
-                      </span>
-                      <ArrowRight className="h-3 w-3" />
-                    </button>
+                    <div className="border-t border-[#2e2e2a] pt-3 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 font-mono text-xs text-[#a8a8a2]">
+                        {statusType === 'completed' ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-[#a8a8a2]" />
+                            <span>
+                              {comp.endTime
+                                ? `Ended ${new Date(comp.endTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}`
+                                : 'Concluded Nov 8, 2026'}
+                            </span>
+                          </span>
+                        ) : statusType === 'live' ? (
+                          <span className="inline-flex items-center gap-1 text-[#8dc63f]">
+                            <Clock className="h-3 w-3" />
+                            <span>Live · {comp.durationMinutes || 15}m</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[#00E5FF]">
+                            <Clock className="h-3 w-3" />
+                            <span>
+                              Starts {comp.startTime ? new Date(comp.startTime).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Scheduled'}
+                            </span>
+                          </span>
+                        )}
+                      </div>
+
+                      {statusType === 'completed' ? (
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/standings/${comp.id}`)}
+                          className="inline-flex items-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#a4d65e]/40 px-3 py-1.5 text-xs font-semibold text-[#a4d65e] hover:bg-[#a4d65e]/10 transition-colors cursor-pointer"
+                        >
+                          <Trophy className="h-3.5 w-3.5 text-[#a4d65e]" />
+                          <span>View Final Standings</span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      ) : statusType === 'live' ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isCompletedByUser) {
+                              navigate(`/standings/${comp.id}`);
+                              return;
+                            }
+                            selectCompetition(comp);
+                            if (!is100PercentComplete) {
+                              handleOpenEdit();
+                            } else {
+                              navigate('/quiz');
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-3.5 py-1.5 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-sm"
+                        >
+                          <span>
+                            {isCompletedByUser
+                              ? 'Attempt Completed'
+                              : !is100PercentComplete
+                              ? 'Complete Profile First'
+                              : 'Enter Quiz Directly'}
+                          </span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => navigate('/competitions')}
+                          className="inline-flex items-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#00E5FF]/40 px-3 py-1.5 text-xs font-semibold text-[#00E5FF] hover:bg-[#00E5FF]/10 transition-colors cursor-pointer"
+                        >
+                          <span>View Start Timer</span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
-      </section>
+        </section>
     </div>
   );
 };

@@ -9,6 +9,7 @@ import {
 import { useAppContext } from '../context/AppContext';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 import { CompetitionCard } from '../components/competition/CompetitionCard';
+import { NullSymbol3D } from '../components/home/NullSymbol3D';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -97,18 +98,21 @@ export const DashboardPage: React.FC = () => {
     <div className="space-y-8">
       {/* Main Cinematic Welcome Banner */}
       <section className="relative overflow-hidden rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-6 md:p-10">
-        {/* Technical SVG Background Accent */}
+        {/* 3D Null Origin Symbol Accent */}
         <div
-          className="pointer-events-none absolute right-0 top-0 bottom-0 w-1/2 opacity-15 hidden md:flex items-center justify-end pr-8"
+          className="absolute right-0 top-0 bottom-0 w-full md:w-1/2 flex items-center justify-center md:justify-end pr-0 md:pr-4 pointer-events-none md:pointer-events-auto overflow-hidden"
           aria-hidden="true"
         >
-          <svg className="h-64 w-64 text-[#8dc63f]" viewBox="0 0 240 240" fill="none">
-            <circle cx="120" cy="120" r="105" stroke="currentColor" strokeWidth="1" strokeDasharray="6 6" />
-            <circle cx="120" cy="120" r="75" stroke="currentColor" strokeWidth="1" />
-            <polygon points="120,30 200,75 200,165 120,210 40,165 40,75" stroke="currentColor" strokeWidth="1" />
-            <line x1="120" y1="0" x2="120" y2="240" stroke="currentColor" strokeWidth="0.75" />
-            <line x1="0" y1="120" x2="240" y2="120" stroke="currentColor" strokeWidth="0.75" />
-          </svg>
+          {/* Subtle Technical HUD Reticle centered behind 3D symbol */}
+          <div className="pointer-events-none absolute w-[400px] h-[350px] flex items-center justify-center opacity-10 hidden lg:flex">
+            <svg className="h-64 w-64 text-[#8dc63f]" viewBox="0 0 240 240" fill="none">
+              <circle cx="120" cy="120" r="105" stroke="currentColor" strokeWidth="1" strokeDasharray="6 6" />
+              <circle cx="120" cy="120" r="75" stroke="currentColor" strokeWidth="0.75" />
+              <polygon points="120,30 200,75 200,165 120,210 40,165 40,75" stroke="currentColor" strokeWidth="0.75" />
+            </svg>
+          </div>
+
+          <NullSymbol3D className="w-full md:w-[400px] h-64 md:h-[350px]" />
         </div>
 
         <div className="relative z-10 max-w-2xl">
