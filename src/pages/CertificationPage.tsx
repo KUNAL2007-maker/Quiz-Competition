@@ -172,8 +172,12 @@ export const CertificationPage: React.FC = () => {
       // who entered Cyber Security Quiz 2026 — any score, including 0.
       // A leaderboard entry for this uid + competition is the proof of entry.
       // No profile (no uid) means they never signed in to take the quiz.
-      let participated = false;
-      if (uid) {
+      // ADMIN EXCEPTION: the admin email(s) can always get a certificate
+      // (the organiser did not take the quiz as a participant, so there is
+      // no leaderboard entry to check). Same list as firestore.rules isAdmin().
+      const ADMIN_EMAILS = ['checkship66@gmail.com', 'hafizmujawar786@gmail.com', 'kunalbankhele07@gmail.com'];
+      let participated = ADMIN_EMAILS.includes(normalized);
+      if (!participated && uid) {
         try {
           const lbDoc = await getDoc(doc(db, 'leaderboard', `${uid}_${CYBER_QUIZ_COMP_ID}`));
           participated = lbDoc.exists();
