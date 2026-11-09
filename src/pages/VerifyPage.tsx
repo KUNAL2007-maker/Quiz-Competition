@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ShieldCheck, ShieldAlert, BadgeCheck } from 'lucide-react';
-import { certRegistry } from '../constants/certRegistry';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 /**
  * Hidden certificate verification page.
@@ -11,20 +12,50 @@ import { certRegistry } from '../constants/certRegistry';
  * certificate, which encodes https://www.nullorigin.live/verify/<certId>.
  * No login is required: anyone holding a certificate can verify it.
  *
- * Lookup is against the registration mapping already bundled in the site
- * (email -> { name, id }); no new database, no server function, no extra
- * cost. A cert ID that is not in the registry cannot be verified.
+ * PARTICIPANTS ONLY (9 Nov 2026): a certificate verifies only if it was
+ * issued to a student who entered Cyber Security Quiz 2026 (any score,
+ * including 0). The admin-only Certification page writes one doc per
+ * issued certificate to the `certificates` collection (id = cert id) only
+ * after its leaderboard participation gate passes. This page reads that
+ * single doc — it does NOT consult the registration mapping, so a
+ * registered-but-never-entered student has no doc and shows Not Found.
+ * No email is stored in the doc (it is publicly readable by cert id).
  */
 export const VerifyPage: React.FC = () => {
   const { certId } = useParams<{ certId: string }>();
   const id = (certId || '').trim().toUpperCase();
 
-  const found = useMemo(() => {
-    if (!id) return null;
-    const entry = Object.entries(certRegistry).find(([, v]) => v.id.toUpperCase() === id);
-    if (!entry) return null;
-    return { email: entry[0], name: entry[1].name, id: entry[1].id };
+  const [status, setStatus] = useState<'checking' | 'verified' | 'not-found'>('checking');
+  const [name, setName] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!id) {
+        setStatus('not-found');
+        return;
+      }
+      setStatus('checking');
+      try {
+        const snap = await getDoc(doc(db, 'certificates', id));
+        if (cancelled) return;
+        if (snap.exists()) {
+          const data = snap.data() as { name?: string; event?: string };
+          setName((data.name || '').trim());
+          setStatus('verified');
+        } else {
+          setStatus('not-found');
+        }
+      } catch {
+        if (!cancelled) setStatus('not-found');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
+
+  const verified = status === 'verified';
 
   return (
     <div
@@ -57,7 +88,20 @@ export const VerifyPage: React.FC = () => {
           Certificate Verification
         </h1>
 
-        {found ? (
+        {status === 'checking' ? (
+          <div
+            style={{
+              border: '1px solid #2e2e2a',
+              borderRadius: 16,
+              background: '#1b1b19',
+              padding: '28px 24px',
+              fontSize: 15,
+              color: '#a8a8a2',
+            }}
+          >
+            Checking certificate…
+          </div>
+        ) : verified ? (
           <div
             style={{
               border: '1px solid #2e2e2a',
@@ -75,7 +119,7 @@ export const VerifyPage: React.FC = () => {
             <dl style={{ margin: 0, display: 'grid', gap: 12, fontSize: 15, lineHeight: 1.5 }}>
               <div>
                 <dt style={{ fontSize: 12, color: '#a8a8a2', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Participant</dt>
-                <dd style={{ margin: '2px 0 0', fontWeight: 700 }}>{found.name}</dd>
+                <dd style={{ margin: '2px 0 0', fontWeight: 700 }}>{name}</dd>
               </div>
               <div>
                 <dt style={{ fontSize: 12, color: '#a8a8a2', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Event</dt>
@@ -83,7 +127,7 @@ export const VerifyPage: React.FC = () => {
               </div>
               <div>
                 <dt style={{ fontSize: 12, color: '#a8a8a2', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Certificate ID</dt>
-                <dd style={{ margin: '2px 0 0', fontFamily: 'monospace', fontWeight: 700 }}>{found.id}</dd>
+                <dd style={{ margin: '2px 0 0', fontFamily: 'monospace', fontWeight: 700 }}>{id}</dd>
               </div>
               <div>
                 <dt style={{ fontSize: 12, color: '#a8a8a2', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Organised by</dt>
@@ -92,7 +136,7 @@ export const VerifyPage: React.FC = () => {
             </dl>
             <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '20px 0 0', fontSize: 13, color: '#a8a8a2' }}>
               <BadgeCheck style={{ width: 16, height: 16, color: '#8dc63f' }} />
-              This certificate ID matches our registration records.
+              This certificate was issued to a participant of Cyber Security Quiz 2026.
             </p>
           </div>
         ) : (
@@ -114,7 +158,7 @@ export const VerifyPage: React.FC = () => {
               {id ? (
                 <>
                   The certificate ID <span style={{ fontFamily: 'monospace', color: '#f5f5f2' }}>{id}</span> does
-                  not match our registration records for Cyber Security Quiz 2026. Check the
+                  not match an issued certificate for Cyber Security Quiz 2026. Certificates are only issued to students who entered the quiz. Check the
                   code and try again, or contact the organisers.
                 </>
               ) : (

@@ -10,7 +10,7 @@ import {
   AlertTriangle,
   Mail,
 } from 'lucide-react';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAppContext } from '../context/AppContext';
 import { jsPDF } from 'jspdf';
@@ -184,6 +184,22 @@ export const CertificationPage: React.FC = () => {
       if (!participated) {
         setError('This email did not participate in Cyber Security Quiz 2026, so no certificate is available. Certificates are only for students who entered the quiz (any score, including 0).');
         return;
+      }
+
+      // Record the issuance: the hidden public Verify page reads this doc.
+      // Only participants reach here (gate above), so only participants
+      // ever get a doc — this is what makes a QR verifiable. No email is
+      // stored (the doc is publicly readable by cert id).
+      try {
+        await setDoc(doc(db, 'certificates', certId), {
+          name,
+          event: 'Cyber Security Quiz 2026',
+          issuedAt: serverTimestamp(),
+        }, { merge: true });
+      } catch {
+        // Issuance record failed — the certificate itself is still valid
+        // for download; the QR just won't verify until the record exists.
+        // (Admin can re-look the email up to retry the write.)
       }
 
       const found: FoundParticipant = {

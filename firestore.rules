@@ -185,8 +185,8 @@ service cloud.firestore {
     // profiles: verification emails land in spam, so requiring verification
     // blocks real students' scores. Ownership + entry validation still apply.
     match /leaderboard/{entryId} {
-      allow get: if isValidId(entryId);
-      allow list: if true;
+      allow get: if isValidId(entryId) && existing().score >= 0;
+      allow list: if existing().score >= 0;
       allow create: if isSignedIn() && isValidId(entryId) &&
         entryId == request.auth.uid + '_' + incoming().competitionId &&
         !exists(/databases/$(database)/documents/leaderboard/$(entryId)) &&
@@ -196,12 +196,12 @@ service cloud.firestore {
       // Retakes overwrite the entry with the latest score, so update must allow
       // the owner to replace a 'Completed' entry too (not only 'In Progress').
       // The owner + competition must match and the new entry must be valid.
-      allow update: if (isSignedIn() && isValidId(entryId) &&
+      allow update: if isSignedIn() && isValidId(entryId) &&
         isValidLeaderboardEntry(incoming()) &&
         existing().ownerId == request.auth.uid &&
         incoming().ownerId == request.auth.uid &&
         incoming().ownerId == existing().ownerId &&
-        incoming().competitionId == existing().competitionId) || (isAdmin() && isValidId(entryId));
+        incoming().competitionId == existing().competitionId;
       allow delete: if isAdmin() && isValidId(entryId);
     }
 
@@ -213,6 +213,24 @@ service cloud.firestore {
         incoming().createdAt == request.time &&
         exists(/databases/$(database)/documents/competitions/$(incoming().competitionId));
       allow update, delete: if isAdmin() && isValidId(entryId);
+    }
+
+    // Issued Certificates (public verify, admin-only write).
+    // One doc per issued certificate, id = the cert id (e.g. NO26-PRT-784-AA).
+    // Written by the admin-only Certification page ONLY after the
+    // participation gate passes (leaderboard entry for Cyber Quiz 2026),
+    // so only participants ever get a doc here. The hidden public Verify
+    // page reads a single doc by id — no list, no email stored (the doc
+    // holds only the display name + event, so scanning a QR cannot leak
+    // anyone's email). No list: nobody can enumerate all certificates.
+    match /certificates/{certId} {
+      allow get: if isValidId(certId);
+      allow list: if false;
+      allow create, update: if isAdmin() && isValidId(certId) &&
+        incoming().keys().hasAll(['name', 'event']) &&
+        incoming().name is string && incoming().name.size() >= 2 && incoming().name.size() <= 64 &&
+        incoming().event is string && incoming().event.size() >= 2 && incoming().event.size() <= 128;
+      allow delete: if isAdmin() && isValidId(certId);
     }
 
     // Private Operator Results (Strictly scoped to ownerId)
