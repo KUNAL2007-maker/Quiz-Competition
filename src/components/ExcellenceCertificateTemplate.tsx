@@ -27,14 +27,14 @@ const LEFT_SIGNATURE_PATH =
  * artwork SVG, paper, colours, hexagon logo, signatures, QR top-right),
  * but titled CERTIFICATE OF EXCELLENCE with the winner's rank
  * (1st Place / 1st Runner Up / 2nd Runner Up) in orange under the name
- * and a citation that names the rank. The brand name uses top 96 — the
- * DOWNLOAD-correct value (html2canvas); the on-screen preview sits ~22px
- * high, which is acceptable — the download is the artifact that matters.
+ * and a citation that names the rank. The brand name's `top` differs by
+ * render (browser vs html2canvas disagree by ~20px): the on-screen
+ * preview uses brandTop 118, the hidden capture (the download) uses 96.
  * The QR encodes the hidden verification URL for the Excellence cert id
  * (NO26-EXC-###-XX). The verify page reads the `certificates` doc and
  * shows Certificate of Excellence + rank for these ids.
  */
-export function ExcellenceCertificateTemplate({ name, certId, rank }: { name: string; certId?: string; rank: string }) {
+export function ExcellenceCertificateTemplate({ name, certId, rank, brandTop = 96 }: { name: string; certId?: string; rank: string; brandTop?: number }) {
   const displayName = (name || '').trim() || 'Participant';
   const [fontSize, setFontSize] = useState(72);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -132,19 +132,20 @@ export function ExcellenceCertificateTemplate({ name, certId, rank }: { name: st
           height: 900,
         }}
       >
-        {/* Brand name: NULL ORIGIN — top 96 is the DOWNLOAD-correct value
-            (html2canvas renders the text centre on the logo centre, y=140,
-            measured on a real downloaded PNG, 9 Nov 2026). The on-screen
-            preview lays the same text out ~22px higher (browser text layout
-            differs from html2canvas) — that is acceptable: the downloaded
-            certificate is the artifact students keep/share, so the download
-            is what must be aligned. Do NOT "fix" the preview by raising
-            this to 118 — that pushes the download ~20px too low. */}
+        {/* Brand name: NULL ORIGIN — the browser and html2canvas place the
+            text ~20px apart for the same `top` (browser text centre =
+            top + 24, html2canvas = top + 44; logo centre y=140, measured
+            9 Nov 2026). So the two renders need different values: the
+            on-screen preview (browser) uses brandTop 118, the hidden
+            capture (html2canvas — the download) uses 96. The download is
+            the artifact students keep/share, so the capture MUST stay 96;
+            never raise the capture value to 118 or the download lands
+            ~20px too low. */}
         <div
           style={{
             position: 'absolute',
             left: 236,
-            top: 96,
+            top: brandTop,
             fontFamily: SANS,
             fontWeight: 800,
             fontSize: 48,

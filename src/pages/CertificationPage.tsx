@@ -493,7 +493,7 @@ export const CertificationPage: React.FC = () => {
                 }}
               >
                 <div ref={certRef} style={{ width: CERT_W, height: CERT_H }}>
-                  <CertificateTemplate name={participant.name} certId={participant.certId} />
+                  <CertificateTemplate name={participant.name} certId={participant.certId} brandTop={118} />
                 </div>
               </div>
             </div>
@@ -553,7 +553,7 @@ export const CertificationPage: React.FC = () => {
                 }}
               >
                 <div ref={excCertRef} style={{ width: CERT_W, height: CERT_H }}>
-                  <ExcellenceCertificateTemplate name={excellence.name} certId={excellence.certId} rank={excellence.rank} />
+                  <ExcellenceCertificateTemplate name={excellence.name} certId={excellence.certId} rank={excellence.rank} brandTop={118} />
                 </div>
               </div>
             </div>
@@ -599,7 +599,7 @@ export const CertificationPage: React.FC = () => {
           }}
         >
           <div ref={captureRef} style={{ width: CERT_W, height: CERT_H }}>
-            <CertificateTemplate name={participant.name} certId={participant.certId} />
+            <CertificateTemplate name={participant.name} certId={participant.certId} brandTop={96} />
           </div>
         </div>
       )}
@@ -619,7 +619,7 @@ export const CertificationPage: React.FC = () => {
           }}
         >
           <div ref={excCaptureRef} style={{ width: CERT_W, height: CERT_H }}>
-            <ExcellenceCertificateTemplate name={excellence.name} certId={excellence.certId} rank={excellence.rank} />
+            <ExcellenceCertificateTemplate name={excellence.name} certId={excellence.certId} rank={excellence.rank} brandTop={96} />
           </div>
         </div>
       )}

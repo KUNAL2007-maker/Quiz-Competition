@@ -35,7 +35,7 @@ const LEFT_SIGNATURE_PATH =
  * linked anywhere on the site frontend — it only opens when the QR is
  * scanned. No cert ID text and no date appear on the certificate itself.
  */
-export function CertificateTemplate({ name, certId }: { name: string; certId?: string }) {
+export function CertificateTemplate({ name, certId, brandTop = 96 }: { name: string; certId?: string; brandTop?: number }) {
   const displayName = (name || '').trim() || 'Participant';
   const [fontSize, setFontSize] = useState(72);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -133,19 +133,20 @@ export function CertificateTemplate({ name, certId }: { name: string; certId?: s
           height: 900,
         }}
       >
-        {/* Brand name: NULL ORIGIN — top 96 is the DOWNLOAD-correct value
-            (html2canvas renders the text centre on the logo centre, y=140,
-            measured on a real downloaded PNG, 9 Nov 2026). The on-screen
-            preview lays the same text out ~22px higher (browser text layout
-            differs from html2canvas) — that is acceptable: the downloaded
-            certificate is the artifact students keep/share, so the download
-            is what must be aligned. Do NOT "fix" the preview by raising
-            this to 118 — that pushes the download ~20px too low. */}
+        {/* Brand name: NULL ORIGIN — the browser and html2canvas place the
+            text ~20px apart for the same `top` (browser text centre =
+            top + 24, html2canvas = top + 44; logo centre y=140, measured
+            9 Nov 2026). So the two renders need different values: the
+            on-screen preview (browser) uses brandTop 118, the hidden
+            capture (html2canvas — the download) uses 96. The download is
+            the artifact students keep/share, so the capture MUST stay 96;
+            never raise the capture value to 118 or the download lands
+            ~20px too low. */}
         <div
           style={{
             position: 'absolute',
             left: 236,
-            top: 96,
+            top: brandTop,
             fontFamily: SANS,
             fontWeight: 800,
             fontSize: 48,
