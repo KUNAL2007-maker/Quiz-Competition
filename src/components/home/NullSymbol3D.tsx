@@ -25,7 +25,7 @@ export const NullSymbol3D: React.FC<NullSymbol3DProps> = ({ className = '', onLo
     const width = container.clientWidth || 380;
     const height = container.clientHeight || 340;
 
-    // Renderer
+    // Renderer calibrated to exact #8dc63f button color fidelity
     const renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
@@ -34,50 +34,44 @@ export const NullSymbol3D: React.FC<NullSymbol3DProps> = ({ className = '', onLo
     });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMapping = THREE.NoToneMapping;
 
     // Scene & Camera
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
     camera.position.set(0, 0, 5.2);
 
-    // --- Website Aesthetic Lighting (Zero Silver, Matte Dark Obsidian + Neon Lime Accent) ---
-    // 1. Soft ambient tone
-    const ambientLight = new THREE.AmbientLight(0x0e140a, 1.2);
+    // --- Calibrated #8dc63f Lighting (Exact Match to Browse Competitions button) ---
+    // 1. Soft green ambient
+    const ambientLight = new THREE.AmbientLight(0x8dc63f, 0.45);
     scene.add(ambientLight);
 
-    // 2. Crisp key light
-    const keyLight = new THREE.DirectionalLight(0xf2ffea, 2.2);
-    keyLight.position.set(-3, 3, 4);
+    // 2. Soft white directional key light
+    const keyLight = new THREE.DirectionalLight(0xffffff, 0.65);
+    keyLight.position.set(-2, 3, 4);
     scene.add(keyLight);
 
-    // 3. High-intensity #8dc63f neon lime rim edge light
-    const rimLight = new THREE.DirectionalLight(0x8dc63f, 7.5);
-    rimLight.position.set(3.5, 1.0, -1.5);
+    // 3. Subtle dark green fill light
+    const fillLight = new THREE.DirectionalLight(0x557a22, 0.4);
+    fillLight.position.set(3, -1, 3);
+    scene.add(fillLight);
+
+    // 4. Subtle top-back rim accent
+    const rimLight = new THREE.DirectionalLight(0xa4d65e, 1.2);
+    rimLight.position.set(3, 2, -2);
     scene.add(rimLight);
-
-    // 4. Secondary rim accent (left-bottom)
-    const rimLight2 = new THREE.DirectionalLight(0x7ab32e, 4.5);
-    rimLight2.position.set(-3.5, -2.5, -1.5);
-    scene.add(rimLight2);
-
-    // 5. Center point glow
-    const pointLight = new THREE.PointLight(0x8dc63f, 2.5, 7);
-    pointLight.position.set(0, -0.5, 2.0);
-    scene.add(pointLight);
 
     // Group for drag rotation & float
     const symbolGroup = new THREE.Group();
     scene.add(symbolGroup);
 
-    // Custom Obsidian Material with green glint
+    // Exact #8dc63f Material (RGB: 141, 198, 63)
     const websiteMaterial = new THREE.MeshStandardMaterial({
-      color: 0x151614,
-      roughness: 0.22,
-      metalness: 0.45,
-      emissive: 0x081004,
-      emissiveIntensity: 0.2,
+      color: 0x8dc63f,
+      roughness: 0.38,
+      metalness: 0.05,
+      emissive: 0x22360c,
+      emissiveIntensity: 0.18,
     });
 
     const loader = new GLTFLoader();
