@@ -648,9 +648,8 @@ export const CertificationPage: React.FC = () => {
         </div>
       )}
 
-      {/* Referral / participant gift — only for participants: shown once a
-          certificate is found. Non-participants never see the claim button. */}
-      {participant && (
+      {/* Referral / participant gift — visible to everyone, including
+          non-participants. */}
       <div className="rounded-xl border border-[#7ab32e]/60 bg-[#1b1b19] p-5 sm:p-6 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-md border border-[#7ab32e] px-2 py-1 font-mono text-[11px] font-semibold tracking-wider text-[#a4d65e] uppercase">
@@ -678,7 +677,6 @@ export const CertificationPage: React.FC = () => {
           <ExternalLink className="h-4 w-4" />
         </a>
       </div>
-      )}
 
       <p className="text-xs text-[#a8a8a2]">© 2026 Null Origin</p>
     </div>
