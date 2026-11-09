@@ -17,12 +17,22 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { certRegistry } from '../constants/certRegistry';
 import { CertificateTemplate } from '../components/CertificateTemplate';
+import { ExcellenceCertificateTemplate } from '../components/ExcellenceCertificateTemplate';
 
 const REFERRAL_URL = 'https://agentrouter.org/register?aff=p772';
 // Cyber Security Quiz 2026 competition id — the participation gate below
 // only issues a certificate when this user has a leaderboard entry here
 // (any score, including 0). Registered-but-never-entered users get none.
 const CYBER_QUIZ_COMP_ID = 'comp_1793963656835';
+// Top 3 winners — each gets TWO certificates: the Participation cert
+// (above) AND a Certificate of Excellence with their rank. The Excellence
+// cert has its own id (NO26-EXC-###-XX) so its QR verifies separately as
+// a Certificate of Excellence. Keyed by the winner's registered email.
+const WINNERS: Record<string, { rank: string; excCertId: string }> = {
+  'itzichigo4u@gmail.com': { rank: '1st Place', excCertId: 'NO26-EXC-784-AA' },
+  'keerthanashreektha@gmail.com': { rank: '1st Runner Up', excCertId: 'NO26-EXC-593-KS' },
+  'chayeshkumar@gmail.com': { rank: '2nd Runner Up', excCertId: 'NO26-EXC-041-CK' },
+};
 // Certificate artwork is 1200x900 (the CertificateTemplate component).
 const CERT_W = 1200;
 const CERT_H = 900;
@@ -45,24 +55,37 @@ interface FoundParticipant {
   source: 'firestore' | 'registry';
 }
 
+interface FoundExcellence {
+  name: string;
+  certId: string;
+  rank: string;
+  email: string;
+}
+
 export const CertificationPage: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser, isAdmin } = useAppContext();
   const certRef = useRef<HTMLDivElement>(null);
   const captureRef = useRef<HTMLDivElement>(null);
+  const excCertRef = useRef<HTMLDivElement>(null);
+  const excCaptureRef = useRef<HTMLDivElement>(null);
   const previewOuterRef = useRef<HTMLDivElement>(null);
+  const excPreviewOuterRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(0.7);
+  const [excPreviewScale, setExcPreviewScale] = useState(0.7);
 
   const [email, setEmail] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
   const [participant, setParticipant] = useState<FoundParticipant | null>(null);
+  const [excellence, setExcellence] = useState<FoundExcellence | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
 
-  // Scale the 1200x900 certificate preview to fit the card width.
-  // The html2canvas capture targets certRef (the unscaled 1200x900 div),
-  // so downloads stay full resolution regardless of the preview scale.
+  // Scale the 1200x900 certificate previews to fit the card width.
+  // The html2canvas capture targets certRef / excCertRef (the unscaled
+  // 1200x900 divs), so downloads stay full resolution regardless of the
+  // preview scale.
   useEffect(() => {
     const el = previewOuterRef.current;
     if (!el) return;
@@ -75,6 +98,19 @@ export const CertificationPage: React.FC = () => {
     ro.observe(el);
     return () => ro.disconnect();
   }, [participant]);
+
+  useEffect(() => {
+    const el = excPreviewOuterRef.current;
+    if (!el) return;
+    const update = () => {
+      const w = el.clientWidth;
+      if (w > 0) setExcPreviewScale(w / CERT_W);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [excellence]);
 
   // If user is not authorized administrator, show access denied (same pattern as AdminPage)
   if (!isAdmin) {
@@ -117,10 +153,12 @@ export const CertificationPage: React.FC = () => {
     if (!normalized || !normalized.includes('@')) {
       setError('Enter a valid registered email address.');
       setParticipant(null);
+      setExcellence(null);
       return;
     }
     setError(null);
     setParticipant(null);
+    setExcellence(null);
     setIsSearching(true);
     try {
       // Primary lookup: Firestore profiles collection by email.
@@ -198,12 +236,34 @@ export const CertificationPage: React.FC = () => {
         await setDoc(doc(db, 'certificates', certId), {
           name,
           event: 'Cyber Security Quiz 2026',
+          certType: 'participation',
           issuedAt: serverTimestamp(),
         }, { merge: true });
       } catch {
         // Issuance record failed — the certificate itself is still valid
         // for download; the QR just won't verify until the record exists.
         // (Admin can re-look the email up to retry the write.)
+      }
+
+      // Top 3 winners get a SECOND certificate — the Certificate of
+      // Excellence with their rank. It has its own id (NO26-EXC-###-XX)
+      // and its own `certificates` doc (certType 'excellence' + rank), so
+      // its QR verifies separately as a Certificate of Excellence.
+      const win = WINNERS[normalized];
+      if (win) {
+        try {
+          await setDoc(doc(db, 'certificates', win.excCertId), {
+            name,
+            event: 'Cyber Security Quiz 2026',
+            certType: 'excellence',
+            rank: win.rank,
+            issuedAt: serverTimestamp(),
+          }, { merge: true });
+        } catch {
+          // Same as above — the Excellence cert is still downloadable;
+          // its QR just won't verify until the record exists.
+        }
+        setExcellence({ name, certId: win.excCertId, rank: win.rank, email: normalized });
       }
 
       const found: FoundParticipant = {
@@ -224,17 +284,19 @@ export const CertificationPage: React.FC = () => {
     ? `NullOrigin-Certificate-${participant.name.replace(/\s+/g, '-')}`
     : 'NullOrigin-Certificate';
 
-  // Render the visible CertificateTemplate to a high-resolution canvas
-  // (scale 2 => 2400x1800) and reuse it for both downloads.
-  // IMPORTANT: capture from the hidden off-screen container (captureRef),
-  // NOT from the scaled preview (certRef). html2canvas mis-measures text
-  // when the target sits inside a transformed (scaled) ancestor, which
-  // produced overlapping/garbled text in the downloaded PNG/PDF.
-  // We also wait for the certificate fonts to be fully loaded before
-  // capturing, so html2canvas measures text with the real fonts.
-  const captureCertificate = async (): Promise<HTMLCanvasElement | null> => {
-    const node = captureRef.current ?? certRef.current;
-    if (!node || !participant) return null;
+  const excFileBase = excellence
+    ? `NullOrigin-Certificate-of-Excellence-${excellence.name.replace(/\s+/g, '-')}`
+    : 'NullOrigin-Certificate-of-Excellence';
+
+  // Render a certificate node to a high-resolution canvas (scale 2 =>
+  // 2400x1800). IMPORTANT: capture from the hidden off-screen container
+  // (captureRef / excCaptureRef), NOT from the scaled preview. html2canvas
+  // mis-measures text when the target sits inside a transformed (scaled)
+  // ancestor, which produced overlapping/garbled text in the downloaded
+  // PNG/PDF. We also wait for the certificate fonts to be fully loaded
+  // before capturing, so html2canvas measures text with the real fonts.
+  const captureNode = async (node: HTMLElement | null): Promise<HTMLCanvasElement | null> => {
+    if (!node) return null;
     setRenderError(null);
     setIsRendering(true);
     try {
@@ -243,6 +305,7 @@ export const CertificationPage: React.FC = () => {
           await Promise.all([
             document.fonts.load('800 48px "Inter"'),
             document.fonts.load('800 38px "Inter"'),
+            document.fonts.load('800 30px "Inter"'),
             document.fonts.load('400 22px "Inter"'),
             document.fonts.load('400 19px "Inter"'),
             document.fonts.load('500 19px "Inter"'),
@@ -265,6 +328,16 @@ export const CertificationPage: React.FC = () => {
     } finally {
       setIsRendering(false);
     }
+  };
+
+  const captureCertificate = async (): Promise<HTMLCanvasElement | null> => {
+    if (!participant) return null;
+    return captureNode(captureRef.current ?? certRef.current);
+  };
+
+  const captureExcellence = async (): Promise<HTMLCanvasElement | null> => {
+    if (!excellence) return null;
+    return captureNode(excCaptureRef.current ?? excCertRef.current);
   };
 
   const downloadPNG = async () => {
@@ -294,6 +367,32 @@ export const CertificationPage: React.FC = () => {
     pdf.save(`${fileBase}.pdf`);
   };
 
+  const downloadExcPNG = async () => {
+    const canvas = await captureExcellence();
+    if (!canvas || !excellence) return;
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${excFileBase}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  };
+
+  const downloadExcPDF = async () => {
+    const canvas = await captureExcellence();
+    if (!canvas || !excellence) return;
+    const dataUrl = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const w = 280;
+    const h = 210;
+    const x = (297 - w) / 2;
+    pdf.addImage(dataUrl, 'PNG', x, 0, w, h);
+    pdf.save(`${excFileBase}.pdf`);
+  };
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
@@ -309,7 +408,10 @@ export const CertificationPage: React.FC = () => {
           Certificate of Participation, ready to download as a high-resolution PNG or PDF.
           Certificates are only for students who entered Cyber Security Quiz 2026 — whatever
           their score, including 0 — and the name on the certificate is taken from the
-          participant&apos;s current profile, not the leaderboard.
+          participant&apos;s current profile, not the leaderboard. The top 3 winners also
+          receive a second certificate — the Certificate of Excellence with their rank
+          (1st Place, 1st Runner Up, 2nd Runner Up) — shown below their participation
+          certificate.
         </p>
       </div>
 
@@ -419,6 +521,66 @@ export const CertificationPage: React.FC = () => {
         </div>
       )}
 
+      {/* Certificate of Excellence — only for the top 3 winners. Shown
+          below the participation certificate, with its own downloads. */}
+      {participant && excellence && (
+        <div className="rounded-xl border border-[#b38d3a]/60 bg-[#1b1b19] p-5 sm:p-6 space-y-4">
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#e85a14]" />
+            <div>
+              <p className="text-sm font-semibold text-[#f5f5f2]">
+                Certificate of Excellence — {excellence.rank}
+              </p>
+              <p className="text-xs text-[#a8a8a2] leading-relaxed">
+                Certificate ID {excellence.certId} · {excellence.email}
+              </p>
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-lg border border-[#2e2e2a] bg-[#151513]">
+            <div
+              ref={excPreviewOuterRef}
+              style={{ position: 'relative', width: '100%', height: CERT_H * excPreviewScale, overflow: 'hidden' }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: CERT_W,
+                  height: CERT_H,
+                  transform: `scale(${excPreviewScale})`,
+                  transformOrigin: 'top left',
+                }}
+              >
+                <div ref={excCertRef} style={{ width: CERT_W, height: CERT_H }}>
+                  <ExcellenceCertificateTemplate name={excellence.name} certId={excellence.certId} rank={excellence.rank} />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={downloadExcPNG}
+              disabled={isRendering}
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#e85a14] px-5 py-3 text-sm font-bold text-[#fff7f0] hover:bg-[#f06a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <ImageIcon className="h-4 w-4" />
+              <span>Download Excellence PNG</span>
+            </button>
+            <button
+              type="button"
+              onClick={downloadExcPDF}
+              disabled={isRendering}
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#e85a14]/60 bg-[#1b1b19] px-5 py-3 text-sm font-bold text-[#e85a14] hover:bg-[#e85a14]/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <FileText className="h-4 w-4" />
+              <span>Download Excellence PDF</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Hidden off-screen render target for downloads. This is a second,
           full-size (1200x900, unscaled, no transformed ancestors) copy of
           the certificate used ONLY by html2canvas. Capturing the scaled
@@ -438,6 +600,26 @@ export const CertificationPage: React.FC = () => {
         >
           <div ref={captureRef} style={{ width: CERT_W, height: CERT_H }}>
             <CertificateTemplate name={participant.name} certId={participant.certId} />
+          </div>
+        </div>
+      )}
+
+      {/* Hidden off-screen render target for the Excellence certificate downloads. */}
+      {participant && excellence && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            left: -10000,
+            top: 0,
+            width: CERT_W,
+            height: CERT_H,
+            overflow: 'hidden',
+            pointerEvents: 'none',
+          }}
+        >
+          <div ref={excCaptureRef} style={{ width: CERT_W, height: CERT_H }}>
+            <ExcellenceCertificateTemplate name={excellence.name} certId={excellence.certId} rank={excellence.rank} />
           </div>
         </div>
       )}

@@ -229,7 +229,9 @@ service cloud.firestore {
       allow create, update: if isAdmin() && isValidId(certId) &&
         incoming().keys().hasAll(['name', 'event']) &&
         incoming().name is string && incoming().name.size() >= 2 && incoming().name.size() <= 64 &&
-        incoming().event is string && incoming().event.size() >= 2 && incoming().event.size() <= 128;
+        incoming().event is string && incoming().event.size() >= 2 && incoming().event.size() <= 128 &&
+        (!incoming().keys().hasAny(['certType']) || (incoming().certType is string && incoming().certType in ['participation', 'excellence'])) &&
+        (!incoming().keys().hasAny(['rank']) || (incoming().rank is string && incoming().rank.size() >= 2 && incoming().rank.size() <= 32));
       allow delete: if isAdmin() && isValidId(certId);
     }
 

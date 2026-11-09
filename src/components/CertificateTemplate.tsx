@@ -134,13 +134,13 @@ export function CertificateTemplate({ name, certId }: { name: string; certId?: s
         }}
       >
         {/* Brand name: NULL ORIGIN — vertically centred on the hexagon logo
-            (logo centre y=140; Inter renders the caps low in the line box,
-            so top is 96, not cert.html's 118, to centre the capitals on it). */}
+            (logo centre y=140; top 118 — measured exact, 9 Nov 2026; top 96
+            sat 22px too high). */}
         <div
           style={{
             position: 'absolute',
             left: 236,
-            top: 96,
+            top: 118,
             fontFamily: SANS,
             fontWeight: 800,
             fontSize: 48,

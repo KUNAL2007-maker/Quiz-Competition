@@ -27,6 +27,8 @@ export const VerifyPage: React.FC = () => {
 
   const [status, setStatus] = useState<'checking' | 'verified' | 'not-found'>('checking');
   const [name, setName] = useState('');
+  const [certType, setCertType] = useState<'participation' | 'excellence'>('participation');
+  const [rank, setRank] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -40,8 +42,10 @@ export const VerifyPage: React.FC = () => {
         const snap = await getDoc(doc(db, 'certificates', id));
         if (cancelled) return;
         if (snap.exists()) {
-          const data = snap.data() as { name?: string; event?: string };
+          const data = snap.data() as { name?: string; event?: string; certType?: string; rank?: string };
           setName((data.name || '').trim());
+          setCertType(data.certType === 'excellence' ? 'excellence' : 'participation');
+          setRank((data.rank || '').trim());
           setStatus('verified');
         } else {
           setStatus('not-found');
@@ -56,6 +60,7 @@ export const VerifyPage: React.FC = () => {
   }, [id]);
 
   const verified = status === 'verified';
+  const isExcellence = verified && certType === 'excellence';
 
   return (
     <div
@@ -123,8 +128,14 @@ export const VerifyPage: React.FC = () => {
               </div>
               <div>
                 <dt style={{ fontSize: 12, color: '#a8a8a2', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Event</dt>
-                <dd style={{ margin: '2px 0 0' }}>Cyber Security Quiz 2026 — Certificate of Participation</dd>
+                <dd style={{ margin: '2px 0 0' }}>Cyber Security Quiz 2026 — {isExcellence ? 'Certificate of Excellence' : 'Certificate of Participation'}</dd>
               </div>
+              {isExcellence && rank && (
+                <div>
+                  <dt style={{ fontSize: 12, color: '#a8a8a2', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Rank</dt>
+                  <dd style={{ margin: '2px 0 0', fontWeight: 700, color: '#e85a14' }}>{rank}</dd>
+                </div>
+              )}
               <div>
                 <dt style={{ fontSize: 12, color: '#a8a8a2', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Certificate ID</dt>
                 <dd style={{ margin: '2px 0 0', fontFamily: 'monospace', fontWeight: 700 }}>{id}</dd>
@@ -136,7 +147,7 @@ export const VerifyPage: React.FC = () => {
             </dl>
             <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '20px 0 0', fontSize: 13, color: '#a8a8a2' }}>
               <BadgeCheck style={{ width: 16, height: 16, color: '#8dc63f' }} />
-              This certificate was issued to a participant of Cyber Security Quiz 2026.
+              This certificate was issued to {isExcellence ? `the ${rank || ''} winner` : 'a participant'} of Cyber Security Quiz 2026.
             </p>
           </div>
         ) : (
