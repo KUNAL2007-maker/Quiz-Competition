@@ -1,6 +1,8 @@
 // Registration mapping for Cyber Security Quiz 2026 (email -> { name, certId }).
 // Fallback lookup for the admin-only Certification page when a participant
-// has no Firestore profile. Only imported by the admin-gated CertificationPage.
+// has no Firestore profile. Also the source for the hidden public Verify
+// page (/verify/:certId), which reverse-looks-up a cert ID here. Keep the
+// name current: it is what the verify page shows for that certificate.
 export const certRegistry: Record<string, { name: string; id: string }> = {
   "02fe24bcs131@kletech.ac.in": { name: "Tangali Haragi", id: "NO26-PRT-374-TH" },
   "1032251180@tcetmumbai.in": { name: "Khushi Chaubey", id: "NO26-PRT-352-KC" },
@@ -134,7 +136,7 @@ export const certRegistry: Record<string, { name: string; id: string }> = {
   "charudharshini.k2025cys@sece.ac.in": { name: "Charudharshini K AIDS", id: "NO26-PRT-535-CK" },
   "chaturesarthak@gmail.com": { name: "Sarthak Chature", id: "NO26-PRT-353-SC" },
   "chaudhariashay2008@gmail.com": { name: "Ashay Chaudhari", id: "NO26-PRT-094-AC" },
-  "chayeshkumar@gmail.com": { name: "Chayesh Kumar M L", id: "NO26-PRT-041-CK" },
+  "chayeshkumar@gmail.com": { name: "Chayesh Kumar", id: "NO26-PRT-041-CK" },
   "chetansahu8837@gmail.com": { name: "Chetan Sahu", id: "NO26-PRT-029-CS" },
   "chhavikantshakya1@gmail.com": { name: "Chhavikant Shakya", id: "NO26-PRT-324-CS" },
   "chitranjansingh279@gmail.com": { name: "Chitranjan Kumar", id: "NO26-PRT-246-CK" },
@@ -236,6 +238,7 @@ export const certRegistry: Record<string, { name: string; id: string }> = {
   "ishakibe91@gmail.com": { name: "Isha Kibe", id: "NO26-PRT-097-IK" },
   "itsdhandhanggulo@gmail.com": { name: "itsdhandhanggulo", id: "NO26-PRT-006-I" },
   "itsmrmonish7@gmail.com": { name: "Monish K", id: "NO26-PRT-370-MK" },
+  "itzichigo4u@gmail.com": { name: "Ashaz Ansari", id: "NO26-PRT-784-AA" },
   "itztushar2028@gmail.com": { name: "Tushar Kumar", id: "NO26-PRT-178-TK" },
   "jaga78sri@gmail.com": { name: "Jagasri R", id: "NO26-PRT-247-JR" },
   "jagritipandey730@gmail.com": { name: "Jagriti Pandey", id: "NO26-PRT-147-JP" },
@@ -270,7 +273,7 @@ export const certRegistry: Record<string, { name: string; id: string }> = {
   "kavyasavara2006@gmail.com": { name: "Savara Kavya", id: "NO26-PRT-531-SK" },
   "kayalvizhiit2008@gmail.com": { name: "Kayalvizhi J", id: "NO26-PRT-210-KJ" },
   "keerthanashree.sas@gmail.com": { name: "Keerthana Shree K", id: "NO26-PRT-591-KS" },
-  "keerthanashreektha@gmail.com": { name: "Keerthana Shree", id: "NO26-PRT-593-KS" },
+  "keerthanashreektha@gmail.com": { name: "Keerthana K", id: "NO26-PRT-593-KS" },
   "khanshahjeb56@gmail.com": { name: "Shahjeb Khan", id: "NO26-PRT-036-SK" },
   "khulbeayush17@gmail.com": { name: "Priyanshu Khulbe", id: "NO26-PRT-300-PK" },
   "khushigec2024@gmail.com": { name: "Khushi Kumari", id: "NO26-PRT-494-KK" },
