@@ -144,7 +144,7 @@ export const LeaderboardPage: React.FC = () => {
             Live Leaderboard
           </h1>
           <p className="mt-2 text-sm text-[#a8a8a2] max-w-2xl">
-            Verified operator standings, completion statuses, accuracy metrics, and execution times for Cyber Quiz 2026. Practice simulations are unranked.
+            Live participant standings, completion statuses, accuracy ratings, and execution times across official tournament rounds. Practice simulations are unranked.
           </p>
         </div>
       </div>
@@ -158,7 +158,7 @@ export const LeaderboardPage: React.FC = () => {
           <p className="mt-1 text-sm font-medium text-[#f5f5f2]">
             {currentUserEntry
               ? `Ranked #${currentUserEntry.rank} — ${currentUserEntry.score} Points`
-              : 'Your operator standing will appear here once you complete the Cyber Quiz 2026 tournament round.'}
+              : 'Your standing will appear here once you complete an official tournament round.'}
           </p>
         </div>
 

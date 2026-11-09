@@ -19,11 +19,13 @@ import { CertificationPage } from './pages/CertificationPage';
 import { AboutPage } from './pages/AboutPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { VerifyPage } from './pages/VerifyPage';
+import { RouteSeo } from './components/common/RouteSeo';
 
 export default function App() {
   return (
     <AppProvider>
       <BrowserRouter>
+        <RouteSeo />
         <Routes>
           {/*
             Hidden certificate verification page. It is deliberately NOT

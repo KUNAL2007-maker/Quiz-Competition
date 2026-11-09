@@ -41,7 +41,7 @@ export const PrivacyPolicyPage: React.FC = () => {
           </div>
           <p>
             Welcome to <strong className="text-[#f5f5f2]">Null Origin Quiz Competition</strong> ("we", "our", or "us"). 
-            We provide an online cybersecurity tournament and skill evaluation platform. This Privacy Policy outlines our transparent policies regarding the collection, use, and disclosure of personal data when you use our website, authenticate using Google or email accounts, and participate in timed cybersecurity quizzes.
+            We provide an online competitive quiz tournament and skill evaluation platform across technology, science, academic, and cybersecurity disciplines. This Privacy Policy outlines our transparent policies regarding the collection, use, and disclosure of personal data when you use our website, authenticate using Google or email accounts, and participate in timed quiz competitions.
           </p>
           <p>
             By accessing or using our platform, you agree to the collection and use of information in accordance with this policy. This policy is structured to fully comply with Google Hosting and Firebase Terms of Service, GDPR, and global data privacy standards.

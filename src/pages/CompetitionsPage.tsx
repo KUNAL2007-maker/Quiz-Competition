@@ -281,7 +281,7 @@ export const CompetitionsPage: React.FC = () => {
             Competitions Directory
           </h1>
           <p className="mt-2 text-sm text-[#a8a8a2] max-w-2xl">
-            Select an active quiz to enter directly, or inspect scheduled start timers for upcoming cybersecurity rounds.
+            Select an active quiz to enter directly, or inspect scheduled start timers for upcoming tournament rounds.
           </p>
         </div>
 
@@ -385,7 +385,7 @@ export const CompetitionsPage: React.FC = () => {
               ? 'You have not submitted any quiz competitions yet or no records match your search criteria. Take an active competition to earn a permanent tournament ranking.'
               : hasActiveFilters
               ? 'No competition records match your selected status, clearance filter, or search query. Clear active filters to view all scheduled events.'
-              : 'The tournament directory currently contains no scheduled, live, or completed competitions. Competitions will appear here once registered by event operations.'
+              : 'The tournament directory currently contains no scheduled, live, or completed competitions. Competitions will appear here once announced by event operations.'
           }
           actionLabel={
             statusFilter === 'completed'
