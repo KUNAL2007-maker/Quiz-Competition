@@ -31,6 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
     { label: 'Overview', to: '/', icon: LayoutDashboard, group: 'primary' },
     { label: 'Competitions', to: '/competitions', icon: ShieldAlert, group: 'primary' },
     { label: 'Live Rankings', to: '/leaderboard', icon: Trophy, group: 'primary' },
+    { label: 'Final Standings', to: '/standings', icon: Award, group: 'primary' },
     { label: 'Certification', to: '/certification', icon: Award, group: 'primary' },
     { label: 'My Profile', to: '/profile', icon: UserCheck, group: 'operator' },
     {

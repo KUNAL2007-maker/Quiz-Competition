@@ -715,10 +715,10 @@ export const ProfilePage: React.FC = () => {
                     ) && (
                       <button
                         type="button"
-                        onClick={() => navigate('/leaderboard')}
+                        onClick={() => navigate(item.competitionId ? `/standings/${item.competitionId}` : '/standings')}
                         className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8dc63f] hover:underline cursor-pointer"
                       >
-                        <span>Inspect Live Standing</span>
+                        <span>Inspect Final Standing</span>
                         <ArrowRight className="h-3.5 w-3.5" />
                       </button>
                     )}

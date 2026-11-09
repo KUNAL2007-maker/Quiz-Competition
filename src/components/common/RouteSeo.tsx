@@ -23,10 +23,16 @@ const ROUTE_META: Record<string, PageMetaConfig> = {
     canonical: `${BASE_URL}/competitions`,
   },
   '/leaderboard': {
-    title: 'Live Leaderboard & Standings — Null Origin',
+    title: 'Live Scoreboard — Null Origin',
     description:
       'Track live participant rankings, scores, completion times, and tournament standings across all competitions on Null Origin.',
     canonical: `${BASE_URL}/leaderboard`,
+  },
+  '/standings': {
+    title: 'Official Final Standings & Laureates — Null Origin',
+    description:
+      'Official final rankings, verified scores, and laureates for completed tournaments on Null Origin.',
+    canonical: `${BASE_URL}/standings`,
   },
   '/certification': {
     title: 'Certificate Verification & Registry — Null Origin',
@@ -108,6 +114,13 @@ export const RouteSeo: React.FC = () => {
       meta = {
         title: 'Verify Credential — Null Origin',
         description: 'Verify authentic credentials and certificate validity on Null Origin.',
+        canonical: `${BASE_URL}${rawPath}`,
+      };
+    }
+    if (!meta && rawPath.startsWith('/standings')) {
+      meta = {
+        title: 'Official Final Standings — Null Origin',
+        description: 'Review official tournament final standings, top 3 laureates, and verified participant rankings.',
         canonical: `${BASE_URL}${rawPath}`,
       };
     }

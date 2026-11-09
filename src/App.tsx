@@ -19,6 +19,7 @@ import { CertificationPage } from './pages/CertificationPage';
 import { AboutPage } from './pages/AboutPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { VerifyPage } from './pages/VerifyPage';
+import { StandingsPage } from './pages/StandingsPage';
 import { RouteSeo } from './components/common/RouteSeo';
 
 export default function App() {
@@ -41,6 +42,8 @@ export default function App() {
             <Route path="arena" element={<Navigate to="/competitions" replace />} />
             <Route path="quiz" element={<QuizPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
+            <Route path="standings" element={<StandingsPage />} />
+            <Route path="standings/:competitionId" element={<StandingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="results" element={<Navigate to="/profile" replace />} />
             <Route path="login" element={<LoginPage />} />

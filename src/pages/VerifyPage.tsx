@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { ShieldCheck, ShieldAlert, BadgeCheck } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { certRegistry } from '../constants/certRegistry';
+import { CYBER_QUIZ_TOP_WINNERS } from '../constants/tournaments';
 
 /**
  * Hidden certificate verification page.
@@ -47,12 +49,34 @@ export const VerifyPage: React.FC = () => {
           setCertType(data.certType === 'excellence' ? 'excellence' : 'participation');
           setRank((data.rank || '').trim());
           setStatus('verified');
-        } else {
-          setStatus('not-found');
+          return;
         }
       } catch {
-        if (!cancelled) setStatus('not-found');
+        // Fall back to verified static tournament registry
       }
+      if (cancelled) return;
+
+      // 1. Fallback check for Top 3 Excellence Certificates
+      const winMatch = CYBER_QUIZ_TOP_WINNERS.find((w) => w.certId.toUpperCase() === id);
+      if (winMatch) {
+        setName(winMatch.name);
+        setCertType('excellence');
+        setRank(winMatch.rank);
+        setStatus('verified');
+        return;
+      }
+
+      // 2. Fallback check for Participant Certificates in certified registry
+      const regMatch = Object.values(certRegistry).find((entry) => entry.id.toUpperCase() === id);
+      if (regMatch) {
+        setName(regMatch.name);
+        setCertType('participation');
+        setRank('');
+        setStatus('verified');
+        return;
+      }
+
+      setStatus('not-found');
     })();
     return () => {
       cancelled = true;

@@ -177,7 +177,7 @@ export const AdminPage: React.FC = () => {
         const entryCompId =
           entry.competitionId ||
           (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');
-        // Exclude practice quiz from rankings directory; only display Cyber Quiz 2026
+        if (targetCompId) return entryCompId === targetCompId;
         if (cyberCompId) return entryCompId === cyberCompId;
         return Boolean(entryCompId && !entryCompId.toLowerCase().includes('practice'));
       })
@@ -212,7 +212,7 @@ export const AdminPage: React.FC = () => {
         ...entry,
         rank: idx + 1,
       }));
-  }, [leaderboard, competitions]);
+  }, [leaderboard, competitions, targetCompId]);
 
   const handleDeleteLeaderboardEntry = async (entryId: string) => {
     try {

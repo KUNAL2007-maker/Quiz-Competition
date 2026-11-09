@@ -229,6 +229,15 @@ export const DashboardPage: React.FC = () => {
                 isCompleted={completedCompetitionIds.has(comp.id)}
                 onSelect={(selected) => {
                   const isPractice = selected.title.toLowerCase().includes('practice');
+                  const isEnded = !isPractice && (
+                    selected.status === 'completed' ||
+                    selected.id === 'comp_1793963656835' ||
+                    (selected.endTime && new Date(selected.endTime).getTime() <= Date.now())
+                  );
+                  if (isEnded) {
+                    navigate(`/standings/${selected.id}`);
+                    return;
+                  }
                   if (!isPractice && completedCompetitionIds.has(selected.id)) {
                     selectCompetition(selected);
                     navigate('/quiz');

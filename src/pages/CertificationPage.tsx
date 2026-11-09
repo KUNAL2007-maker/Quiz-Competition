@@ -18,6 +18,7 @@ import html2canvas from 'html2canvas';
 import { certRegistry } from '../constants/certRegistry';
 import { CertificateTemplate } from '../components/CertificateTemplate';
 import { ExcellenceCertificateTemplate } from '../components/ExcellenceCertificateTemplate';
+import leaderboardSeed from '../constants/leaderboardSeed.json';
 
 const REFERRAL_URL = 'https://agentrouter.org/register?aff=p772';
 // Cyber Security Quiz 2026 competition id — the participation gate below
@@ -74,7 +75,7 @@ export const CertificationPage: React.FC = () => {
   const [previewScale, setPreviewScale] = useState(0.7);
   const [excPreviewScale, setExcPreviewScale] = useState(0.7);
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => currentUser?.email || '');
   const [isSearching, setIsSearching] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
   const [participant, setParticipant] = useState<FoundParticipant | null>(null);
@@ -237,13 +238,16 @@ export const CertificationPage: React.FC = () => {
       // (the organiser did not take the quiz as a participant, so there is
       // no leaderboard entry to check). Same list as firestore.rules isAdmin().
       const ADMIN_EMAILS = ['checkship66@gmail.com', 'hafizmujawar786@gmail.com', 'kunalbankhele07@gmail.com'];
-      let participated = ADMIN_EMAILS.includes(normalized);
+      let participated = ADMIN_EMAILS.includes(normalized) || Boolean(WINNERS[normalized]) || Boolean(reg);
       if (!participated && uid) {
         try {
           const lbDoc = await getDoc(doc(db, 'leaderboard', `${uid}_${CYBER_QUIZ_COMP_ID}`));
           participated = lbDoc.exists();
         } catch {
           participated = false;
+        }
+        if (!participated && uid) {
+          participated = leaderboardSeed.some((s) => s.participantId === `${uid}_${CYBER_QUIZ_COMP_ID}`);
         }
       }
       if (!participated) {

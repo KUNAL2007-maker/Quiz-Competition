@@ -42,6 +42,7 @@ import {
 } from '../types';
 import { applyCalibration, isExcludedLeaderboardEntry, filterLeaderboardEntries } from '../utils/leaderboardCalibration';
 import leaderboardSeed from '../constants/leaderboardSeed.json';
+import { ARCHIVED_CYBER_QUIZ, CYBER_QUIZ_COMP_ID } from '../constants/tournaments';
 
 interface AppContextValue {
   // Auth & Backend Engine Status
@@ -177,7 +178,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ADMIN_EMAILS.includes(currentUser.email.trim().toLowerCase())
   );
 
-  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [competitions, setCompetitions] = useState<Competition[]>([ARCHIVED_CYBER_QUIZ]);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => filterLeaderboardEntries(leaderboardSeed as LeaderboardEntry[]));
@@ -313,7 +314,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               typeof data.perQuestionTimerSeconds === 'number' ? data.perQuestionTimerSeconds : 30,
           };
         });
-        setCompetitions(items);
+        // Ensure Cyber Security Quiz 2026 is always safely present as an archived (completed) tournament
+        const hasCyberComp = items.some(
+          (c) => c.id === CYBER_QUIZ_COMP_ID || c.title.toLowerCase().includes('cyber quiz 2026')
+        );
+        const allComps = hasCyberComp
+          ? items.map((c) =>
+              c.id === CYBER_QUIZ_COMP_ID || c.title.toLowerCase().includes('cyber quiz 2026')
+                ? { ...c, status: 'completed' as const }
+                : c
+            )
+          : [ARCHIVED_CYBER_QUIZ, ...items];
+        setCompetitions(allComps);
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, 'competitions');
@@ -415,7 +427,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return applyCalibration(entry);
         }).filter((entry) => !isExcludedLeaderboardEntry(entry));
 
-        if (rawEntries.length === 0) {
+        // Ensure Cyber Security Quiz 2026 historical records are safeguarded by merging
+        // with the offline seed entries if any are missing from the Firestore snapshot
+        const existingParticipantIds = new Set(rawEntries.map((e) => e.participantId));
+        const missingCyberSeedEntries = (leaderboardSeed as LeaderboardEntry[])
+          .filter((s) => !existingParticipantIds.has(s.participantId) && !isExcludedLeaderboardEntry(s))
+          .map((s) => applyCalibration(s));
+
+        const combinedEntries = [...rawEntries, ...missingCyberSeedEntries];
+
+        if (combinedEntries.length === 0) {
           return;
         }
 
@@ -424,7 +445,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // 2. Tie-breaker (Requirement): completionTimeSeconds (ascending - faster completion time ranks higher!)
         // 3. Tie-breaker 2 (Requirement): createdAt (ascending - earlier submission timestamp first / who submit first must be winner)
         // 4. Fallback: accuracyPercent (descending)
-        rawEntries.sort((a, b) => {
+        combinedEntries.sort((a, b) => {
           const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
           if (scoreDiff !== 0) return scoreDiff;
 
@@ -448,7 +469,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return accDiff;
         });
 
-        setLeaderboard(rawEntries.map((item, idx) => ({ ...item, rank: idx + 1 })));
+        setLeaderboard(combinedEntries.map((item, idx) => ({ ...item, rank: idx + 1 })));
       },
       (error) => {
         console.warn('Leaderboard stream warning, preserving calibrated standing:', error.message);

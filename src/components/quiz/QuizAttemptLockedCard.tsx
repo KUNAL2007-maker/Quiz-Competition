@@ -29,6 +29,7 @@ export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
   onResetAdminSession,
 }) => {
   const navigate = useNavigate();
+  const targetCompId = result?.competitionId || leaderboardEntry?.competitionId;
 
   const lbScore = leaderboardEntry?.score ?? 0;
   const hasCalibratedLb = lbScore > (result?.finalScore || 0);
@@ -117,11 +118,11 @@ export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <button
             type="button"
-            onClick={() => navigate('/leaderboard')}
+            onClick={() => navigate(targetCompId ? `/standings/${targetCompId}` : '/standings')}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-2.5 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
           >
             <Trophy className="h-4 w-4" />
-            <span>View Live Leaderboard</span>
+            <span>View Final Standings</span>
           </button>
 
           <button

@@ -229,14 +229,9 @@ export const CompetitionsPage: React.FC = () => {
         comp.status === 'completed' || (comp.endTime && new Date(comp.endTime).getTime() <= Date.now())
       );
 
-      // 1. If tournament ended, show concluded dialog or view attempt
+      // 1. If tournament ended, navigate directly to its archived leaderboard & standings
       if (isEnded) {
-        if (completedCompetitionIds.has(comp.id)) {
-          selectCompetition(comp);
-          navigate('/quiz');
-          return;
-        }
-        setConcludedModalComp(comp);
+        navigate(`/standings/${comp.id}`);
         return;
       }
 
@@ -553,8 +548,9 @@ export const CompetitionsPage: React.FC = () => {
             <button
               type="button"
               onClick={() => {
+                const targetId = concludedModalComp?.id || 'comp_1793963656835';
                 setConcludedModalComp(null);
-                navigate('/leaderboard');
+                navigate(`/standings/${targetId}`);
               }}
               className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-5 py-2 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-md"
             >
