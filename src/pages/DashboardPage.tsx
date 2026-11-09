@@ -103,15 +103,6 @@ export const DashboardPage: React.FC = () => {
           className="absolute right-0 top-0 bottom-0 w-full md:w-1/2 flex items-center justify-center md:justify-end pr-0 md:pr-4 pointer-events-none md:pointer-events-auto overflow-hidden"
           aria-hidden="true"
         >
-          {/* Subtle Technical HUD Reticle centered behind 3D symbol */}
-          <div className="pointer-events-none absolute w-[400px] h-[350px] flex items-center justify-center opacity-10 hidden lg:flex">
-            <svg className="h-64 w-64 text-[#8dc63f]" viewBox="0 0 240 240" fill="none">
-              <circle cx="120" cy="120" r="105" stroke="currentColor" strokeWidth="1" strokeDasharray="6 6" />
-              <circle cx="120" cy="120" r="75" stroke="currentColor" strokeWidth="0.75" />
-              <polygon points="120,30 200,75 200,165 120,210 40,165 40,75" stroke="currentColor" strokeWidth="0.75" />
-            </svg>
-          </div>
-
           <NullSymbol3D className="w-full md:w-[400px] h-64 md:h-[350px]" />
         </div>
 

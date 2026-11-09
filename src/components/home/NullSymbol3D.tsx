@@ -11,6 +11,7 @@ export const NullSymbol3D: React.FC<NullSymbol3DProps> = ({ className = '', onLo
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -41,7 +42,7 @@ export const NullSymbol3D: React.FC<NullSymbol3DProps> = ({ className = '', onLo
     const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
     camera.position.set(0, 0, 5.2);
 
-    // --- Website Aesthetic Lighting (Zero Silver, Matte Dark Charcoal + Neon Lime Accent) ---
+    // --- Website Aesthetic Lighting (Zero Silver, Matte Dark Obsidian + Neon Lime Accent) ---
     // 1. Soft ambient tone
     const ambientLight = new THREE.AmbientLight(0x0e140a, 1.2);
     scene.add(ambientLight);
@@ -51,7 +52,7 @@ export const NullSymbol3D: React.FC<NullSymbol3DProps> = ({ className = '', onLo
     keyLight.position.set(-3, 3, 4);
     scene.add(keyLight);
 
-    // 3. Signature #8dc63f neon lime rim edge light
+    // 3. High-intensity #8dc63f neon lime rim edge light
     const rimLight = new THREE.DirectionalLight(0x8dc63f, 7.5);
     rimLight.position.set(3.5, 1.0, -1.5);
     scene.add(rimLight);
@@ -66,7 +67,7 @@ export const NullSymbol3D: React.FC<NullSymbol3DProps> = ({ className = '', onLo
     pointLight.position.set(0, -0.5, 2.0);
     scene.add(pointLight);
 
-    // Model group for tilt and float
+    // Group for drag rotation & float
     const symbolGroup = new THREE.Group();
     scene.add(symbolGroup);
 
@@ -100,8 +101,8 @@ export const NullSymbol3D: React.FC<NullSymbol3DProps> = ({ className = '', onLo
         });
 
         // Set initial dynamic 3/4 perspective angle
-        model.rotation.y = 0.42;
-        model.rotation.x = 0.1;
+        symbolGroup.rotation.y = 0.42;
+        symbolGroup.rotation.x = 0.1;
         model.scale.set(1.05, 1.05, 1.05);
 
         symbolGroup.add(model);
@@ -114,27 +115,61 @@ export const NullSymbol3D: React.FC<NullSymbol3DProps> = ({ className = '', onLo
       }
     );
 
-    // Mouse Tracking / Interactive Tilt
-    let targetRotX = 0.1;
-    let targetRotY = 0.42;
+    // --- Interactive Drag-to-Rotate Mechanics ---
+    let dragging = false;
+    let prevPointerX = 0;
+    let prevPointerY = 0;
+    let velocityY = 0;
+    let velocityX = 0;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const banner = container.closest('section') || container;
-      const rect = banner.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-      targetRotY = 0.42 + x * 0.35;
-      targetRotX = 0.1 - y * 0.25;
+    const handlePointerDown = (e: PointerEvent) => {
+      dragging = true;
+      setIsDragging(true);
+      prevPointerX = e.clientX;
+      prevPointerY = e.clientY;
+      velocityY = 0;
+      velocityX = 0;
+      try {
+        canvas.setPointerCapture(e.pointerId);
+      } catch (_) {}
     };
 
-    const handleMouseLeave = () => {
-      targetRotY = 0.42;
-      targetRotX = 0.1;
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!dragging) return;
+
+      const deltaX = e.clientX - prevPointerX;
+      const deltaY = e.clientY - prevPointerY;
+
+      // Sensitivity: drag left/right rotates around Y, drag up/down tilts X
+      const SENSITIVITY = 0.012;
+      symbolGroup.rotation.y += deltaX * SENSITIVITY;
+      symbolGroup.rotation.x += deltaY * SENSITIVITY;
+
+      // Clamp X tilt between -0.5 and 0.5 rad so it doesn't invert upside down
+      symbolGroup.rotation.x = Math.max(-0.5, Math.min(0.5, symbolGroup.rotation.x));
+
+      // Record velocity for inertial throw
+      velocityY = deltaX * SENSITIVITY;
+      velocityX = deltaY * SENSITIVITY;
+
+      prevPointerX = e.clientX;
+      prevPointerY = e.clientY;
     };
 
-    const bannerElem = container.closest('section') || container;
-    bannerElem.addEventListener('mousemove', handleMouseMove as EventListener);
-    bannerElem.addEventListener('mouseleave', handleMouseLeave);
+    const handlePointerUp = (e: PointerEvent) => {
+      if (dragging) {
+        dragging = false;
+        setIsDragging(false);
+        try {
+          canvas.releasePointerCapture(e.pointerId);
+        } catch (_) {}
+      }
+    };
+
+    canvas.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
 
     // Resize handler
     const handleResize = () => {
@@ -158,10 +193,25 @@ export const NullSymbol3D: React.FC<NullSymbol3DProps> = ({ className = '', onLo
       // Gentle vertical float
       symbolGroup.position.y = Math.sin(elapsedTime * 1.5) * 0.08;
 
-      // Smooth damped rotation towards mouse position
-      symbolGroup.rotation.y +=
-        (targetRotY + Math.sin(elapsedTime * 0.8) * 0.06 - symbolGroup.rotation.y) * 0.06;
-      symbolGroup.rotation.x += (targetRotX - symbolGroup.rotation.x) * 0.06;
+      if (!dragging) {
+        // Apply inertial momentum with friction decay
+        if (Math.abs(velocityY) > 0.0001) {
+          symbolGroup.rotation.y += velocityY;
+          velocityY *= 0.93; // 93% friction decay per frame
+        } else {
+          // Slow ambient drift when idle
+          symbolGroup.rotation.y += 0.0025;
+        }
+
+        if (Math.abs(velocityX) > 0.0001) {
+          symbolGroup.rotation.x += velocityX;
+          velocityX *= 0.93;
+          symbolGroup.rotation.x = Math.max(-0.5, Math.min(0.5, symbolGroup.rotation.x));
+        } else {
+          // Return tilt gently toward baseline (0.1)
+          symbolGroup.rotation.x += (0.1 - symbolGroup.rotation.x) * 0.02;
+        }
+      }
 
       renderer.render(scene, camera);
     };
@@ -172,8 +222,10 @@ export const NullSymbol3D: React.FC<NullSymbol3DProps> = ({ className = '', onLo
       isDisposed = true;
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
-      bannerElem.removeEventListener('mousemove', handleMouseMove as EventListener);
-      bannerElem.removeEventListener('mouseleave', handleMouseLeave);
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
 
       scene.traverse((obj) => {
         if ((obj as THREE.Mesh).isMesh) {
@@ -194,21 +246,16 @@ export const NullSymbol3D: React.FC<NullSymbol3DProps> = ({ className = '', onLo
     <div
       ref={containerRef}
       className={`relative flex items-center justify-center select-none ${className}`}
+      style={{ touchAction: 'none' }}
     >
-      {/* Ambient Neon Atmosphere Glow */}
-      <div
-        className="pointer-events-none absolute h-64 w-64 rounded-full bg-[#8dc63f]/10 blur-3xl transition-opacity duration-700"
-        style={{ opacity: isLoaded ? 0.35 : 0 }}
-        aria-hidden="true"
-      />
-
-      {/* Three.js Canvas */}
+      {/* Three.js Interactive Drag Canvas */}
       <canvas
         ref={canvasRef}
-        className={`relative z-10 transition-opacity duration-700 cursor-grab active:cursor-grabbing ${
-          isLoaded ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`relative z-10 transition-opacity duration-500 touch-none select-none ${
+          isDragging ? 'cursor-grabbing' : 'cursor-grab'
+        } ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{ maxWidth: '100%', maxHeight: '100%' }}
+        title="Click and drag to rotate the Null Origin 3D symbol"
       />
     </div>
   );

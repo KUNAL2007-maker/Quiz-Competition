@@ -296,77 +296,48 @@ export const ProfilePage: React.FC = () => {
   }, [competitions]);
 
   return (
-    <div className="space-y-8">
-      {/* 100% Profile Completion Status Banner */}
-      {is100PercentComplete ? (
-        <div className="rounded-xl border border-[#a4d65e]/40 bg-[#1b1b19] p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#a4d65e]/50 bg-[#a4d65e]/10 text-[#a4d65e]">
-              <CheckCircle2 className="h-6 w-6" />
+    <div className="space-y-6">
+      {/* Incomplete Profile Alert (Only displayed if profile is missing required legal name or WhatsApp) */}
+      {!is100PercentComplete && (
+        <div className="rounded-xl border border-[#FFB800]/50 bg-[#FFB800]/10 p-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#FFB800]/60 bg-[#FFB800]/20 text-[#FFB800]">
+              <AlertCircle className="h-5 w-5" />
             </div>
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-xs font-bold text-[#a4d65e] tracking-wider uppercase">
-                  PROFILE STATUS: 100% COMPLETED
-                </span>
-                <span className="rounded bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
-                  ELIGIBLE FOR QUIZ
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-[#a8a8a2] leading-relaxed">
-                Your competitor profile is 100% complete and verified. You are fully eligible to enter live quiz competitions and receive winner prize notifications.
+              <p className="font-mono text-xs font-bold text-[#FFB800] uppercase tracking-wider">
+                Profile Incomplete ({completionPercentage}%) · Required to Enter Quizzes
               </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 self-end md:self-center shrink-0">
-            <div className="text-right">
-              <span className="block font-mono text-sm font-bold text-[#a4d65e]">100%</span>
-              <span className="font-mono text-[10px] text-[#a8a8a2]">VERIFIED</span>
-            </div>
-            <div className="w-24 h-2.5 rounded-full bg-[#1b1b19] overflow-hidden border border-[#2e2e2a]">
-              <div className="h-full bg-[#a4d65e] w-full" />
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-[#FFB800]/50 bg-[#FFB800]/10 p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#FFB800]/60 bg-[#FFB800]/20 text-[#FFB800]">
-              <AlertCircle className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-xs font-bold text-[#FFB800] tracking-wider uppercase">
-                  PROFILE STATUS: INCOMPLETE ({completionPercentage}%)
-                </span>
-                <span className="rounded bg-[#FFB800]/20 border border-[#FFB800]/40 px-2 py-0.5 font-mono text-[10px] font-bold text-[#FFB800]">
-                  100% REQUIRED TO ENTER QUIZ
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-[#f5f5f2] leading-relaxed">
-                Tournament rules require a 100% completed profile before participating in any quiz. Please provide your Full Legal Name and WhatsApp contact number.
-              </p>
-              <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px]">
+              <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[11px]">
                 <span className={isNameComplete ? 'text-[#a4d65e]' : 'text-[#FF365B]'}>
-                  {isNameComplete ? '✓ Full Legal Name' : '✗ Missing Full Legal Name'}
+                  {isNameComplete ? '✓ Legal Name' : '✗ Missing Legal Name'}
                 </span>
                 <span className="text-[#a8a8a2]">·</span>
                 <span className={isWhatsappComplete ? 'text-[#a4d65e]' : 'text-[#FF365B]'}>
-                  {isWhatsappComplete ? '✓ WhatsApp Contact' : '✗ Missing WhatsApp Number'}
+                  {isWhatsappComplete ? '✓ WhatsApp' : '✗ Missing WhatsApp'}
                 </span>
               </div>
             </div>
           </div>
+          {!isEditing && (
+            <button
+              type="button"
+              onClick={handleOpenEdit}
+              className="inline-flex items-center gap-1.5 rounded-md bg-[#FFB800] px-3.5 py-1.5 text-xs font-bold text-[#141a09] hover:bg-[#ffc933] transition-colors self-start sm:self-center cursor-pointer shrink-0"
+            >
+              <span>Complete Now</span>
+              <ArrowRight className="h-3 w-3" />
+            </button>
+          )}
         </div>
       )}
 
-      {/* Operator Identity Dossier Header Card */}
-      <section className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-6 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-          <div className="flex flex-col sm:flex-row items-start gap-5">
-            {/* Locked Avatar Slot */}
-            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border-2 border-[#7ab32e] bg-[#1b1b19] text-[#8dc63f] overflow-hidden">
+      {/* Operator Identity Dossier Card */}
+      <section className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-5 sm:p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
+          <div className="flex items-start gap-4">
+            {/* Avatar */}
+            <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-[#7ab32e] bg-[#111110] text-[#8dc63f] overflow-hidden shadow-inner">
               <img
                 src={assignedAvatarUrl}
                 alt="System-assigned avatar"
@@ -374,68 +345,70 @@ export const ProfilePage: React.FC = () => {
                 className="h-full w-full object-cover"
               />
               <div
-                title="Profile photo is randomly assigned by the platform and cannot be changed"
-                className="absolute bottom-1 right-1 rounded-full bg-[#111110] border border-[#7ab32e] p-0.5 text-[#8dc63f]"
+                title="System-assigned competitor avatar"
+                className="absolute bottom-0.5 right-0.5 rounded-full bg-[#111110] border border-[#7ab32e] p-0.5 text-[#8dc63f]"
               >
-                <Lock className="h-3 w-3" />
+                <Lock className="h-2.5 w-2.5" />
               </div>
             </div>
 
-            <div>
-              <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-[#a8a8a2]">
-                <span>OPERATOR DOSSIER</span>
-                <span aria-hidden="true">·</span>
-                <span>AUTHENTICATED</span>
-                {is100PercentComplete && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <span className="text-[#a4d65e] font-semibold">100% COMPLETED</span>
-                  </>
+            {/* Identity Info */}
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="font-display text-xl sm:text-2xl font-bold text-[#f5f5f2]">
+                  {profile.displayName || currentUser?.displayName || 'Unassigned Operator'}
+                </h1>
+                {is100PercentComplete ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
+                    <CheckCircle2 className="h-3 w-3" /> 100% Verified
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#FFB800]/15 border border-[#FFB800]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#FFB800]">
+                    Incomplete
+                  </span>
                 )}
               </div>
 
-              <h1 className="mt-1 font-display text-2xl font-bold text-[#f5f5f2]">
-                {profile.displayName || currentUser?.displayName || 'Unassigned Operator Identity'}
-              </h1>
-
-              <p className="mt-0.5 font-mono text-xs text-[#8dc63f]">
+              <p className="font-mono text-xs text-[#8dc63f]">
                 {profile.username ? `@${profile.username}` : `@user_${(currentUser?.uid || 'opr').slice(0, 8)}`}
               </p>
 
-              <div className="mt-2.5 flex flex-wrap items-center gap-4 font-mono text-xs">
+              {/* Verified Contact Badges */}
+              <div className="pt-1 flex flex-wrap items-center gap-2 font-mono text-xs">
                 {profile.whatsappNumber ? (
-                  <span className="inline-flex items-center gap-1.5 text-[#a4d65e]">
-                    <Phone className="h-3.5 w-3.5" />
-                    <span>WhatsApp: Registered & Verified (Hidden)</span>
+                  <span className="inline-flex items-center gap-1 rounded bg-[#111110] border border-[#2e2e2a] px-2.5 py-0.5 text-[#a4d65e]">
+                    <Phone className="h-3 w-3" />
+                    <span>WhatsApp Verified</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-[#a8a8a2]">
-                    <Phone className="h-3.5 w-3.5" />
-                    <span>WhatsApp: Not provided</span>
+                  <span className="inline-flex items-center gap-1 rounded bg-[#111110] border border-[#2e2e2a] px-2.5 py-0.5 text-[#FF365B]">
+                    <Phone className="h-3 w-3" />
+                    <span>WhatsApp Missing</span>
                   </span>
                 )}
 
                 {(currentUser?.email || profile.email) && (
-                  <span className="inline-flex items-center gap-1.5 text-[#a8a8a2]">
-                    <Mail className="h-3.5 w-3.5" />
-                    <span>Email: Verified Account (Hidden)</span>
+                  <span className="inline-flex items-center gap-1 rounded bg-[#111110] border border-[#2e2e2a] px-2.5 py-0.5 text-[#a8a8a2]">
+                    <Mail className="h-3 w-3 text-[#a4d65e]" />
+                    <span>Email Verified</span>
                   </span>
                 )}
               </div>
 
-              <p className="mt-3 max-w-2xl text-sm text-[#a8a8a2] leading-relaxed">
-                {profile.biography ||
-                  'Official competitor dossier. Contact details are securely archived for tournament verification, leaderboard standings, and winner prize distribution.'}
-              </p>
+              {profile.biography && (
+                <p className="pt-1 max-w-xl text-xs text-[#a8a8a2] leading-relaxed">
+                  {profile.biography}
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-3 self-start">
+          <div className="shrink-0 self-start sm:self-center">
             {!isEditing && (
               <button
                 type="button"
                 onClick={handleOpenEdit}
-                className="inline-flex items-center gap-2 rounded-md bg-[#8dc63f] px-4 py-2.5 min-h-11 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#2e2e2a] bg-[#111110] px-3.5 py-2 text-xs font-semibold text-[#f5f5f2] hover:border-[#7ab32e] hover:text-[#8dc63f] transition-colors cursor-pointer"
               >
                 <Edit3 className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Edit Profile</span>
@@ -444,121 +417,82 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Working Profile Edit Form */}
+        {/* Profile Edit Form */}
         {isEditing && (
           <form
             onSubmit={handleSaveProfile}
-            className="mt-8 border-t border-[#2e2e2a] pt-6 space-y-5"
+            className="mt-5 space-y-4 border-t border-[#2e2e2a] pt-5"
           >
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h2 className="font-display text-base font-semibold text-[#f5f5f2]">
-                  Edit Competitor Contact Details
-                </h2>
-                <p className="text-xs text-[#a8a8a2]">
-                  Ensure your full legal name and WhatsApp number are accurate so we can contact you immediately upon winning.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label
-                  htmlFor="profile-display-name"
-                  className="block font-mono text-xs text-[#a8a8a2] mb-1.5"
-                >
+                <label htmlFor="profile-displayName" className="block font-mono text-xs text-[#a8a8a2] mb-1">
                   FULL LEGAL NAME *
                 </label>
                 <input
-                  id="profile-display-name"
+                  id="profile-displayName"
                   type="text"
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="e.g. Johnathan Doe"
+                  placeholder="e.g. John Doe"
                   className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] px-3.5 py-2 text-sm text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
                 />
                 {validationErrors.displayName && (
-                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#FF365B]">
-                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                    <span>{validationErrors.displayName}</span>
-                  </p>
+                  <p className="mt-1 text-xs text-[#FF365B]">{validationErrors.displayName}</p>
                 )}
               </div>
 
               <div>
-                <label
-                  htmlFor="profile-whatsapp"
-                  className="block font-mono text-xs text-[#a8a8a2] mb-1.5"
-                >
+                <label htmlFor="profile-whatsappNumber" className="block font-mono text-xs text-[#a8a8a2] mb-1">
                   WHATSAPP CONTACT NUMBER *
                 </label>
                 <input
-                  id="profile-whatsapp"
+                  id="profile-whatsappNumber"
                   type="tel"
                   required
                   value={whatsappNumber}
                   onChange={(e) => setWhatsappNumber(e.target.value)}
-                  placeholder="e.g. +91 9876543210"
+                  placeholder="+91 9876543210"
                   className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] px-3.5 py-2 text-sm text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
                 />
                 {validationErrors.whatsappNumber && (
-                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#FF365B]">
-                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                    <span>{validationErrors.whatsappNumber}</span>
-                  </p>
+                  <p className="mt-1 text-xs text-[#FF365B]">{validationErrors.whatsappNumber}</p>
                 )}
               </div>
 
               <div>
-                <label
-                  htmlFor="profile-username"
-                  className="block font-mono text-xs text-[#a8a8a2] mb-1.5"
-                >
-                  USERNAME / CALLSIGN
+                <label htmlFor="profile-username" className="block font-mono text-xs text-[#a8a8a2] mb-1">
+                  OPERATOR CALLSIGN / USERNAME
                 </label>
                 <input
                   id="profile-username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="e.g. operator_01"
-                  className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] px-3.5 py-2 font-mono text-sm text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
+                  placeholder="callsign_01"
+                  className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] px-3.5 py-2 text-sm text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
                 />
                 {validationErrors.username && (
-                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#FF365B]">
-                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                    <span>{validationErrors.username}</span>
-                  </p>
+                  <p className="mt-1 text-xs text-[#FF365B]">{validationErrors.username}</p>
                 )}
               </div>
 
               <div>
-                <label
-                  htmlFor="profile-email-ro"
-                  className="block font-mono text-xs text-[#a8a8a2] mb-1.5"
-                >
-                  REGISTERED EMAIL (LOCKED)
+                <label htmlFor="profile-email-readonly" className="block font-mono text-xs text-[#a8a8a2] mb-1">
+                  AUTHENTICATED EMAIL (LOCKED)
                 </label>
-                <div className="relative">
-                  <input
-                    id="profile-email-ro"
-                    type="email"
-                    readOnly
-                    disabled
-                    value={currentUser?.email ? (currentUser.email.slice(0, 3) + '••••@••••.com') : 'Account Connected'}
-                    className="w-full rounded-md border border-[#2e2e2a] bg-[#111110]/50 px-3.5 py-2 text-sm text-[#a8a8a2] cursor-not-allowed"
-                  />
-                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#a8a8a2]/50" />
-                </div>
+                <input
+                  id="profile-email-readonly"
+                  type="text"
+                  disabled
+                  value={currentUser?.email || profile.email || 'operator@nullorigin.live'}
+                  className="w-full rounded-md border border-[#2e2e2a] bg-[#111110]/50 px-3.5 py-2 text-sm text-[#a8a8a2] cursor-not-allowed"
+                />
               </div>
             </div>
 
             <div>
-              <label
-                htmlFor="profile-biography"
-                className="block font-mono text-xs text-[#a8a8a2] mb-1.5"
-              >
+              <label htmlFor="profile-biography" className="block font-mono text-xs text-[#a8a8a2] mb-1">
                 SHORT BIOGRAPHY ({biography.length}/280)
               </label>
               <textarea
@@ -566,352 +500,283 @@ export const ProfilePage: React.FC = () => {
                 rows={2}
                 value={biography}
                 onChange={(e) => setBiography(e.target.value)}
-                placeholder="Describe your cybersecurity background or areas of interest..."
-                className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] p-3.5 text-sm text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
+                placeholder="Optional background or interest..."
+                className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] p-3 text-sm text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
               />
-              {validationErrors.biography && (
-                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#FF365B]">
-                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                  <span>{validationErrors.biography}</span>
-                </p>
-              )}
             </div>
 
-            {/* Random Assigned Avatar Notice (Requirement) */}
-            <div className="rounded-lg border border-[#2e2e2a] bg-[#111110] p-4 flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-[#8dc63f] shrink-0" />
-              <div className="text-xs text-[#a8a8a2] leading-relaxed">
-                <span className="font-semibold text-[#f5f5f2]">System-Assigned Profile Avatar</span>:
-                Profile photos are automatically and uniquely generated by the tournament identity protocol based on your account ID to maintain tournament fairness. Competitors cannot change this photo.
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 border-t border-[#2e2e2a] pt-4">
+            <div className="flex items-center justify-end gap-2 border-t border-[#2e2e2a] pt-3">
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-4 py-2 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
+                className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-4 py-1.5 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-5 py-2 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] cursor-pointer shadow-md"
+                className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-4 py-1.5 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] cursor-pointer shadow-md"
               >
                 <Check className="h-3.5 w-3.5" />
-                <span>Save Profile (100% Verify)</span>
+                <span>Save Profile</span>
               </button>
             </div>
           </form>
         )}
       </section>
 
-      {/* SECTION 01: Competition & Participation History (The ONLY section retained per instructions) */}
-      <section className="space-y-6" aria-labelledby="history-heading">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2e2e2a] pb-4">
+      {/* Tournaments & Participation History Section */}
+      <section className="space-y-6" aria-labelledby="tournaments-heading">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2e2e2a] pb-3">
           <div>
-            <h2 id="history-heading" className="font-display text-lg font-bold text-[#f5f5f2]">
-              01. Competition & Participation History
+            <h2 id="tournaments-heading" className="font-display text-base sm:text-lg font-bold text-[#f5f5f2]">
+              Tournaments &amp; History
             </h2>
             <p className="text-xs text-[#a8a8a2]">
-              Complete ledger of tournaments you have applied for, completed, or are currently scheduled to enter.
+              Real-time directory of active, upcoming, and concluded competitions.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-3 py-1 font-mono text-xs text-[#a8a8a2]">
-              {compStatusStats.live} Live · {compStatusStats.upcoming} Coming · {compStatusStats.completed} Completed
-            </span>
-          </div>
+          <span className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-3 py-1 font-mono text-xs text-[#a8a8a2]">
+            {compStatusStats.live} Live · {compStatusStats.upcoming} Coming · {compStatusStats.completed} Completed
+          </span>
         </div>
 
-        {/* 1. Completed Tournaments Ledger */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-display text-sm font-semibold text-[#f5f5f2] uppercase tracking-wide">
-              Completed Tournament Rounds ({enrichedResults.length})
+        {/* 1. User's Completed Attempts (Only rendered when user has submitted quiz attempts) */}
+        {enrichedResults.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="font-display text-xs sm:text-sm font-semibold text-[#f5f5f2] uppercase tracking-wider">
+              Your Completed Submissions ({enrichedResults.length})
             </h3>
-            {enrichedResults.length > 0 && (
-              <button
-                type="button"
-                onClick={() => navigate('/leaderboard')}
-                className="text-xs font-mono text-[#8dc63f] hover:underline cursor-pointer"
-              >
-                View Full Leaderboard Standings →
-              </button>
-            )}
-          </div>
 
-          {enrichedResults.length === 0 ? (
-            <EmptyStateBlock
-              icon={History}
-              visualType="grid"
-              codeLabel="HISTORY · NO COMPLETED QUIZZES"
-              title="No Completed Competitions Yet"
-              description="You have not submitted any quiz competitions yet. Ensure your profile is 100% complete and enter an active competition below to establish your official tournament record."
-              actionLabel="Browse Available Competitions"
-              onAction={() => navigate('/competitions')}
-            />
-          ) : (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3">
               {enrichedResults.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5 sm:p-6 transition-all hover:border-[#a4d65e]/50 space-y-4 shadow-sm"
+                  className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-4 sm:p-5 transition-all hover:border-[#a4d65e]/40 space-y-3 shadow-sm"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2e2e2a] pb-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 rounded bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
-                          <CheckCircle2 className="h-3 w-3" /> COMPLETED · 1 ATTEMPT RECORDED
-                        </span>
-                        {item.rank &&
-                          !(
-                            (item.competitionTitle || '').toLowerCase().includes('practice') ||
-                            (item.competitionId || '').toLowerCase().includes('practice')
-                          ) && (
-                            <span className="inline-flex items-center gap-1 rounded bg-[#8dc63f]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#8dc63f]">
-                              <Trophy className="h-3 w-3" /> RANK #{item.rank}
-                            </span>
-                          )}
-                      </div>
-                      <h4 className="font-display text-base sm:text-lg font-bold text-[#f5f5f2]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#2e2e2a] pb-2.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1 rounded bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
+                        <CheckCircle2 className="h-3 w-3" /> COMPLETED
+                      </span>
+                      {item.rank &&
+                        !(
+                          (item.competitionTitle || '').toLowerCase().includes('practice') ||
+                          (item.competitionId || '').toLowerCase().includes('practice')
+                        ) && (
+                          <span className="inline-flex items-center gap-1 rounded bg-[#8dc63f]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#8dc63f]">
+                            <Trophy className="h-3 w-3" /> RANK #{item.rank}
+                          </span>
+                        )}
+                      <h4 className="font-display text-sm sm:text-base font-bold text-[#f5f5f2]">
                         {item.competitionTitle}
                       </h4>
                     </div>
 
-                    <div className="font-mono text-xs text-[#a8a8a2] sm:text-right">
-                      <span>Submitted: </span>
-                      <span className="text-[#f5f5f2]">
-                        {new Date(item.completedAt).toLocaleString(undefined, {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                    </div>
+                    <span className="font-mono text-xs text-[#a8a8a2]">
+                      Submitted {new Date(item.completedAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
                   </div>
 
-                  {/* Metrics Row */}
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
-                      <span className="block font-mono text-base font-bold text-[#a4d65e] tabular-nums">
+                  {/* Compact Metrics Row */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center font-mono">
+                    <div className="rounded bg-[#111110] border border-[#2e2e2a] p-2">
+                      <span className="block text-sm font-bold text-[#a4d65e] tabular-nums">
                         {item.finalScore} / {item.maxScore}
                       </span>
-                      <span className="font-mono text-[10px] text-[#a8a8a2]">FINAL SCORE</span>
+                      <span className="text-[9px] text-[#a8a8a2]">SCORE</span>
                     </div>
 
-                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
-                      <span className="block font-mono text-base font-bold text-[#8dc63f] tabular-nums">
+                    <div className="rounded bg-[#111110] border border-[#2e2e2a] p-2">
+                      <span className="block text-sm font-bold text-[#8dc63f] tabular-nums">
                         {item.accuracyPercent !== undefined ? `${item.accuracyPercent}%` : '—'}
                       </span>
-                      <span className="font-mono text-[10px] text-[#a8a8a2]">ACCURACY</span>
+                      <span className="text-[9px] text-[#a8a8a2]">ACCURACY</span>
                     </div>
 
-                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
-                      <span className="block font-mono text-base font-bold text-[#f5f5f2] tabular-nums">
+                    <div className="rounded bg-[#111110] border border-[#2e2e2a] p-2">
+                      <span className="block text-sm font-bold text-[#f5f5f2] tabular-nums">
                         {item.timeTakenSeconds !== undefined ? formatDurationSeconds(item.timeTakenSeconds) : '—'}
                       </span>
-                      <span className="font-mono text-[10px] text-[#a8a8a2]">TIME TAKEN</span>
+                      <span className="text-[9px] text-[#a8a8a2]">TIME</span>
                     </div>
 
-                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
-                      <span className="block font-mono text-base font-bold text-[#a4d65e] tabular-nums">
-                        {item.correctCount !== undefined ? item.correctCount : '—'}
+                    <div className="rounded bg-[#111110] border border-[#2e2e2a] p-2">
+                      <span className="block text-sm font-bold text-[#a4d65e] tabular-nums">
+                        {item.correctCount !== undefined ? item.correctCount : 0} Correct
                       </span>
-                      <span className="font-mono text-[10px] text-[#a8a8a2]">CORRECT</span>
-                    </div>
-
-                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
-                      <span className="block font-mono text-base font-bold text-[#FF365B] tabular-nums">
-                        {item.incorrectCount !== undefined ? item.incorrectCount : '—'}
-                      </span>
-                      <span className="font-mono text-[10px] text-[#a8a8a2]">
-                        WRONG{Boolean(item.unwrittenCount) ? ` (${item.unwrittenCount} unwritten)` : ''}
-                      </span>
+                      <span className="text-[9px] text-[#a8a8a2]">RESULT</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="font-mono text-[11px] text-[#a8a8a2]">
-                      Official score synced with Firestore & Python scoring engine
-                    </span>
-                    {/* Practice quizzes have no leaderboard standing, so no link. */}
-                    {!(
-                      (item.competitionTitle || '').toLowerCase().includes('practice') ||
-                      (item.competitionId || '').toLowerCase().includes('practice')
-                    ) && (
+                  {!(
+                    (item.competitionTitle || '').toLowerCase().includes('practice') ||
+                    (item.competitionId || '').toLowerCase().includes('practice')
+                  ) && (
+                    <div className="flex justify-end pt-1">
                       <button
                         type="button"
                         onClick={() => navigate(item.competitionId ? `/standings/${item.competitionId}` : '/standings')}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8dc63f] hover:underline cursor-pointer"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#8dc63f] hover:underline cursor-pointer"
                       >
-                        <span>Inspect Final Standing</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
+                        <span>View Final Standings</span>
+                        <ArrowRight className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 2. All Competitions Status Roster */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-xs sm:text-sm font-semibold text-[#f5f5f2] uppercase tracking-wider">
+              Competitions Roster ({competitions.length})
+            </h3>
+            {enrichedResults.length === 0 && (
+              <span className="font-mono text-[11px] text-[#a8a8a2]">
+                0 submissions yet · Enter a live competition below
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {competitions.map((comp) => {
+              const isPractice = comp.title.toLowerCase().includes('practice');
+              const now = Date.now();
+              const isCompletedByUser = completedIds.has(comp.id);
+              const isEnded =
+                !isPractice &&
+                (comp.status === 'completed' || (comp.endTime && new Date(comp.endTime).getTime() <= now));
+
+              const statusType: 'completed' | 'live' | 'upcoming' =
+                isEnded || comp.status === 'completed'
+                  ? 'completed'
+                  : comp.status === 'live' ||
+                    (comp.startTime &&
+                      new Date(comp.startTime).getTime() <= now &&
+                      comp.status !== 'completed')
+                  ? 'live'
+                  : 'upcoming';
+
+              return (
+                <div
+                  key={comp.id}
+                  className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-5 space-y-3 flex flex-col justify-between hover:border-[#7ab32e]/50 transition-colors shadow-sm"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      {statusType === 'completed' ? (
+                        <span className="inline-flex items-center gap-1 rounded bg-[#2e2e2a] border border-[#3e3e38] px-2 py-0.5 font-mono text-[10px] font-bold text-[#a8a8a2]">
+                          <CheckCircle2 className="h-3 w-3 text-[#8dc63f]" />
+                          COMPLETED
+                        </span>
+                      ) : statusType === 'live' ? (
+                        <span className="inline-flex items-center gap-1.5 rounded bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#8dc63f] animate-ping" />
+                          LIVE NOW
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded bg-[#00E5FF]/15 border border-[#00E5FF]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#00E5FF]">
+                          <Clock className="h-3 w-3" />
+                          COMING SOON
+                        </span>
+                      )}
+
+                      {isCompletedByUser && statusType !== 'completed' && (
+                        <span className="inline-flex items-center gap-1 rounded bg-[#a4d65e]/10 border border-[#a4d65e]/30 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#a4d65e]">
+                          ATTEMPT RECORDED
+                        </span>
+                      )}
+                    </div>
+
+                    <h4 className="font-display text-base font-bold text-[#f5f5f2]">
+                      {comp.title}
+                    </h4>
+
+                    {comp.description && (
+                      <p className="text-xs text-[#a8a8a2] line-clamp-2 leading-relaxed">
+                        {comp.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="border-t border-[#2e2e2a] pt-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="font-mono text-xs text-[#a8a8a2]">
+                      {statusType === 'completed' ? (
+                        <span>
+                          {comp.endTime
+                            ? `Ended ${new Date(comp.endTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}`
+                            : 'Concluded Nov 8'}
+                        </span>
+                      ) : statusType === 'live' ? (
+                        <span className="text-[#8dc63f]">
+                          Live · {comp.durationMinutes || 15}m
+                        </span>
+                      ) : (
+                        <span className="text-[#00E5FF]">
+                          Starts {comp.startTime ? new Date(comp.startTime).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Scheduled'}
+                        </span>
+                      )}
+                    </div>
+
+                    {statusType === 'completed' ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/standings/${comp.id}`)}
+                        className="inline-flex items-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#a4d65e]/40 px-3 py-1.5 text-xs font-semibold text-[#a4d65e] hover:bg-[#a4d65e]/10 transition-colors cursor-pointer"
+                      >
+                        <Trophy className="h-3.5 w-3.5 text-[#a4d65e]" />
+                        <span>View Final Standings</span>
+                        <ArrowRight className="h-3 w-3" />
+                      </button>
+                    ) : statusType === 'live' ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isCompletedByUser) {
+                            navigate(`/standings/${comp.id}`);
+                            return;
+                          }
+                          selectCompetition(comp);
+                          if (!is100PercentComplete) {
+                            handleOpenEdit();
+                          } else {
+                            navigate('/quiz');
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-3.5 py-1.5 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-sm"
+                      >
+                        <span>
+                          {isCompletedByUser
+                            ? 'Attempt Completed'
+                            : !is100PercentComplete
+                            ? 'Complete Profile'
+                            : 'Enter Quiz Directly'}
+                        </span>
+                        <ArrowRight className="h-3 w-3" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => navigate('/competitions')}
+                        className="inline-flex items-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#00E5FF]/40 px-3 py-1.5 text-xs font-semibold text-[#00E5FF] hover:bg-[#00E5FF]/10 transition-colors cursor-pointer"
+                      >
+                        <span>View Start Timer</span>
+                        <ArrowRight className="h-3 w-3" />
                       </button>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 2. Tournament Directory & Status (Completed, Live, and Upcoming) */}
-        {competitions.length > 0 && (
-          <div className="space-y-4 pt-4 border-t border-[#2e2e2a]">
-            <div className="flex items-center justify-between">
-              <h3 className="font-display text-sm font-semibold text-[#f5f5f2] uppercase tracking-wide">
-                Competitions & Tournament Status ({competitions.length})
-              </h3>
-              <span className="font-mono text-xs text-[#a8a8a2]">
-                Official Tournament Ledger
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {competitions.map((comp) => {
-                const isPractice = comp.title.toLowerCase().includes('practice');
-                const now = Date.now();
-                const isCompletedByUser = completedIds.has(comp.id);
-                const isEnded =
-                  !isPractice &&
-                  (comp.status === 'completed' || (comp.endTime && new Date(comp.endTime).getTime() <= now));
-
-                const statusType: 'completed' | 'live' | 'upcoming' =
-                  isEnded || comp.status === 'completed'
-                    ? 'completed'
-                    : comp.status === 'live' ||
-                      (comp.startTime &&
-                        new Date(comp.startTime).getTime() <= now &&
-                        comp.status !== 'completed')
-                    ? 'live'
-                    : 'upcoming';
-
-                return (
-                  <div
-                    key={comp.id}
-                    className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5 space-y-4 flex flex-col justify-between hover:border-[#7ab32e]/50 transition-colors"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 font-mono text-[11px]">
-                        {statusType === 'completed' ? (
-                          <span className="inline-flex items-center gap-1 rounded bg-[#2e2e2a] border border-[#3e3e38] px-2 py-0.5 font-mono text-[10px] font-bold text-[#a8a8a2]">
-                            <CheckCircle2 className="h-3 w-3 text-[#8dc63f]" />
-                            COMPLETED
-                          </span>
-                        ) : statusType === 'live' ? (
-                          <span className="inline-flex items-center gap-1.5 rounded bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
-                            <span className="h-1.5 w-1.5 rounded-full bg-[#8dc63f] animate-ping" />
-                            LIVE NOW
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded bg-[#00E5FF]/15 border border-[#00E5FF]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#00E5FF]">
-                            <Clock className="h-3 w-3" />
-                            COMING SOON
-                          </span>
-                        )}
-
-                        {isCompletedByUser && statusType !== 'completed' && (
-                          <span className="inline-flex items-center gap-1 rounded bg-[#a4d65e]/10 border border-[#a4d65e]/30 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#a4d65e]">
-                            ATTEMPT RECORDED
-                          </span>
-                        )}
-                      </div>
-
-                      <h4 className="font-display text-base font-semibold text-[#f5f5f2]">
-                        {comp.title}
-                      </h4>
-
-                      {comp.description && (
-                        <p className="text-xs text-[#a8a8a2] line-clamp-2 leading-relaxed">
-                          {comp.description}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="border-t border-[#2e2e2a] pt-3 flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 font-mono text-xs text-[#a8a8a2]">
-                        {statusType === 'completed' ? (
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="h-3 w-3 text-[#a8a8a2]" />
-                            <span>
-                              {comp.endTime
-                                ? `Ended ${new Date(comp.endTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}`
-                                : 'Concluded Nov 8, 2026'}
-                            </span>
-                          </span>
-                        ) : statusType === 'live' ? (
-                          <span className="inline-flex items-center gap-1 text-[#8dc63f]">
-                            <Clock className="h-3 w-3" />
-                            <span>Live · {comp.durationMinutes || 15}m</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[#00E5FF]">
-                            <Clock className="h-3 w-3" />
-                            <span>
-                              Starts {comp.startTime ? new Date(comp.startTime).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Scheduled'}
-                            </span>
-                          </span>
-                        )}
-                      </div>
-
-                      {statusType === 'completed' ? (
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/standings/${comp.id}`)}
-                          className="inline-flex items-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#a4d65e]/40 px-3 py-1.5 text-xs font-semibold text-[#a4d65e] hover:bg-[#a4d65e]/10 transition-colors cursor-pointer"
-                        >
-                          <Trophy className="h-3.5 w-3.5 text-[#a4d65e]" />
-                          <span>View Final Standings</span>
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </button>
-                      ) : statusType === 'live' ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (isCompletedByUser) {
-                              navigate(`/standings/${comp.id}`);
-                              return;
-                            }
-                            selectCompetition(comp);
-                            if (!is100PercentComplete) {
-                              handleOpenEdit();
-                            } else {
-                              navigate('/quiz');
-                            }
-                          }}
-                          className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-3.5 py-1.5 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-sm"
-                        >
-                          <span>
-                            {isCompletedByUser
-                              ? 'Attempt Completed'
-                              : !is100PercentComplete
-                              ? 'Complete Profile First'
-                              : 'Enter Quiz Directly'}
-                          </span>
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => navigate('/competitions')}
-                          className="inline-flex items-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#00E5FF]/40 px-3 py-1.5 text-xs font-semibold text-[#00E5FF] hover:bg-[#00E5FF]/10 transition-colors cursor-pointer"
-                        >
-                          <span>View Start Timer</span>
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+              );
+            })}
           </div>
-        )}
-        </section>
+        </div>
+      </section>
     </div>
   );
 };
