@@ -542,94 +542,138 @@ export const ProfilePage: React.FC = () => {
           </span>
         </div>
 
-        {/* 1. User's Completed Attempts (Only rendered when user has submitted quiz attempts) */}
-        {enrichedResults.length > 0 && (
-          <div className="space-y-3">
-            <h3 className="font-display text-xs sm:text-sm font-semibold text-[#f5f5f2] uppercase tracking-wider">
-              Your Completed Submissions ({enrichedResults.length})
+        {/* 1. Completed Tournament Rounds History */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-sm font-semibold text-[#f5f5f2] uppercase tracking-wide">
+              Completed Tournament Rounds ({enrichedResults.length})
             </h3>
+            {enrichedResults.length > 0 && (
+              <button
+                type="button"
+                onClick={() => navigate('/leaderboard')}
+                className="text-xs font-mono text-[#8dc63f] hover:underline cursor-pointer"
+              >
+                View Full Leaderboard Standings →
+              </button>
+            )}
+          </div>
 
-            <div className="grid grid-cols-1 gap-3">
+          {enrichedResults.length === 0 ? (
+            <EmptyStateBlock
+              icon={History}
+              visualType="grid"
+              codeLabel="HISTORY · NO COMPLETED QUIZZES"
+              title="No Completed Competitions Yet"
+              description="You have not submitted any quiz competitions yet. Ensure your profile is 100% complete and enter an active competition below to establish your official tournament record."
+              actionLabel="Browse Available Competitions"
+              onAction={() => navigate('/competitions')}
+            />
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
               {enrichedResults.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-4 sm:p-5 transition-all hover:border-[#a4d65e]/40 space-y-3 shadow-sm"
+                  className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-5 sm:p-6 transition-all hover:border-[#a4d65e]/50 space-y-4 shadow-sm"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#2e2e2a] pb-2.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1 rounded bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
-                        <CheckCircle2 className="h-3 w-3" /> COMPLETED
-                      </span>
-                      {item.rank &&
-                        !(
-                          (item.competitionTitle || '').toLowerCase().includes('practice') ||
-                          (item.competitionId || '').toLowerCase().includes('practice')
-                        ) && (
-                          <span className="inline-flex items-center gap-1 rounded bg-[#8dc63f]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#8dc63f]">
-                            <Trophy className="h-3 w-3" /> RANK #{item.rank}
-                          </span>
-                        )}
-                      <h4 className="font-display text-sm sm:text-base font-bold text-[#f5f5f2]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2e2e2a] pb-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 rounded bg-[#a4d65e]/15 border border-[#a4d65e]/30 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#a4d65e]">
+                          <CheckCircle2 className="h-3 w-3" /> COMPLETED · 1 ATTEMPT RECORDED
+                        </span>
+                        {item.rank &&
+                          !(
+                            (item.competitionTitle || '').toLowerCase().includes('practice') ||
+                            (item.competitionId || '').toLowerCase().includes('practice')
+                          ) && (
+                            <span className="inline-flex items-center gap-1 rounded bg-[#8dc63f]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#8dc63f]">
+                              <Trophy className="h-3 w-3" /> RANK #{item.rank}
+                            </span>
+                          )}
+                      </div>
+                      <h4 className="font-display text-base sm:text-lg font-bold text-[#f5f5f2]">
                         {item.competitionTitle}
                       </h4>
                     </div>
 
-                    <span className="font-mono text-xs text-[#a8a8a2]">
-                      Submitted {new Date(item.completedAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
+                    <div className="font-mono text-xs text-[#a8a8a2] sm:text-right">
+                      <span>Submitted: </span>
+                      <span className="text-[#f5f5f2]">
+                        {new Date(item.completedAt).toLocaleString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Compact Metrics Row */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center font-mono">
-                    <div className="rounded bg-[#111110] border border-[#2e2e2a] p-2">
-                      <span className="block text-sm font-bold text-[#a4d65e] tabular-nums">
+                  {/* Metrics Row */}
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
+                      <span className="block font-mono text-base font-bold text-[#a4d65e] tabular-nums">
                         {item.finalScore} / {item.maxScore}
                       </span>
-                      <span className="text-[9px] text-[#a8a8a2]">SCORE</span>
+                      <span className="font-mono text-[10px] text-[#a8a8a2]">FINAL SCORE</span>
                     </div>
 
-                    <div className="rounded bg-[#111110] border border-[#2e2e2a] p-2">
-                      <span className="block text-sm font-bold text-[#8dc63f] tabular-nums">
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
+                      <span className="block font-mono text-base font-bold text-[#8dc63f] tabular-nums">
                         {item.accuracyPercent !== undefined ? `${item.accuracyPercent}%` : '—'}
                       </span>
-                      <span className="text-[9px] text-[#a8a8a2]">ACCURACY</span>
+                      <span className="font-mono text-[10px] text-[#a8a8a2]">ACCURACY</span>
                     </div>
 
-                    <div className="rounded bg-[#111110] border border-[#2e2e2a] p-2">
-                      <span className="block text-sm font-bold text-[#f5f5f2] tabular-nums">
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
+                      <span className="block font-mono text-base font-bold text-[#f5f5f2] tabular-nums">
                         {item.timeTakenSeconds !== undefined ? formatDurationSeconds(item.timeTakenSeconds) : '—'}
                       </span>
-                      <span className="text-[9px] text-[#a8a8a2]">TIME</span>
+                      <span className="font-mono text-[10px] text-[#a8a8a2]">TIME TAKEN</span>
                     </div>
 
-                    <div className="rounded bg-[#111110] border border-[#2e2e2a] p-2">
-                      <span className="block text-sm font-bold text-[#a4d65e] tabular-nums">
-                        {item.correctCount !== undefined ? item.correctCount : 0} Correct
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
+                      <span className="block font-mono text-base font-bold text-[#a4d65e] tabular-nums">
+                        {item.correctCount !== undefined ? item.correctCount : '—'}
                       </span>
-                      <span className="text-[9px] text-[#a8a8a2]">RESULT</span>
+                      <span className="font-mono text-[10px] text-[#a8a8a2]">CORRECT</span>
+                    </div>
+
+                    <div className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] p-3 text-center">
+                      <span className="block font-mono text-base font-bold text-[#FF365B] tabular-nums">
+                        {item.incorrectCount !== undefined ? item.incorrectCount : '—'}
+                      </span>
+                      <span className="font-mono text-[10px] text-[#a8a8a2]">
+                        WRONG{Boolean(item.unwrittenCount) ? ` (${item.unwrittenCount} unwritten)` : ''}
+                      </span>
                     </div>
                   </div>
 
-                  {!(
-                    (item.competitionTitle || '').toLowerCase().includes('practice') ||
-                    (item.competitionId || '').toLowerCase().includes('practice')
-                  ) && (
-                    <div className="flex justify-end pt-1">
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="font-mono text-[11px] text-[#a8a8a2]">
+                      Official score synced with Firestore & Python scoring engine
+                    </span>
+                    {!(
+                      (item.competitionTitle || '').toLowerCase().includes('practice') ||
+                      (item.competitionId || '').toLowerCase().includes('practice')
+                    ) && (
                       <button
                         type="button"
                         onClick={() => navigate(item.competitionId ? `/standings/${item.competitionId}` : '/standings')}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#8dc63f] hover:underline cursor-pointer"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8dc63f] hover:underline cursor-pointer"
                       >
-                        <span>View Final Standings</span>
-                        <ArrowRight className="h-3 w-3" />
+                        <span>Inspect Final Standing</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* 2. All Competitions Status Roster */}
         <div className="space-y-3">
