@@ -2,11 +2,9 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Trophy,
-  Search,
   Radio,
   CheckCircle2,
   ArrowRight,
-  Award,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { formatDurationSeconds } from '../utils/timerLogic';
@@ -101,24 +99,18 @@ export const LeaderboardPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => navigate('/standings')}
-            className="inline-flex items-center gap-1.5 rounded-md border border-[#b38d3a]/60 bg-[#1b1b19] px-3.5 py-2 text-xs font-semibold text-[#E6B450] hover:bg-[#b38d3a]/10 transition-colors cursor-pointer"
-          >
-            <Trophy className="h-4 w-4" />
-            <span>View Final Standings (Past Quizzes)</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/competitions')}
-            className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-4 py-2 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer"
-          >
-            <span>Browse Competitions</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
+        {activeLiveCompetition && (
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => navigate('/competitions')}
+              className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-4 py-2 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer"
+            >
+              <span>Browse Competitions</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Case 1: Active Live Competition Running */}
@@ -205,60 +197,19 @@ export const LeaderboardPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* Case 2: No Live Tournament Active (Clean Standby UI — NO past scores shown here!) */
-        <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-8 sm:p-12 text-center space-y-6 shadow-xl">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#2e2e2a] bg-[#151513] text-[#8dc63f]">
-            <Radio className="h-8 w-8 text-[#8dc63f]" />
+        /* Case 2: No Live Tournament Active (Clean minimal standby) */
+        <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-12 sm:p-20 text-center space-y-4 shadow-xl">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#2e2e2a] bg-[#151513] text-[#8dc63f]">
+            <Radio className="h-7 w-7 text-[#8dc63f]" />
           </div>
 
           <div className="space-y-2 max-w-lg mx-auto">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#2e2e2a] bg-[#151513] px-3 py-1 font-mono text-[11px] font-bold text-[#a8a8a2] uppercase tracking-wider">
+            <h2 className="font-display text-xl sm:text-2xl font-bold text-[#f5f5f2] tracking-tight">
               Live Scoreboard Standby · No Active Quiz Running
-            </span>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#f5f5f2]">
-              Live Scoreboard is Currently Idle
             </h2>
             <p className="text-xs sm:text-sm text-[#a8a8a2] leading-relaxed">
-              The live scoreboard is dedicated exclusively to real-time telemetry while a competition is actively running. There is currently no active quiz tournament in progress.
+              When a competition starts, live scores and rankings will stream here automatically.
             </p>
-          </div>
-
-          {/* Notice to view Past Final Standings */}
-          <div className="rounded-xl border border-[#b38d3a]/40 bg-[#b38d3a]/10 p-5 max-w-lg mx-auto text-left space-y-3">
-            <div className="flex items-center gap-2 font-mono text-xs font-bold text-[#E6B450] uppercase tracking-wider">
-              <Trophy className="h-4 w-4 text-[#E6B450]" />
-              <span>Cyber Security Quiz 2026 — Final Standings</span>
-            </div>
-            <p className="text-xs text-[#f5f5f2] leading-relaxed">
-              All 62 participant scores, accuracy percentiles, and top 3 winner placements for <strong className="text-[#8dc63f]">Cyber Security Quiz 2026</strong> are permanently showcased on the official Final Standings page.
-            </p>
-            <button
-              type="button"
-              onClick={() => navigate('/standings/comp_1793963656835')}
-              className="inline-flex items-center gap-1.5 rounded-md bg-[#E6B450] px-4 py-2 text-xs font-bold text-[#141a09] hover:bg-[#ffd166] transition-colors cursor-pointer shadow-md"
-            >
-              <Trophy className="h-3.5 w-3.5" />
-              <span>View Cyber Quiz 2026 Final Standings</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => navigate('/competitions')}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-2.5 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
-            >
-              <span>Explore Competitions Directory</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/certification')}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-[#2e2e2a] bg-[#151513] px-5 py-2.5 text-xs font-medium text-[#f5f5f2] hover:border-[#7ab32e] hover:text-[#8dc63f] transition-colors cursor-pointer"
-            >
-              <Award className="h-4 w-4" />
-              <span>Certificate Gateway</span>
-            </button>
           </div>
         </div>
       )}
