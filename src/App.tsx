@@ -18,12 +18,21 @@ import { AdminPage } from './pages/AdminPage';
 import { CertificationPage } from './pages/CertificationPage';
 import { AboutPage } from './pages/AboutPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { VerifyPage } from './pages/VerifyPage';
 
 export default function App() {
   return (
     <AppProvider>
       <BrowserRouter>
         <Routes>
+          {/*
+            Hidden certificate verification page. It is deliberately NOT
+            inside AppShell and NOT linked anywhere in the site frontend
+            (no nav item, no footer link, no dashboard entry). It only
+            opens when someone scans the QR code printed on a certificate,
+            which encodes /verify/<certId>. No login is required.
+          */}
+          <Route path="/verify/:certId" element={<VerifyPage />} />
           <Route path="/" element={<AppShell />}>
             <Route index element={<DashboardPage />} />
             <Route path="competitions" element={<CompetitionsPage />} />

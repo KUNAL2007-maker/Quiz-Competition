@@ -343,7 +343,7 @@ export const CertificationPage: React.FC = () => {
                 }}
               >
                 <div ref={certRef} style={{ width: CERT_W, height: CERT_H }}>
-                  <CertificateTemplate name={participant.name} />
+                  <CertificateTemplate name={participant.name} certId={participant.certId} />
                 </div>
               </div>
             </div>
@@ -389,7 +389,7 @@ export const CertificationPage: React.FC = () => {
           }}
         >
           <div ref={captureRef} style={{ width: CERT_W, height: CERT_H }}>
-            <CertificateTemplate name={participant.name} />
+            <CertificateTemplate name={participant.name} certId={participant.certId} />
           </div>
         </div>
       )}
