@@ -10,7 +10,7 @@ import {
   AlertTriangle,
   Mail,
 } from 'lucide-react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAppContext } from '../context/AppContext';
 import { jsPDF } from 'jspdf';
@@ -19,6 +19,10 @@ import { certRegistry } from '../constants/certRegistry';
 import { CertificateTemplate } from '../components/CertificateTemplate';
 
 const REFERRAL_URL = 'https://agentrouter.org/register?aff=p772';
+// Cyber Security Quiz 2026 competition id — the participation gate below
+// only issues a certificate when this user has a leaderboard entry here
+// (any score, including 0). Registered-but-never-entered users get none.
+const CYBER_QUIZ_COMP_ID = 'comp_1793963656835';
 // Certificate artwork is 1200x900 (the CertificateTemplate component).
 const CERT_W = 1200;
 const CERT_H = 900;
@@ -122,11 +126,15 @@ export const CertificationPage: React.FC = () => {
       // Primary lookup: Firestore profiles collection by email.
       // The certificate name always comes from the profile (current/updated
       // name), never from the leaderboard (which keeps the name from quiz time).
+      // We also capture the profile uid: only a user who ENTERED the quiz
+      // has a leaderboard entry, and that entry is keyed by uid.
       let displayName: string | null = null;
+      let uid: string | null = null;
       try {
         const q = query(collection(db, 'profiles'), where('email', '==', normalized));
         const snap = await getDocs(q);
         if (!snap.empty) {
+          uid = snap.docs[0].id;
           const data = snap.docs[0].data() as { displayName?: string; email?: string };
           if (data.displayName && data.displayName.trim()) {
             displayName = data.displayName.trim();
@@ -137,6 +145,7 @@ export const CertificationPage: React.FC = () => {
           const q2 = query(collection(db, 'profiles'), where('email', '==', email.trim()));
           const snap2 = await getDocs(q2);
           if (!snap2.empty) {
+            if (!uid) uid = snap2.docs[0].id;
             const data2 = snap2.docs[0].data() as { displayName?: string };
             if (data2.displayName && data2.displayName.trim()) {
               displayName = data2.displayName.trim();
@@ -146,11 +155,11 @@ export const CertificationPage: React.FC = () => {
       } catch {
         // Firestore lookup failed (offline / permissions) — fall through to the registry.
         displayName = null;
+        uid = null;
       }
 
       // Fallback lookup: registration mapping (covers registered users with no Firestore profile).
-      // Certificates are for everyone who registered, whatever their score —
-      // no leaderboard check. The profile name (above) always wins when present.
+      // The profile name (above) always wins when present.
       const reg = certRegistry[normalized];
       if (!displayName && !reg) {
         setError('This email is not in the registered participants list.');
@@ -158,6 +167,25 @@ export const CertificationPage: React.FC = () => {
       }
       const name = displayName ?? reg!.name;
       const certId = reg ? reg.id : generateCertId(normalized, name);
+
+      // PARTICIPATION GATE (9 Nov 2026): certificates are ONLY for students
+      // who entered Cyber Security Quiz 2026 — any score, including 0.
+      // A leaderboard entry for this uid + competition is the proof of entry.
+      // No profile (no uid) means they never signed in to take the quiz.
+      let participated = false;
+      if (uid) {
+        try {
+          const lbDoc = await getDoc(doc(db, 'leaderboard', `${uid}_${CYBER_QUIZ_COMP_ID}`));
+          participated = lbDoc.exists();
+        } catch {
+          participated = false;
+        }
+      }
+      if (!participated) {
+        setError('This email did not participate in Cyber Security Quiz 2026, so no certificate is available. Certificates are only for students who entered the quiz (any score, including 0).');
+        return;
+      }
+
       const found: FoundParticipant = {
         name,
         certId,
