@@ -303,9 +303,9 @@ export const CertificationPage: React.FC = () => {
         <p className="text-sm text-[#a8a8a2] leading-relaxed">
           Enter a participant&apos;s registered email address to generate their official
           Certificate of Participation, ready to download as a high-resolution PNG or PDF.
-          Certificates are available to everyone who registered — whatever their score —
-          and the name on the certificate is taken from the participant&apos;s current
-          profile, not the leaderboard.
+          Certificates are only for students who entered Cyber Security Quiz 2026 — whatever
+          their score, including 0 — and the name on the certificate is taken from the
+          participant&apos;s current profile, not the leaderboard.
         </p>
       </div>
 
