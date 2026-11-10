@@ -97,7 +97,7 @@ export const AdminPage: React.FC = () => {
     addToast(
       'Purging Entries',
       'Removing all Hafiz Mujawar entries from database...',
-      'info'
+      'default'
     );
     try {
       for (const id of HAFIZ_MUJAWAR_DOC_IDS) {
@@ -440,7 +440,7 @@ export const AdminPage: React.FC = () => {
     addToast(
       'Recalibrating Scores',
       'Syncing fair calibrated scores and accuracy for all 27 glitched competitors...',
-      'info'
+      'default'
     );
     try {
       const result = await syncCalibratedScoresToFirestore(db);
@@ -454,7 +454,7 @@ export const AdminPage: React.FC = () => {
         addToast(
           'Calibrated on Live Platform',
           'Platform engine has active calibrated scores for all 27 competitors. Deploy updated firestore.rules to persist directly to cloud.',
-          'info'
+          'default'
         );
       }
     } catch (err) {

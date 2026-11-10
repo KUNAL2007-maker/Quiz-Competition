@@ -28,6 +28,7 @@ import { QuizRulesModal } from '../components/quiz/QuizRulesModal';
 import { QuizCountdownOverlay } from '../components/quiz/QuizCountdownOverlay';
 import { QuizAttemptLockedCard } from '../components/quiz/QuizAttemptLockedCard';
 import { CountdownTimer } from '../components/competition/CountdownTimer';
+import { playCountdownTick, playCountdownGo } from '../utils/audioEffects';
 
 export const QuizPage: React.FC = () => {
   const navigate = useNavigate();
@@ -743,6 +744,7 @@ export const QuizPage: React.FC = () => {
     if (countdownValue === null) return;
 
     if (countdownValue > 0) {
+      playCountdownTick(countdownValue);
       const timer = window.setTimeout(() => {
         setCountdownValue((prev) => (prev !== null ? prev - 1 : null));
       }, 1000);
@@ -750,6 +752,7 @@ export const QuizPage: React.FC = () => {
     }
 
     if (countdownValue === 0) {
+      playCountdownGo();
       const timer = window.setTimeout(() => {
         setCountdownValue(null);
         if (activeCompetition) {

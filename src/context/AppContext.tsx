@@ -41,6 +41,7 @@ import {
   ToastMessage,
 } from '../types';
 import { applyCalibration, isExcludedLeaderboardEntry, filterLeaderboardEntries } from '../utils/leaderboardCalibration';
+import { validateWhatsAppNumber } from '../utils/phoneValidation';
 import leaderboardSeed from '../constants/leaderboardSeed.json';
 import { ARCHIVED_CYBER_QUIZ, CYBER_QUIZ_COMP_ID } from '../constants/tournaments';
 
@@ -500,7 +501,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             avatarPreset: String(data.avatarPreset || 'cipher-grid'),
             isProfileComplete: Boolean(
               data.isProfileComplete ||
-              (data.displayName && String(data.displayName).trim().length >= 2 && data.whatsappNumber && String(data.whatsappNumber).trim().length >= 6)
+              (data.displayName && String(data.displayName).trim().length >= 2 && data.whatsappNumber && validateWhatsAppNumber(String(data.whatsappNumber)).isValid)
             ),
             // Every signed-in user is treated as verified directly —
             // no email confirmation link is required (Google and
@@ -514,7 +515,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             displayName: currentUser.displayName || '',
             email: currentUser.email || '',
             isProfileComplete: Boolean(
-              currentUser.displayName && currentUser.displayName.trim().length >= 2 && prev.whatsappNumber && prev.whatsappNumber.trim().length >= 6
+              currentUser.displayName && currentUser.displayName.trim().length >= 2 && prev.whatsappNumber && validateWhatsAppNumber(prev.whatsappNumber).isValid
             ),
           }));
         }
@@ -691,8 +692,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (trimmedName.length < 2) {
         return { success: false, error: 'Please enter a valid full name (minimum 2 characters).' };
       }
-      if (trimmedPhone.length < 7) {
-        return { success: false, error: 'Please enter a valid WhatsApp phone number.' };
+      const phoneValidation = validateWhatsAppNumber(trimmedPhone);
+      if (!phoneValidation.isValid) {
+        return {
+          success: false,
+          error: phoneValidation.error || 'Please enter a valid genuine WhatsApp phone number.',
+        };
       }
 
       const userEmail = (currentUser.email || '').trim().toLowerCase();
@@ -710,10 +715,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // changing ownerId (it is not in the allowed affectedKeys), so the
         // update payload must not include it — otherwise a repeat save on an
         // existing profile is rejected and the name silently stays blank.
+        const normalizedPhone = (phoneValidation.normalized || trimmedPhone).slice(0, 32);
         const payload = {
           displayName: trimmedName.slice(0, 64),
           username: sanitizedUsername,
-          whatsappNumber: trimmedPhone.slice(0, 32),
+          whatsappNumber: normalizedPhone,
           email: userEmail.slice(0, 120),
           avatarUrl: data.avatarUrl,
           isProfileComplete: true,
@@ -735,7 +741,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setProfile((prev) => ({
           ...prev,
           displayName: trimmedName,
-          whatsappNumber: trimmedPhone,
+          whatsappNumber: normalizedPhone,
           email: userEmail,
           avatarUrl: data.avatarUrl,
           isProfileComplete: true,
@@ -1383,7 +1389,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               ...(merged.whatsappNumber ? { whatsappNumber: merged.whatsappNumber.trim().slice(0, 32) } : {}),
               ...(merged.email || currentUser.email ? { email: (merged.email || currentUser.email || '').trim().slice(0, 120) } : {}),
               ...(merged.avatarUrl ? { avatarUrl: merged.avatarUrl.slice(0, 500) } : {}),
-              isProfileComplete: Boolean(merged.isProfileComplete || (merged.whatsappNumber && merged.displayName)),
+              isProfileComplete: Boolean(
+                merged.isProfileComplete ||
+                (merged.whatsappNumber && validateWhatsAppNumber(merged.whatsappNumber).isValid && merged.displayName)
+              ),
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
             });
@@ -1396,7 +1405,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               ...(merged.whatsappNumber ? { whatsappNumber: merged.whatsappNumber.trim().slice(0, 32) } : {}),
               ...(merged.email || currentUser.email ? { email: (merged.email || currentUser.email || '').trim().slice(0, 120) } : {}),
               ...(merged.avatarUrl ? { avatarUrl: merged.avatarUrl.slice(0, 500) } : {}),
-              isProfileComplete: Boolean(merged.isProfileComplete || (merged.whatsappNumber && merged.displayName)),
+              isProfileComplete: Boolean(
+                merged.isProfileComplete ||
+                (merged.whatsappNumber && validateWhatsAppNumber(merged.whatsappNumber).isValid && merged.displayName)
+              ),
               updatedAt: serverTimestamp(),
             });
           }

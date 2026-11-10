@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { validateOperatorProfileInput, formatDurationSeconds } from '../utils/timerLogic';
+import { validateWhatsAppNumber } from '../utils/phoneValidation';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 
 export const ProfilePage: React.FC = () => {
@@ -74,7 +75,9 @@ export const ProfilePage: React.FC = () => {
 
   // Calculate 100% profile completeness
   const isNameComplete = Boolean(profile.displayName && profile.displayName.trim().length >= 2);
-  const isWhatsappComplete = Boolean(profile.whatsappNumber && profile.whatsappNumber.trim().length >= 6);
+  const isWhatsappComplete = Boolean(
+    profile.whatsappNumber && validateWhatsAppNumber(profile.whatsappNumber).isValid
+  );
   const isEmailComplete = Boolean(currentUser?.email || profile.email);
   const isAvatarAssigned = true; // Randomly assigned by system
 
@@ -108,9 +111,9 @@ export const ProfilePage: React.FC = () => {
       errors.displayName = 'Please enter your real full name (at least 2 characters).';
     }
 
-    const digitsOnly = whatsappNumber.replace(/\D/g, '');
-    if (digitsOnly.length < 7 || digitsOnly.length > 15) {
-      errors.whatsappNumber = 'Please enter a valid WhatsApp number (e.g. +91 9876543210).';
+    const phoneVal = validateWhatsAppNumber(whatsappNumber);
+    if (!phoneVal.isValid) {
+      errors.whatsappNumber = phoneVal.error || 'Please enter a valid WhatsApp number (e.g. +91 9876543210).';
     }
 
     const validation = validateOperatorProfileInput({
@@ -133,7 +136,7 @@ export const ProfilePage: React.FC = () => {
     const saved = await updateProfile({
       displayName: trimmedName,
       username: username.trim() || `user_${(currentUser?.uid || 'opr').slice(0, 8)}`,
-      whatsappNumber: whatsappNumber.trim(),
+      whatsappNumber: phoneVal.normalized || whatsappNumber.trim(),
       biography: biography.trim(),
       avatarUrl: assignedAvatarUrl,
       isProfileComplete: true,
@@ -284,7 +287,7 @@ export const ProfilePage: React.FC = () => {
         completed++;
       } else if (
         comp.status === 'live' ||
-        (comp.startTime && new Date(comp.startTime).getTime() <= now && comp.status !== 'completed')
+        (comp.startTime && new Date(comp.startTime).getTime() <= now)
       ) {
         live++;
       } else {
@@ -702,8 +705,7 @@ export const ProfilePage: React.FC = () => {
                   ? 'completed'
                   : comp.status === 'live' ||
                     (comp.startTime &&
-                      new Date(comp.startTime).getTime() <= now &&
-                      comp.status !== 'completed')
+                      new Date(comp.startTime).getTime() <= now)
                   ? 'live'
                   : 'upcoming';
 

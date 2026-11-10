@@ -18,14 +18,17 @@ import { AdminPage } from './pages/AdminPage';
 import { CertificationPage } from './pages/CertificationPage';
 import { AboutPage } from './pages/AboutPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { TermsPage } from './pages/TermsPage';
 import { VerifyPage } from './pages/VerifyPage';
 import { StandingsPage } from './pages/StandingsPage';
 import { RouteSeo } from './components/common/RouteSeo';
+import { ScrollToTop } from './components/common/ScrollToTop';
 
 export default function App() {
   return (
     <AppProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <RouteSeo />
         <Routes>
           {/*
@@ -51,6 +54,7 @@ export default function App() {
             <Route path="certification" element={<CertificationPage />} />
             <Route path="about" element={<AboutPage />} />
             <Route path="privacy" element={<PrivacyPolicyPage />} />
+            <Route path="terms" element={<TermsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

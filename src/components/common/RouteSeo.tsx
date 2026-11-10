@@ -52,6 +52,12 @@ const ROUTE_META: Record<string, PageMetaConfig> = {
       'Review the privacy policy, data handling practices, and security principles of the Null Origin quiz platform.',
     canonical: `${BASE_URL}/privacy`,
   },
+  '/terms': {
+    title: 'Terms & Conditions — Null Origin',
+    description:
+      'Review the official tournament regulations, user agreement, anti-cheat rules, and certificate policies of Null Origin.',
+    canonical: `${BASE_URL}/terms`,
+  },
   '/login': {
     title: 'Sign In — Null Origin',
     description:

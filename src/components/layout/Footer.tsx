@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield } from 'lucide-react';
+import { NullOriginLogo } from '../common/NullOriginLogo';
 
 export const Footer: React.FC = () => {
   return (
@@ -8,12 +8,12 @@ export const Footer: React.FC = () => {
       <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#a8a8a2]">
         {/* Brand */}
         <div className="flex items-center gap-2">
-          <Shield className="h-4 w-4 text-[#8dc63f] shrink-0" />
+          <NullOriginLogo className="h-4 w-4 text-[#8dc63f] shrink-0" />
           <span className="font-display font-medium text-[#f5f5f2]">NULL ORIGIN</span>
         </div>
 
         {/* Small Bottom Links */}
-        <div className="flex items-center gap-4 text-[11px] font-mono">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[11px] font-mono">
           <Link
             to="/about"
             className="text-[#a8a8a2] hover:text-[#8dc63f] transition-colors"
@@ -28,10 +28,17 @@ export const Footer: React.FC = () => {
             Privacy Policy
           </Link>
           <span className="text-[#2e2e2a]">|</span>
+          <Link
+            to="/terms"
+            className="text-[#a8a8a2] hover:text-[#8dc63f] transition-colors"
+          >
+            Terms & Conditions
+          </Link>
+          <span className="text-[#2e2e2a]">|</span>
           <a
             href="mailto:contact@nullorigin.live"
             className="text-[#a8a8a2] hover:text-[#8dc63f] transition-colors"
-            title="contact@nullorigin.live"
+            title="Send email to contact@nullorigin.live"
           >
             Support
           </a>

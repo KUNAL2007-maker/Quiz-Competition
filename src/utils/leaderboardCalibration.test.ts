@@ -100,8 +100,8 @@ test('applyCalibration preserves existing verified non-zero scores untouched', (
 test('full leaderboard sorting with all 62 entries eliminates all zero scores', () => {
   // Simulate 35 real scores + 27 calibrated scores
   const allEntries: LeaderboardEntry[] = [
-    { rank: 1, participantId: 'p1', displayName: 'Keerthana Shree K', score: 3000, completionTimeSeconds: 76 },
-    { rank: 2, participantId: 'p2', displayName: 'Sunny Kumar', score: 2900, completionTimeSeconds: 106 },
+    { rank: 1, participantId: 'p1', displayName: 'Keerthana Shree K', score: 3000, completionTimeSeconds: 76, completionStatus: 'Completed' },
+    { rank: 2, participantId: 'p2', displayName: 'Sunny Kumar', score: 2900, completionTimeSeconds: 106, completionStatus: 'Completed' },
     ...Object.entries(CALIBRATED_GLITCH_ENTRIES).map(([id, data], i) => ({
       rank: 30 + i,
       participantId: id,
@@ -109,6 +109,7 @@ test('full leaderboard sorting with all 62 entries eliminates all zero scores', 
       score: 0, // initially 0
       accuracyPercent: 0,
       completionTimeSeconds: data.completionTimeSeconds,
+      completionStatus: 'Completed' as const,
     })),
   ];
 
@@ -154,10 +155,10 @@ test('isExcludedLeaderboardEntry identifies and purges all Hafiz Mujawar entries
 
 test('filterLeaderboardEntries purges Hafiz entries while preserving all other competitors', () => {
   const mixed: LeaderboardEntry[] = [
-    { rank: 1, participantId: 'p_hafiz_1', displayName: 'Hafiz Mujawar', score: 3000 },
-    { rank: 2, participantId: 'p_wren', displayName: 'Wren harbour', score: 3000 },
-    { rank: 3, participantId: 'p_keerthana', displayName: 'Keerthana K', score: 3000 },
-    { rank: 4, participantId: 'p_hafiz_2', displayName: 'HAFIZ 3', score: 1500 },
+    { rank: 1, participantId: 'p_hafiz_1', displayName: 'Hafiz Mujawar', score: 3000, completionStatus: 'Completed' },
+    { rank: 2, participantId: 'p_wren', displayName: 'Wren harbour', score: 3000, completionStatus: 'Completed' },
+    { rank: 3, participantId: 'p_keerthana', displayName: 'Keerthana K', score: 3000, completionStatus: 'Completed' },
+    { rank: 4, participantId: 'p_hafiz_2', displayName: 'HAFIZ 3', score: 1500, completionStatus: 'Completed' },
   ];
 
   const filtered = filterLeaderboardEntries(mixed);

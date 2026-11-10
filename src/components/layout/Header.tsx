@@ -28,6 +28,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/admin': 'Admin Tournament & Quiz Console',
   '/about': 'About Null Origin',
   '/privacy': 'Privacy Policy & Data Security',
+  '/terms': 'Terms & Conditions',
 };
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {

@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
+import { validateWhatsAppNumber } from '../../utils/phoneValidation';
 
 interface CompetitorProfileModalProps {
   isOpen: boolean;
@@ -62,10 +63,10 @@ export const CompetitorProfileModal: React.FC<CompetitorProfileModalProps> = ({
       return;
     }
 
-    // Strip spaces/hyphens for validation
-    const digitsOnly = whatsappNumber.replace(/\D/g, '');
-    if (digitsOnly.length < 8 || digitsOnly.length > 15) {
-      setError('Please enter a valid WhatsApp number with country code (e.g. +91 9876543210).');
+    // Validate WhatsApp number strictly against dummy patterns and country formats
+    const phoneVal = validateWhatsAppNumber(whatsappNumber);
+    if (!phoneVal.isValid) {
+      setError(phoneVal.error || 'Please enter a valid WhatsApp number with country code (e.g. +91 9876543210).');
       return;
     }
 
@@ -73,7 +74,7 @@ export const CompetitorProfileModal: React.FC<CompetitorProfileModalProps> = ({
     try {
       const res = await saveCompetitorProfile({
         displayName: displayName.trim(),
-        whatsappNumber: whatsappNumber.trim(),
+        whatsappNumber: phoneVal.normalized || whatsappNumber.trim(),
         avatarUrl: assignedAvatarUrl,
       });
 

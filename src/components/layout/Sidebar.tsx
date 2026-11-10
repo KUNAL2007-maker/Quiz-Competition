@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { NullOriginLogo } from '../common/NullOriginLogo';
 import {
   LayoutDashboard,
   ShieldAlert,
@@ -88,11 +89,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
             onClick={onCloseMobile}
             className="flex items-center gap-2.5 text-base font-bold tracking-tight text-[#f5f5f2] font-display whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#8dc63f]"
           >
-            <svg className="h-5 w-5 text-[#8dc63f]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2" />
-              <line x1="12" y1="22" x2="12" y2="15.5" />
-              <polyline points="22 8.5 12 15.5 2 8.5" />
-            </svg>
+            <NullOriginLogo className="h-5 w-5 text-[#8dc63f] shrink-0" />
             <span>NULL ORIGIN</span>
           </NavLink>
 
