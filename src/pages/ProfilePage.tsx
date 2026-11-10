@@ -35,6 +35,7 @@ export const ProfilePage: React.FC = () => {
     leaderboard,
     quizSession,
     selectCompetition,
+    resetQuizSession,
   } = useAppContext();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -803,6 +804,9 @@ export const ProfilePage: React.FC = () => {
                           if (isCompletedByUser) {
                             navigate(`/standings/${comp.id}`);
                             return;
+                          }
+                          if (isPractice) {
+                            resetQuizSession();
                           }
                           selectCompetition(comp);
                           if (!is100PercentComplete) {

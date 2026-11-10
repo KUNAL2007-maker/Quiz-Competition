@@ -21,6 +21,7 @@ export const DashboardPage: React.FC = () => {
     currentUser,
     profile,
     selectCompetition,
+    resetQuizSession,
     addToast,
   } = useAppContext();
 
@@ -234,6 +235,9 @@ export const DashboardPage: React.FC = () => {
                     return;
                   }
                   if (!isPractice && completedCompetitionIds.has(selected.id)) {
+                    if (isPractice) {
+                      resetQuizSession();
+                    }
                     selectCompetition(selected);
                     navigate('/quiz');
                     return;
@@ -258,6 +262,9 @@ export const DashboardPage: React.FC = () => {
                       );
                       navigate('/profile?required=1');
                       return;
+                    }
+                    if (isPractice) {
+                      resetQuizSession();
                     }
                     selectCompetition(selected);
                     navigate('/quiz');

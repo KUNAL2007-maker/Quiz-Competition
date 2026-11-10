@@ -28,6 +28,7 @@ import { QuestionPalette } from '../components/quiz/QuestionPalette';
 import { getShuffledQuiz } from '../utils/shuffleQuiz';
 import { QuizQuestion } from '../types';
 import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
+import practiceQuizQuestions from '../constants/practiceQuizQuestions.json';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 import { CompetitorProfileModal } from '../components/profile/CompetitorProfileModal';
 import { QuizRulesModal } from '../components/quiz/QuizRulesModal';
@@ -75,28 +76,59 @@ export const QuizPage: React.FC = () => {
 
   const activeCompId = activeCompetition?.id || quizSession.competitionId;
 
+  const isPracticeQuiz = useMemo(() => {
+    const comp = competitions.find((c) => c.id === activeCompId);
+    return Boolean(
+      comp?.title?.toLowerCase().includes('practice') ||
+      activeCompetition?.title?.toLowerCase().includes('practice') ||
+      activeCompId?.toLowerCase().includes('practice')
+    );
+  }, [competitions, activeCompetition, activeCompId]);
+
   // Deterministic question and option shuffling per candidate session (prevents answer-sharing)
   const questions = useMemo(() => {
-    // Fallback: if Firestore has no questions for the live Cyber Quiz 2026
-    // (questions subcollection empty), use the bundled 50-question bank so
-    // the live finale is not blocked. Scoped to the Cyber Quiz only; the
-    // Practice quiz keeps using Firestore. JSON items get a stable id so
-    // per-question option shuffling stays distinct.
+    // Fallback: if Firestore has no questions for the live Cyber Quiz 2026 or Practice Quiz,
+    // use the bundled banks so tests are never blocked.
     const CYBER_QUIZ_ID = 'comp_1793963656835';
-    const fallbackBank: QuizQuestion[] =
-      activeCompId === CYBER_QUIZ_ID
-        ? (cyberQuizQuestions as unknown as QuizQuestion[]).map((q, i) => ({
-            ...q,
-            id: q.id || `json_${q.index ?? i}`,
-          }))
-        : [];
-    const bank: QuizQuestion[] =
-      rawQuestions && rawQuestions.length > 0 ? rawQuestions : fallbackBank;
+    const isPractice =
+      isPracticeQuiz ||
+      Boolean(activeCompId?.toLowerCase().includes('practice')) ||
+      Boolean(activeCompetition?.title?.toLowerCase().includes('practice'));
+
+    const isCyberQuiz =
+      activeCompId === CYBER_QUIZ_ID ||
+      Boolean(activeCompId?.toLowerCase().includes('cyber')) ||
+      Boolean(activeCompetition?.title?.toLowerCase().includes('cyber'));
+
+    const fallbackBank: QuizQuestion[] = isPractice
+      ? (practiceQuizQuestions as unknown as QuizQuestion[]).map((q, i) => ({
+          ...q,
+          id: q.id || `practice_${q.index ?? i}`,
+        }))
+      : isCyberQuiz
+      ? (cyberQuizQuestions as unknown as QuizQuestion[]).map((q, i) => ({
+          ...q,
+          id: q.id || `json_${q.index ?? i}`,
+        }))
+      : [];
+
+    let bank: QuizQuestion[] = [];
+    if (isPractice) {
+      const hasPracticeQuestions =
+        rawQuestions &&
+        rawQuestions.length > 0 &&
+        (rawQuestions[0].category?.toLowerCase().includes('practice') ||
+          rawQuestions[0].id?.includes('practice'));
+      bank = hasPracticeQuestions ? rawQuestions : fallbackBank;
+    } else {
+      bank = rawQuestions && rawQuestions.length > 0 ? rawQuestions : fallbackBank;
+    }
+
     if (!currentUser || !bank || bank.length === 0) return bank || [];
     const seed = `${currentUser.email || currentUser.uid}_${activeCompId}`;
-    // Bank holds 50 questions; each candidate gets a random 30 (seeded per candidate, stable across reloads)
+    // Bank holds questions; each candidate gets a random 30 (seeded per candidate, stable across reloads)
     return getShuffledQuiz(bank, seed, 30);
-  }, [rawQuestions, currentUser, activeCompId]);
+  }, [rawQuestions, currentUser, activeCompId, isPracticeQuiz, activeCompetition]);
 
 
   // Ensure active competition is synced into context
@@ -120,13 +152,6 @@ export const QuizPage: React.FC = () => {
       ) || null
     );
   }, [currentUser, activeCompId, leaderboard]);
-
-  const isPracticeQuiz = useMemo(() => {
-    const comp = competitions.find((c) => c.id === activeCompId);
-    return Boolean(
-      comp?.title.toLowerCase().includes('practice') || activeCompId?.toLowerCase().includes('practice')
-    );
-  }, [competitions, activeCompId]);
 
   // ORGANISER RESET (live finale, 8 Nov 2026): the questions outage (~12:03 PM)
   // locked out / disqualified many students. Those outage-era attempts (created
@@ -251,12 +276,14 @@ export const QuizPage: React.FC = () => {
 
   // Anti-Cheat & Tab-Switching Proctoring States (Persisted in storage so reloads cannot erase warnings)
   const [tabSwitchWarnings, setTabSwitchWarnings] = useState<number>(() => {
-    // ORGANISER RESET: an outage-era block starts its one fresh retake with
-    // 0 tab-switch warnings. Post-fix attempts keep their stored count.
-    if (isOutageEraBlock) {
+    // Practice simulations allow repeatable calibration: every new run starts with 0 warnings.
+    // ORGANISER RESET: an outage-era block starts its one fresh retake with 0 tab-switch warnings.
+    if (isPracticeQuiz || isOutageEraBlock) {
       try {
-        window.sessionStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
-        window.localStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+        if (typeof window !== 'undefined' && activeCompId) {
+          window.sessionStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+          window.localStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+        }
       } catch {}
       return 0;
     }
@@ -320,6 +347,30 @@ export const QuizPage: React.FC = () => {
     total: number;
     timeSeconds: number;
   } | null>(null);
+
+  // When active quiz is practice simulation, ensure stale disqualification/submission state is cleared
+  // so candidates can freely retake the practice quiz without restrictions.
+  useEffect(() => {
+    if (isPracticeQuiz) {
+      try {
+        if (activeCompId) {
+          window.sessionStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+          window.localStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+          if (currentUser) {
+            window.localStorage.removeItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`);
+            if (currentUser.email) {
+              const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+              window.localStorage.removeItem(`nullorigin_disqualified_email_${cleanEmail}_${activeCompId}`);
+            }
+          }
+        }
+      } catch {}
+      if (quizSession.isSubmitted && !practiceSummary && !isDisqualified) {
+        resetQuizSession();
+        setIsQuizActive(false);
+      }
+    }
+  }, [isPracticeQuiz, activeCompId, currentUser, quizSession.isSubmitted, practiceSummary, isDisqualified, resetQuizSession]);
 
   const [nowMs, setNowMs] = useState(() => Date.now());
 
@@ -859,7 +910,41 @@ export const QuizPage: React.FC = () => {
             </p>
           </div>
 
-          {isAdmin && (
+          {isPracticeQuiz ? (
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  resetQuizSession();
+                  setIsDisqualified(false);
+                  setDisqualificationReason('');
+                  setTabSwitchWarnings(0);
+                  setActiveTabWarningModal(null);
+                  setIsQuizActive(false);
+                  setCountdownValue(3);
+                  setCurrentQuestionIndex(0);
+                  questionTimesRef.current = {};
+                  try {
+                    if (activeCompId) {
+                      window.sessionStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+                      window.localStorage.removeItem(`nullorigin_tab_warnings_${activeCompId}`);
+                      if (currentUser) {
+                        window.localStorage.removeItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`);
+                        if (currentUser.email) {
+                          const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+                          window.localStorage.removeItem(`nullorigin_disqualified_email_${cleanEmail}_${activeCompId}`);
+                        }
+                      }
+                    }
+                  } catch {}
+                }}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-2.5 font-mono text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
+              >
+                <RotateCcw className="h-4 w-4" />
+                <span>Retake Practice Quiz ↺</span>
+              </button>
+            </div>
+          ) : isAdmin ? (
             <div className="pt-2">
               <button
                 type="button"
@@ -884,14 +969,39 @@ export const QuizPage: React.FC = () => {
                 <span>Admin Reset Disqualification & Retake Test</span>
               </button>
             </div>
-          )}
+          ) : null}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-[#2e2e2a]">
             <button
               type="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => {
+                if (isPracticeQuiz) {
+                  resetQuizSession();
+                  setIsDisqualified(false);
+                  setDisqualificationReason('');
+                  setTabSwitchWarnings(0);
+                  setActiveTabWarningModal(null);
+                }
+                navigate('/dashboard');
+              }}
               className="w-full sm:w-auto rounded-lg bg-[#8dc63f] px-6 py-2.5 font-mono text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer"
             >
               Return to Dashboard
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (isPracticeQuiz) {
+                  resetQuizSession();
+                  setIsDisqualified(false);
+                  setDisqualificationReason('');
+                  setTabSwitchWarnings(0);
+                  setActiveTabWarningModal(null);
+                }
+                navigate('/competitions');
+              }}
+              className="w-full sm:w-auto rounded-lg border border-[#2e2e2a] bg-[#1b1b19] px-5 py-2.5 font-mono text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] transition-colors cursor-pointer"
+            >
+              Browse Tournaments
             </button>
           </div>
         </div>

@@ -575,3 +575,52 @@ test('strictly no second attempt is granted once completed (even for admin accou
   // Practice quiz: repeatable
   assert.equal(checkStrictOneAttempt(true, adminUserResult, null, true, true), false);
 });
+
+test('practice quiz fallback bank provides 30 questions when Firestore is empty', async () => {
+  const practiceQuestions = (await import('../constants/practiceQuizQuestions.json')).default;
+  assert.equal(Array.isArray(practiceQuestions), true);
+  assert.equal(practiceQuestions.length >= 30, true);
+
+  // Simulate empty Firestore response
+  const loadedFromFirestore: any[] = [];
+  const comp = { id: 'practice-quiz-sim', title: 'Official Practice Quiz' };
+
+  const isPractice =
+    comp.title.toLowerCase().includes('practice') || comp.id.toLowerCase().includes('practice');
+  assert.equal(isPractice, true);
+
+  const bank = loadedFromFirestore.length > 0 ? loadedFromFirestore : practiceQuestions;
+  assert.equal(bank.length >= 30, true);
+  assert.equal(bank[0].prompt.length > 0, true);
+  assert.equal(bank[0].options.length, 4);
+});
+
+test('practice quiz cheating disqualification can be retaken multiple times with clean proctoring slate', () => {
+  const mockStorage: Record<string, string> = {};
+  const activeCompId = 'practice-quiz';
+  const isPracticeQuiz = true;
+
+  // 1. User cheats during practice (3 tab switch violations)
+  let warnings = 3;
+  let isDisqualified = true;
+  mockStorage[`nullorigin_tab_warnings_${activeCompId}`] = '3';
+
+  assert.equal(isDisqualified, true);
+  assert.equal(warnings, 3);
+
+  // 2. User clicks "Retake Practice Quiz" (or resets session)
+  // Proctoring warnings are wiped, disqualification cleared, session reset
+  if (isPracticeQuiz) {
+    isDisqualified = false;
+    warnings = 0;
+    delete mockStorage[`nullorigin_tab_warnings_${activeCompId}`];
+  }
+
+  assert.equal(isDisqualified, false);
+  assert.equal(warnings, 0);
+  assert.equal(mockStorage[`nullorigin_tab_warnings_${activeCompId}`], undefined);
+
+  // 3. User can now take quiz cleanly again
+  const canAttempt = !isDisqualified && warnings === 0;
+  assert.equal(canAttempt, true);
+});

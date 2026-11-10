@@ -29,6 +29,7 @@ import {
   OperationType,
 } from '../lib/firebase';
 import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
+import practiceQuizQuestions from '../constants/practiceQuizQuestions.json';
 import {
   Competition,
   QuizQuestion,
@@ -373,10 +374,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           };
         });
         loaded.sort((a, b) => a.index - b.index);
-        // Fallback: if Firestore has no questions for the live Cyber Quiz 2026,
-        // use the bundled 50-question bank so scoring (which reads this same
-        // list) does not compute over zero questions and return 0 marks.
-        if (loaded.length === 0 && selectedCompetition?.id === 'comp_1793963656835') {
+        // Fallback: if Firestore has no questions for Practice Quiz or Cyber Quiz 2026,
+        // use bundled banks so candidates can always take tests and scoring does not fail.
+        const isPractice =
+          Boolean(selectedCompetition?.title?.toLowerCase().includes('practice')) ||
+          Boolean(selectedCompetition?.id?.toLowerCase().includes('practice'));
+        const isCyberQuiz =
+          selectedCompetition?.id === 'comp_1793963656835' ||
+          Boolean(selectedCompetition?.title?.toLowerCase().includes('cyber')) ||
+          Boolean(selectedCompetition?.id?.toLowerCase().includes('cyber'));
+
+        if (loaded.length === 0 && isPractice) {
+          const fallback: QuizQuestion[] = (
+            practiceQuizQuestions as unknown as QuizQuestion[]
+          ).map((q, i) => ({ ...q, id: q.id || `practice_${q.index ?? i}` }));
+          setQuestions(fallback);
+        } else if (loaded.length === 0 && isCyberQuiz) {
           const fallback: QuizQuestion[] = (
             cyberQuizQuestions as unknown as QuizQuestion[]
           ).map((q, i) => ({ ...q, id: q.id || `json_${q.index ?? i}` }));
@@ -1287,11 +1300,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           });
         }
 
-        addToast(
-          'Candidate Disqualified',
-          'Exam terminated due to proctoring violation. Score recorded as 0.',
-          'alert'
-        );
+        if (isPractice) {
+          addToast(
+            'Practice Exam Terminated',
+            'Proctoring violation detected. Practice scores are never recorded — you can retake anytime.',
+            'alert'
+          );
+        } else {
+          addToast(
+            'Candidate Disqualified',
+            'Exam terminated due to proctoring violation. Score recorded as 0.',
+            'alert'
+          );
+        }
       } finally {
         setIsSubmitting(false);
       }
