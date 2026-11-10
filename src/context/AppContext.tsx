@@ -78,7 +78,18 @@ interface AppContextValue {
   selectQuizAnswer: (questionId: string, optionId: string) => void;
   toggleMarkForReview: (questionId: string) => void;
   setCurrentQuestionIndex: (index: number) => void;
-  submitQuizSession: (customTimeTakenSec?: number, questionsToScore?: QuizQuestion[]) => Promise<void>;
+  submitQuizSession: (
+    customTimeTakenSec?: number,
+    questionsToScore?: QuizQuestion[]
+  ) => Promise<{
+    finalScore: number;
+    maxScore: number;
+    accuracyPercent: number;
+    correctCount: number;
+    incorrectCount: number;
+    unwrittenCount: number;
+    wrongAnswerCount: number;
+  } | undefined>;
   submitDisqualifiedQuizSession: (reason?: string) => Promise<void>;
   resetAdminTestSession: () => Promise<void>;
   resetQuizSession: () => void;
@@ -576,12 +587,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             wrongAnswerCount,
           };
         });
+        const cleanItems = items.filter((r) => {
+          const compName = (r.competitionName || '').toLowerCase();
+          const compId = (r.competitionId || '').toLowerCase();
+          const isPractice = compName.includes('practice') || compId.includes('practice');
+          if (isPractice) {
+            // Silently purge any legacy practice results from Firestore so participant history is 100% clean
+            deleteDoc(doc(db, 'results', r.id)).catch(() => {});
+          }
+          return !isPractice;
+        });
+
         setResults((prev) => {
           const map = new Map<string, CompetitionResult>();
           prev.forEach((r) => {
-            if (r.competitionId) map.set(r.competitionId, r);
+            const isPractice =
+              (r.competitionName || '').toLowerCase().includes('practice') ||
+              (r.competitionId || '').toLowerCase().includes('practice');
+            if (r.competitionId && !isPractice) map.set(r.competitionId, r);
           });
-          items.forEach((r) => {
+          cleanItems.forEach((r) => {
             if (r.competitionId) map.set(r.competitionId, r);
           });
           const merged = Array.from(map.values());
@@ -993,37 +1018,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const activeCompId = selectedCompetition?.id || quizSession.competitionId;
       const activeCompTitle = selectedCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Quiz Competition';
 
+      const targetComp = competitions.find((c) => c.id === activeCompId);
+      const isPractice =
+        Boolean(targetComp && targetComp.title.toLowerCase().includes('practice')) ||
+        (activeCompId && activeCompId.toLowerCase().includes('practice'));
+
       if (currentUser && activeCompId) {
         const resultId = `${currentUser.uid}_${activeCompId}`;
-        try {
-          await setDoc(doc(db, 'results', resultId), {
-            ownerId: currentUser.uid,
-            competitionId: activeCompId,
-            competitionName: activeCompTitle.slice(0, 120),
-            finalScore: Number(evaluated.finalScore || 0),
-            maxScore: Number(evaluated.maxScore || 0),
-            accuracyPercent: Number(evaluated.accuracyPercent || 0),
-            correctCount: Number(evaluated.correctCount || 0),
-            incorrectCount: Number(evaluated.incorrectCount || 0),
-            unwrittenCount: Number(evaluated.unwrittenCount || 0),
-            wrongAnswerCount: Number(evaluated.wrongAnswerCount || 0),
-            timeTakenSeconds: timeTakenSec,
-            createdAt: serverTimestamp(),
-          });
-        } catch (error) {
-          handleFirestoreError(error, OperationType.CREATE, `results/${resultId}`);
-        }
-
-        const targetComp = competitions.find((c) => c.id === activeCompId);
-        const isPractice =
-          Boolean(targetComp && targetComp.title.toLowerCase().includes('practice')) ||
-          activeCompId.toLowerCase().includes('practice');
-
         const entryId = `${currentUser.uid}_${activeCompId}`;
         const cleanDisplayName = (profile.displayName || currentUser.displayName || 'Operator').trim().slice(0, 64);
 
-        // NEVER write practice quizzes to public leaderboard or winner contacts - only official tournaments (Cyber Quiz 2026)
-        if (!isPractice) {
+        // Practice simulation is ZERO STAKES: Never save results to Firestore, public leaderboard, winner contacts, or participant history
+        if (isPractice) {
+          try {
+            // Clean up any stray practice result document from Firestore
+            await deleteDoc(doc(db, 'results', resultId));
+          } catch {}
+          try {
+            await deleteDoc(doc(db, 'leaderboard', entryId));
+          } catch {}
+          try {
+            await deleteDoc(doc(db, 'winner_contacts', entryId));
+          } catch {}
+        } else {
+          try {
+            await setDoc(doc(db, 'results', resultId), {
+              ownerId: currentUser.uid,
+              competitionId: activeCompId,
+              competitionName: activeCompTitle.slice(0, 120),
+              finalScore: Number(evaluated.finalScore || 0),
+              maxScore: Number(evaluated.maxScore || 0),
+              accuracyPercent: Number(evaluated.accuracyPercent || 0),
+              correctCount: Number(evaluated.correctCount || 0),
+              incorrectCount: Number(evaluated.incorrectCount || 0),
+              unwrittenCount: Number(evaluated.unwrittenCount || 0),
+              wrongAnswerCount: Number(evaluated.wrongAnswerCount || 0),
+              timeTakenSeconds: timeTakenSec,
+              createdAt: serverTimestamp(),
+            });
+          } catch (error) {
+            handleFirestoreError(error, OperationType.CREATE, `results/${resultId}`);
+          }
+
           try {
             await setDoc(doc(db, 'leaderboard', entryId), {
               ownerId: currentUser.uid,
@@ -1055,35 +1091,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           } catch (error) {
             handleFirestoreError(error, OperationType.CREATE, `winner_contacts/${entryId}`);
           }
-        }
 
-        // Immediately update local results and persist to localStorage
-        const newResultItem: CompetitionResult = {
-          id: resultId,
-          competitionId: activeCompId,
-          competitionName: activeCompTitle,
-          completedAt: new Date().toISOString(),
-          finalScore: Number(evaluated.finalScore || 0),
-          maxScore: Number(evaluated.maxScore || 0),
-          accuracyPercent: Number(evaluated.accuracyPercent || 0),
-          correctCount: Number(evaluated.correctCount || 0),
-          incorrectCount: Number(evaluated.incorrectCount || 0),
-          unwrittenCount: Number(evaluated.unwrittenCount || 0),
-          wrongAnswerCount: Number(evaluated.wrongAnswerCount || 0),
-          timeTakenSeconds: timeTakenSec,
-        };
+          // Immediately update local results and persist to localStorage (Official Tournaments Only)
+          const newResultItem: CompetitionResult = {
+            id: resultId,
+            competitionId: activeCompId,
+            competitionName: activeCompTitle,
+            completedAt: new Date().toISOString(),
+            finalScore: Number(evaluated.finalScore || 0),
+            maxScore: Number(evaluated.maxScore || 0),
+            accuracyPercent: Number(evaluated.accuracyPercent || 0),
+            correctCount: Number(evaluated.correctCount || 0),
+            incorrectCount: Number(evaluated.incorrectCount || 0),
+            unwrittenCount: Number(evaluated.unwrittenCount || 0),
+            wrongAnswerCount: Number(evaluated.wrongAnswerCount || 0),
+            timeTakenSeconds: timeTakenSec,
+          };
 
-        setResults((prev) => {
-          const remaining = prev.filter((r) => r.competitionId !== activeCompId);
-          const nextList = [newResultItem, ...remaining];
-          try {
-            if (typeof window !== 'undefined') {
-              window.localStorage.setItem('nullorigin_user_results', JSON.stringify(nextList));
-              window.localStorage.setItem('aegis_cipher_user_results', JSON.stringify(nextList));
-              if (currentUser) {
-                window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(nextList));
-                window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
-                if (!isPractice) {
+          setResults((prev) => {
+            const remaining = prev.filter((r) => r.competitionId !== activeCompId);
+            const nextList = [newResultItem, ...remaining];
+            try {
+              if (typeof window !== 'undefined') {
+                window.localStorage.setItem('nullorigin_user_results', JSON.stringify(nextList));
+                window.localStorage.setItem('aegis_cipher_user_results', JSON.stringify(nextList));
+                if (currentUser) {
+                  window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(nextList));
+                  window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
                   window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
                   if (currentUser.email) {
                     const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -1091,15 +1125,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   }
                 }
               }
+            } catch {
+              // Ignore storage write errors
             }
-          } catch {
-            // Ignore storage write errors
-          }
-          return nextList;
-        });
+            return nextList;
+          });
 
-        // Immediately update leaderboard state with current user's entry (Cyber Quiz 2026 only, never practice quiz)
-        if (!isPractice) {
+          // Immediately update leaderboard state with current user's entry (Cyber Quiz 2026 only, never practice quiz)
           setLeaderboard((prev) => {
             const filtered = prev.filter((l) => l.participantId !== entryId);
             const myEntry: LeaderboardEntry = {
@@ -1128,6 +1160,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           : 'Evaluated by scoring engine and saved in local session state.',
         'success'
       );
+      return evaluated;
     } finally {
       setIsSubmitting(false);
     }
@@ -1151,7 +1184,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Score out of the 30-question paper, not the 50-question bank.
         const totalQ = selectedCompetition?.quizFormat?.totalQuestions || 30;
 
-        if (currentUser && activeCompId) {
+        const targetComp = competitions.find((c) => c.id === activeCompId);
+        const isPractice =
+          Boolean(targetComp && targetComp.title.toLowerCase().includes('practice')) ||
+          (activeCompId && activeCompId.toLowerCase().includes('practice'));
+
+        if (!isPractice && currentUser && activeCompId) {
           const resultId = `${currentUser.uid}_${activeCompId}`;
           try {
             await setDoc(doc(db, 'results', resultId), {
@@ -1172,31 +1210,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             handleFirestoreError(error, OperationType.CREATE, `results/${resultId}`);
           }
 
-          const targetComp = competitions.find((c) => c.id === activeCompId);
-          const isPractice =
-            Boolean(targetComp && targetComp.title.toLowerCase().includes('practice')) ||
-            activeCompId.toLowerCase().includes('practice');
-
           const entryId = `${currentUser.uid}_${activeCompId}`;
           const cleanDisplayName = (profile.displayName || currentUser.displayName || 'Operator').trim().slice(0, 64);
 
-          if (!isPractice) {
-            try {
-              await setDoc(doc(db, 'leaderboard', entryId), {
-                ownerId: currentUser.uid,
-                competitionId: activeCompId,
-                displayName: cleanDisplayName,
-                ...(profile.username ? { username: profile.username.trim().slice(0, 24) } : {}),
-                ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl.slice(0, 500) } : {}),
-                score: 0,
-                completionStatus: 'Completed',
-                accuracyPercent: 0,
-                completionTimeSeconds: 86400,
-                createdAt: serverTimestamp(),
-              });
-            } catch (error) {
-              handleFirestoreError(error, OperationType.CREATE, `leaderboard/${entryId}`);
-            }
+          try {
+            await setDoc(doc(db, 'leaderboard', entryId), {
+              ownerId: currentUser.uid,
+              competitionId: activeCompId,
+              displayName: cleanDisplayName,
+              ...(profile.username ? { username: profile.username.trim().slice(0, 24) } : {}),
+              ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl.slice(0, 500) } : {}),
+              score: 0,
+              completionStatus: 'Completed',
+              accuracyPercent: 0,
+              completionTimeSeconds: 86400,
+              createdAt: serverTimestamp(),
+            });
+          } catch (error) {
+            handleFirestoreError(error, OperationType.CREATE, `leaderboard/${entryId}`);
           }
 
           const disqualifiedResultItem: CompetitionResult = {
@@ -1224,44 +1255,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 if (currentUser) {
                   window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(nextList));
                   window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
-                  if (!isPractice) {
-                    window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
+                  window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
                   if (currentUser.email) {
                     const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
                     window.localStorage.setItem(`completed_email_${cleanEmail}_${activeCompId}`, 'true');
                   }
-                  }
-                  // Practice is repeatable: never persist a disqualification
-                  // flag for a practice quiz.
-                  if (!isPractice) {
-                    window.localStorage.setItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`, reason);
-                  }
+                  window.localStorage.setItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`, reason);
                 }
               }
             } catch {}
             return nextList;
           });
 
-          if (!isPractice) {
-            setLeaderboard((prev) => {
-              const filtered = prev.filter((l) => l.participantId !== entryId);
-              const dqEntry: LeaderboardEntry = {
-                rank: prev.length + 1,
-                participantId: entryId,
-                competitionId: activeCompId,
-                createdAt: new Date().toISOString(),
-                displayName: cleanDisplayName,
-                score: 0,
-                completionStatus: 'Completed',
-                accuracyPercent: 0,
-                completionTimeSeconds: 86400,
-                isCurrentUser: true,
-              };
-              return [...filtered, dqEntry]
-                .sort((a, b) => b.score - a.score || (a.completionTimeSeconds ?? 0) - (b.completionTimeSeconds ?? 0))
-                .map((item, idx) => ({ ...item, rank: idx + 1 }));
-            });
-          }
+          setLeaderboard((prev) => {
+            const filtered = prev.filter((l) => l.participantId !== entryId);
+            const dqEntry: LeaderboardEntry = {
+              rank: prev.length + 1,
+              participantId: entryId,
+              competitionId: activeCompId,
+              createdAt: new Date().toISOString(),
+              displayName: cleanDisplayName,
+              score: 0,
+              completionStatus: 'Completed',
+              accuracyPercent: 0,
+              completionTimeSeconds: 86400,
+              isCurrentUser: true,
+            };
+            return [...filtered, dqEntry]
+              .sort((a, b) => b.score - a.score || (a.completionTimeSeconds ?? 0) - (b.completionTimeSeconds ?? 0))
+              .map((item, idx) => ({ ...item, rank: idx + 1 }));
+          });
         }
 
         addToast(

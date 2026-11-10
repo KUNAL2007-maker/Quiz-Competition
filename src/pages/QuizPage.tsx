@@ -15,9 +15,15 @@ import {
   Lock,
   LogIn,
   User,
+  Target,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { calculateCountdown, calculateQuizProgress, formatPad } from '../utils/timerLogic';
+import {
+  calculateCountdown,
+  calculateQuizProgress,
+  formatPad,
+  formatDurationSeconds,
+} from '../utils/timerLogic';
 import { QuestionPalette } from '../components/quiz/QuestionPalette';
 import { getShuffledQuiz } from '../utils/shuffleQuiz';
 import { QuizQuestion } from '../types';
@@ -53,6 +59,7 @@ export const QuizPage: React.FC = () => {
     submitQuizSession,
     submitDisqualifiedQuizSession,
     resetAdminTestSession,
+    resetQuizSession,
     addToast,
   } = useAppContext();
 
@@ -304,6 +311,16 @@ export const QuizPage: React.FC = () => {
   // Animated 3-2-1 Countdown State (Requirement 3)
   const [countdownValue, setCountdownValue] = useState<number | null>(null);
 
+  // Practice Simulation Summary State (Never saved to history or Firestore)
+  const [practiceSummary, setPracticeSummary] = useState<{
+    score: number;
+    maxScore: number;
+    accuracy: number;
+    correct: number;
+    total: number;
+    timeSeconds: number;
+  } | null>(null);
+
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   // Per-Question Completion Time Tracking (Neatly calculate completion time of each question and total them together at the end)
@@ -337,8 +354,20 @@ export const QuizPage: React.FC = () => {
 
       // Pass the 30 shuffled questions actually shown, so scoring (maxScore,
       // accuracy) is computed on the paper, not the 50-question bank.
-      await submitQuizSession(totalCompletionTimeSec, questions);
-      navigate('/profile');
+      const evaluated = await submitQuizSession(totalCompletionTimeSec, questions);
+      if (isPracticeQuiz) {
+        setPracticeSummary({
+          score: evaluated?.finalScore ?? 0,
+          maxScore: evaluated?.maxScore ?? 3000,
+          accuracy: evaluated?.accuracyPercent ?? 0,
+          correct: evaluated?.correctCount ?? 0,
+          total: questions.length,
+          timeSeconds: totalCompletionTimeSec,
+        });
+        setIsQuizActive(false);
+      } else {
+        navigate('/profile');
+      }
     } catch (err) {
       addToast(
         'Submission Error',
@@ -353,6 +382,7 @@ export const QuizPage: React.FC = () => {
     questions,
     recordQuestionTime,
     submitQuizSession,
+    isPracticeQuiz,
     navigate,
     addToast,
   ]);
@@ -917,6 +947,95 @@ export const QuizPage: React.FC = () => {
           >
             Browse Tournaments
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Practice Simulation Completion Screen (Unlimited retakes, 0 records saved)
+  if (practiceSummary && isPracticeQuiz) {
+    return (
+      <div className="mx-auto max-w-2xl py-8 px-4 sm:px-6">
+        <div className="rounded-2xl border border-[#7ab32e]/40 bg-[#1b1b19] p-6 sm:p-8 text-center space-y-6 shadow-2xl">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#7ab32e]/40 bg-[#8dc63f]/10 text-[#8dc63f]">
+            <Target className="h-8 w-8" />
+          </div>
+
+          <div>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-[#7ab32e]/40 bg-[#8dc63f]/10 px-3 py-1 font-mono text-xs font-bold text-[#8dc63f] mb-3">
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>UNLIMITED PRACTICE SIMULATION COMPLETE</span>
+            </div>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#f5f5f2]">
+              Practice Run Finished
+            </h1>
+            <p className="mt-2 text-xs text-[#a8a8a2] leading-relaxed max-w-md mx-auto">
+              Zero-stakes practice run. Practice scores are never saved to your profile history or the live scoreboard, so you can practice freely as many times as you like.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div className="rounded-xl border border-[#2e2e2a] bg-[#111110] p-4">
+              <div className="font-mono text-[10px] text-[#a8a8a2] uppercase">Score</div>
+              <div className="mt-1 font-display text-xl font-bold text-[#8dc63f]">
+                {practiceSummary.score.toLocaleString()}
+              </div>
+              <div className="text-[10px] text-[#a8a8a2]">/ {practiceSummary.maxScore} PTS</div>
+            </div>
+            <div className="rounded-xl border border-[#2e2e2a] bg-[#111110] p-4">
+              <div className="font-mono text-[10px] text-[#a8a8a2] uppercase">Accuracy</div>
+              <div className="mt-1 font-display text-xl font-bold text-[#a4d65e]">
+                {practiceSummary.accuracy}%
+              </div>
+              <div className="text-[10px] text-[#a8a8a2]">{practiceSummary.correct} / {practiceSummary.total} Correct</div>
+            </div>
+            <div className="rounded-xl border border-[#2e2e2a] bg-[#111110] p-4">
+              <div className="font-mono text-[10px] text-[#a8a8a2] uppercase">Time Elapsed</div>
+              <div className="mt-1 font-display text-xl font-bold text-[#f5f5f2]">
+                {formatDurationSeconds(practiceSummary.timeSeconds)}
+              </div>
+              <div className="text-[10px] text-[#a8a8a2]">Total Time</div>
+            </div>
+            <div className="rounded-xl border border-[#2e2e2a] bg-[#111110] p-4">
+              <div className="font-mono text-[10px] text-[#a8a8a2] uppercase">History</div>
+              <div className="mt-1 font-display text-xl font-bold text-[#8dc63f]">
+                Not Saved
+              </div>
+              <div className="text-[10px] text-[#a8a8a2]">Zero Impact</div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-[#2e2e2a]">
+            <button
+              type="button"
+              onClick={() => {
+                resetQuizSession();
+                setPracticeSummary(null);
+                setIsQuizActive(false);
+                setCountdownValue(3);
+                setCurrentQuestionIndex(0);
+                questionTimesRef.current = {};
+              }}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-2.5 font-mono text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span>Retake Practice Quiz ↺</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/competitions')}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-[#2e2e2a] bg-[#111110] px-5 py-2.5 font-mono text-xs font-semibold text-[#a8a8a2] hover:text-[#f5f5f2] transition-colors cursor-pointer"
+            >
+              <span>Browse Competitions →</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/profile')}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-[#2e2e2a] bg-[#111110] px-4 py-2.5 font-mono text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] transition-colors cursor-pointer"
+            >
+              <span>View Profile</span>
+            </button>
+          </div>
         </div>
       </div>
     );

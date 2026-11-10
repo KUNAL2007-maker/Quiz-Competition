@@ -173,9 +173,15 @@ export const ProfilePage: React.FC = () => {
     // 1. Existing results in state
     results.forEach((res) => {
       if (!res.competitionId || !validCompIds.has(res.competitionId) || seenCompIds.has(res.competitionId)) return;
-      seenCompIds.add(res.competitionId);
-
       const matchComp = competitions.find((c) => c.id === res.competitionId);
+      // Practice simulations are never recorded in individual participant history
+      const isPractice =
+        (res.competitionName || '').toLowerCase().includes('practice') ||
+        (res.competitionId || '').toLowerCase().includes('practice') ||
+        (matchComp?.title || '').toLowerCase().includes('practice');
+      if (isPractice) return;
+
+      seenCompIds.add(res.competitionId);
       const matchLeaderboard = leaderboard.find(
         (l) =>
           (l.competitionId === res.competitionId || l.participantId.endsWith(`_${res.competitionId}`)) &&
@@ -222,8 +228,13 @@ export const ProfilePage: React.FC = () => {
         (currentUser?.email && l.email && l.email.toLowerCase() === currentUser.email.toLowerCase()) ||
         (currentUser?.displayName && l.displayName && l.displayName.toLowerCase() === currentUser.displayName.toLowerCase());
       if (isMine && compId && validCompIds.has(compId) && !seenCompIds.has(compId)) {
-        seenCompIds.add(compId);
         const matchComp = competitions.find((c) => c.id === compId);
+        const isPractice =
+          (matchComp?.title || '').toLowerCase().includes('practice') ||
+          compId.toLowerCase().includes('practice');
+        if (isPractice) return;
+
+        seenCompIds.add(compId);
         const effectiveMax = (matchComp as any)?.totalPoints || 3000;
         list.push({
           id: l.participantId,
@@ -249,8 +260,13 @@ export const ProfilePage: React.FC = () => {
       !seenCompIds.has(quizSession.competitionId)
     ) {
       const compId = quizSession.competitionId;
-      seenCompIds.add(compId);
       const matchComp = competitions.find((c) => c.id === compId);
+      const isPractice =
+        (quizSession.competitionTitle || matchComp?.title || '').toLowerCase().includes('practice') ||
+        compId.toLowerCase().includes('practice');
+      if (isPractice) return list;
+
+      seenCompIds.add(compId);
       list.push({
         id: `session_${compId}`,
         competitionId: compId,
