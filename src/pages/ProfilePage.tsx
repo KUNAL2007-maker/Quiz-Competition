@@ -757,19 +757,17 @@ export const ProfilePage: React.FC = () => {
                       )}
                     </div>
 
-                    <h4 className="font-display text-base font-bold text-[#f5f5f2]">
+                    <h4 className="font-display text-base font-bold text-[#f5f5f2] line-clamp-1">
                       {comp.title}
                     </h4>
 
-                    {comp.description && (
-                      <p className="text-xs text-[#a8a8a2] line-clamp-2 leading-relaxed">
-                        {comp.description}
-                      </p>
-                    )}
+                    <p className="text-xs text-[#a8a8a2] line-clamp-2 min-h-[2.5rem] leading-relaxed">
+                      {comp.description || 'Official Null Origin cybersecurity competition.'}
+                    </p>
                   </div>
 
-                  <div className="border-t border-[#2e2e2a] pt-3 flex flex-wrap items-center justify-between gap-2">
-                    <div className="font-mono text-xs text-[#a8a8a2]">
+                  <div className="mt-auto border-t border-[#2e2e2a] pt-3 flex flex-col sm:flex-row sm:items-end justify-between gap-2.5 min-h-[46px]">
+                    <div className="font-mono text-xs text-[#a8a8a2] py-1">
                       {statusType === 'completed' ? (
                         <span>
                           {comp.endTime
@@ -787,55 +785,57 @@ export const ProfilePage: React.FC = () => {
                       )}
                     </div>
 
-                    {statusType === 'completed' ? (
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/standings/${comp.id}`)}
-                        className="inline-flex items-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#a4d65e]/40 px-3 py-1.5 text-xs font-semibold text-[#a4d65e] hover:bg-[#a4d65e]/10 transition-colors cursor-pointer"
-                      >
-                        <Trophy className="h-3.5 w-3.5 text-[#a4d65e]" />
-                        <span>View Final Standings</span>
-                        <ArrowRight className="h-3 w-3" />
-                      </button>
-                    ) : statusType === 'live' ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isCompletedByUser) {
-                            navigate(`/standings/${comp.id}`);
-                            return;
-                          }
-                          if (isPractice) {
-                            resetQuizSession();
-                          }
-                          selectCompetition(comp);
-                          if (!is100PercentComplete) {
-                            handleOpenEdit();
-                          } else {
-                            navigate('/quiz');
-                          }
-                        }}
-                        className="inline-flex items-center gap-1.5 rounded-md bg-[#8dc63f] px-3.5 py-1.5 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-sm"
-                      >
-                        <span>
-                          {isCompletedByUser
-                            ? 'Attempt Completed'
-                            : !is100PercentComplete
-                            ? 'Complete Profile'
-                            : 'Enter Quiz Directly'}
-                        </span>
-                        <ArrowRight className="h-3 w-3" />
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => navigate('/competitions')}
-                        className="inline-flex items-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#00E5FF]/40 px-3 py-1.5 text-xs font-semibold text-[#00E5FF] hover:bg-[#00E5FF]/10 transition-colors cursor-pointer"
-                      >
-                        <span>View Start Timer</span>
-                        <ArrowRight className="h-3 w-3" />
-                      </button>
-                    )}
+                    <div className="flex items-end justify-end shrink-0 w-full sm:w-auto">
+                      {statusType === 'completed' ? (
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/standings/${comp.id}`)}
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#a4d65e]/40 px-3.5 h-9 text-xs font-semibold text-[#a4d65e] hover:bg-[#a4d65e]/15 hover:border-[#a4d65e] transition-colors cursor-pointer"
+                        >
+                          <Trophy className="h-3.5 w-3.5 text-[#a4d65e]" />
+                          <span>View Final Standings</span>
+                          <ArrowRight className="h-3 w-3" />
+                        </button>
+                      ) : statusType === 'live' ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isCompletedByUser) {
+                              navigate(`/standings/${comp.id}`);
+                              return;
+                            }
+                            if (isPractice) {
+                              resetQuizSession();
+                            }
+                            selectCompetition(comp);
+                            if (!is100PercentComplete) {
+                              handleOpenEdit();
+                            } else {
+                              navigate('/quiz');
+                            }
+                          }}
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-[#8dc63f] px-4 h-9 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-sm"
+                        >
+                          <span>
+                            {isCompletedByUser
+                              ? 'Attempt Completed'
+                              : !is100PercentComplete
+                              ? 'Complete Profile'
+                              : 'Enter Quiz Directly'}
+                          </span>
+                          <ArrowRight className="h-3 w-3" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => navigate('/competitions')}
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#00E5FF]/40 px-3.5 h-9 text-xs font-semibold text-[#00E5FF] hover:bg-[#00E5FF]/15 hover:border-[#00E5FF] transition-colors cursor-pointer"
+                        >
+                          <span>View Start Timer</span>
+                          <ArrowRight className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
