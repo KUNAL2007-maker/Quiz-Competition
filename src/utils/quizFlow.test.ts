@@ -738,40 +738,75 @@ test('unsubmitted competition never generates fake 0-score completed record or l
   assert.equal(isGlitchUnwritten, true);
 });
 
-test('post-submission navigation routing: live competitions navigate to /leaderboard, completed to /standings', () => {
-  const evaluateSubmissionRoute = (comp: {
+test('competition entry navigation: clicking enter quiz always routes to /quiz to display instructions and questions, never redirects to /leaderboard', () => {
+  const handleSelectCompetition = (comp: {
     id: string;
     status: 'live' | 'upcoming' | 'completed';
-    startTime?: string;
-    endTime?: string;
-  }) => {
-    const isLiveComp =
-      comp.status === 'live' ||
-      (comp.startTime &&
-        new Date(comp.startTime).getTime() <= Date.now() &&
-        comp.status !== 'completed' &&
-        (!comp.endTime || new Date(comp.endTime).getTime() > Date.now()));
-
-    return isLiveComp ? '/leaderboard' : (comp.id ? `/standings/${comp.id}` : '/standings');
+    title: string;
+  }, isCompleted: boolean) => {
+    const isPractice = comp.title.toLowerCase().includes('practice');
+    if (!isPractice && isCompleted) {
+      // Completed attempts navigate to /quiz to show attempt summary card & retake controls
+      return '/quiz';
+    }
+    // New attempts navigate to /quiz to show instructions modal and countdown
+    return '/quiz';
   };
 
-  // 1. Live Cyber Defense Challenge 2026 routes to /leaderboard upon completion
-  const liveComp = {
-    id: 'comp_cyber_defense_2026',
-    status: 'live' as const,
-    startTime: new Date(Date.now() - 3600000).toISOString(),
-    endTime: new Date(Date.now() + 86400000).toISOString(),
-  };
-  assert.equal(evaluateSubmissionRoute(liveComp), '/leaderboard');
+  // 1. Entering a live competition that is unattempted
+  assert.equal(
+    handleSelectCompetition({ id: 'comp_cyber_defense_2026', status: 'live', title: 'Cyber Defense Challenge 2026' }, false),
+    '/quiz'
+  );
 
-  // 2. Concluded tournament routes to /standings/${id}
-  const completedComp = {
-    id: 'comp_1793963656835',
-    status: 'completed' as const,
-    startTime: '2026-11-08T12:00:00.000Z',
-    endTime: '2026-11-08T17:00:00.000Z',
+  // 2. Entering a live competition that has an attempt recorded
+  assert.equal(
+    handleSelectCompetition({ id: 'comp_cyber_defense_2026', status: 'live', title: 'Cyber Defense Challenge 2026' }, true),
+    '/quiz'
+  );
+});
+
+test('post-quiz submission flow: submitting quiz stays on quiz view to show score summary card with View Live Leaderboard button, clicking button opens /leaderboard', () => {
+  // Simulating quiz completion
+  let currentRoute = '/quiz';
+  let isQuizActive = true;
+  let submissionResult: any = null;
+
+  const handleDirectSubmit = (evaluated: any) => {
+    // 1. Submit session: turn off active quiz and render submission summary card
+    // CRITICAL: Do NOT automatically navigate away to /leaderboard!
+    isQuizActive = false;
+    submissionResult = evaluated;
   };
-  assert.equal(evaluateSubmissionRoute(completedComp), '/standings/comp_1793963656835');
+
+  handleDirectSubmit({
+    finalScore: 800,
+    maxScore: 1000,
+    accuracyPercent: 80,
+    correctCount: 8,
+    incorrectCount: 2,
+  });
+
+  // Verify that the route has NOT changed to /leaderboard automatically
+  assert.equal(currentRoute, '/quiz');
+  assert.equal(isQuizActive, false);
+  assert.notEqual(submissionResult, null);
+  assert.equal(submissionResult.finalScore, 800);
+
+  // 2. The locked card renders with the View Live Leaderboard button
+  const isCompetitionLive = true;
+  const lockedCardButton = {
+    label: isCompetitionLive ? 'View Live Leaderboard' : 'View Final Standings',
+    onClick: () => {
+      currentRoute = isCompetitionLive ? '/leaderboard' : '/standings';
+    },
+  };
+
+  assert.equal(lockedCardButton.label, 'View Live Leaderboard');
+
+  // 3. User explicitly clicks on the View Live Leaderboard button
+  lockedCardButton.onClick();
+  assert.equal(currentRoute, '/leaderboard');
 });
 
 test('quiz access locked card displays View Live Leaderboard for live competitions and View Final Standings for concluded ones', () => {

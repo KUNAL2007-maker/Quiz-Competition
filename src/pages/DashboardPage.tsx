@@ -249,18 +249,8 @@ export const DashboardPage: React.FC = () => {
                   }
 
                   if (!isPractice && completedCompetitionIds.has(selected.id)) {
-                    const isLive =
-                      selected.status === 'live' ||
-                      (selected.startTime &&
-                        new Date(selected.startTime).getTime() <= Date.now() &&
-                        selected.status !== 'completed');
-
-                    if (isLive) {
-                      navigate('/leaderboard');
-                    } else {
-                      selectCompetition(selected);
-                      navigate('/quiz');
-                    }
+                    selectCompetition(selected);
+                    navigate('/quiz');
                     return;
                   }
 

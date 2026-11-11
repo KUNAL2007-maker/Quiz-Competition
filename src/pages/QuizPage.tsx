@@ -394,6 +394,9 @@ export const QuizPage: React.FC = () => {
     timeSeconds: number;
   } | null>(null);
 
+  // Completed submission result state for official tournaments (shown on QuizAttemptLockedCard)
+  const [submissionResult, setSubmissionResult] = useState<CompetitionResult | null>(null);
+
   // When active quiz is practice simulation, ensure stale disqualification/submission state is cleared
   // so candidates can freely retake the practice quiz without restrictions.
   useEffect(() => {
@@ -463,20 +466,27 @@ export const QuizPage: React.FC = () => {
         });
         setIsQuizActive(false);
       } else {
-        // Requirement: Submitting a live competition must immediately route to the Live Leaderboard (/leaderboard).
-        // Only concluded/completed competitions route to /standings.
-        const isLiveComp =
-          activeCompetition?.status === 'live' ||
-          (activeCompetition?.startTime &&
-            new Date(activeCompetition.startTime).getTime() <= Date.now() &&
-            activeCompetition.status !== 'completed' &&
-            (!activeCompetition.endTime || new Date(activeCompetition.endTime).getTime() > Date.now()));
-
-        if (isLiveComp) {
-          navigate('/leaderboard');
-        } else {
-          navigate(activeCompId ? `/standings/${activeCompId}` : '/standings');
+        // Requirement: Do NOT automatically navigate away to /leaderboard on submit!
+        // Immediately render QuizAttemptLockedCard with the verified submission results
+        // and the "View Live Leaderboard" button. The user views the live leaderboard
+        // only when they click on that button.
+        if (evaluated) {
+          setSubmissionResult({
+            id: `${currentUser?.uid}_${activeCompId}`,
+            competitionId: activeCompId || '',
+            competitionName: activeCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Quiz Competition',
+            completedAt: new Date().toISOString(),
+            finalScore: Number(evaluated.finalScore || 0),
+            maxScore: Number(evaluated.maxScore || 1000),
+            accuracyPercent: Number(evaluated.accuracyPercent || 0),
+            correctCount: Number(evaluated.correctCount || 0),
+            incorrectCount: Number(evaluated.incorrectCount || 0),
+            unwrittenCount: Number(evaluated.unwrittenCount || 0),
+            wrongAnswerCount: Number(evaluated.wrongAnswerCount || 0),
+            timeTakenSeconds: totalCompletionTimeSec,
+          });
         }
+        setIsQuizActive(false);
       }
     } catch (err) {
       addToast(
@@ -1256,7 +1266,7 @@ export const QuizPage: React.FC = () => {
   }
 
   // Guard 2.5: Single Attempt Enforcement (Requirement 4)
-  if (hasAlreadyAttempted) {
+  if (hasAlreadyAttempted || submissionResult) {
     const isLiveAttempt =
       activeCompetition?.status === 'live' ||
       (activeCompetition?.startTime &&
@@ -1269,10 +1279,11 @@ export const QuizPage: React.FC = () => {
         competitionTitle={activeCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Quiz Competition'}
         competition={activeCompetition}
         isLive={Boolean(isLiveAttempt)}
-        result={previousResult}
+        result={submissionResult || previousResult}
         leaderboardEntry={previousLeaderboardEntry}
         isAdmin={isAdmin}
         onResetAdminSession={async () => {
+          setSubmissionResult(null);
           await resetAdminTestSession();
           setIsDisqualified(false);
           setDisqualificationReason('');
