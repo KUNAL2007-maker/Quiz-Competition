@@ -1,0 +1,302 @@
+[
+  {
+    "index": 0,
+    "prompt": "Which programming practice effectively prevents SQL Injection (SQLi) vulnerabilities by ensuring user-supplied input is treated as literal parameter data rather than executable SQL syntax?",
+    "category": "Easy (Web Security)",
+    "points": 100,
+    "timeLimitSeconds": 20,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Client-side form input validation using JavaScript regular expressions"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Hexadecimal encoding of user strings before concatenation into SQL statements"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Parameterized queries using Prepared Statements with typed parameter binding"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Restricting database user accounts to read-only SELECT permissions on all tables"
+      }
+    ],
+    "correctOptionId": "opt_c"
+  },
+  {
+    "index": 1,
+    "prompt": "A Security Operations Center (SOC) analyst alerts on suspicious outbound network telemetry: client workstations are generating thousands of queries to foreign nameservers querying randomized high-entropy subdomains with abnormally large TXT and NULL records over UDP port 53. What attack vector is in progress?",
+    "category": "Medium (Network Defense)",
+    "points": 100,
+    "timeLimitSeconds": 20,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "DNS Tunneling used for command-and-control (C2) communication and covert data exfiltration"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "ARP Cache Poisoning executing a local machine-in-the-middle interception"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "BGP Route Hijacking redirecting autonomous system internet traffic"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "SYN flood denial-of-service exhausting network transmission queues"
+      }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 2,
+    "prompt": "Why is an Authenticated Encryption with Associated Data (AEAD) cipher mode such as AES-256-GCM preferred over standard AES-CBC mode in modern cryptosystems?",
+    "category": "Hard (Applied Cryptography)",
+    "points": 100,
+    "timeLimitSeconds": 20,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "It dispenses with the requirement for initialization vectors or cryptographic nonces"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "It provides mathematical encryption and ciphertext authentication simultaneously, eliminating padding oracle attacks"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "It uses quantum-resistant asymmetric key exchanges without relying on Diffie-Hellman handshakes"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "It compresses ciphertext payloads to reduce network bandwidth consumption by 50%"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 3,
+    "prompt": "In modern OAuth 2.0 authorization flows, why is the Proof Key for Code Exchange (PKCE) extension mandatory for public clients such as mobile applications and single-page web apps?",
+    "category": "Medium (IAM Protocols)",
+    "points": 100,
+    "timeLimitSeconds": 20,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "To prevent Cross-Site Scripting (XSS) from reading access tokens in document.cookie"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "To encrypt OAuth authorization servers against distributed denial-of-service attacks"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "To bypass the need for Transport Layer Security (TLS) certificates during token exchange"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "To mitigate authorization code interception attacks on public clients where malicious software on the device intercepts the redirect URI"
+      }
+    ],
+    "correctOptionId": "opt_d"
+  },
+  {
+    "index": 4,
+    "prompt": "An incident response team discovers an attacker downloading remote malicious payloads using the built-in Windows binary 'certutil.exe -urlcache -split -f <URL>'. What adversary methodology does this exemplify?",
+    "category": "Hard (Endpoint Defense)",
+    "points": 100,
+    "timeLimitSeconds": 20,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Kernel Rootkit Hooking"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Living-off-the-Land Binaries (LOLBins) used for stealthy Ingress Tool Transfer (MITRE ATT&CK T1105)"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Server-Side Template Injection (SSTI)"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Active Directory Domain Controller DCSync extraction"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 5,
+    "prompt": "In an AWS cloud environment, an IAM policy grants a non-admin developer permissions for 'iam:PassRole' and 'ec2:RunInstances'. How can this configuration result in critical privilege escalation?",
+    "category": "Hard (Cloud Security)",
+    "points": 100,
+    "timeLimitSeconds": 20,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "The user can read KMS encryption keys directly without entering the AWS console"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "The user can launch an EC2 instance associated with an existing administrator IAM role, then extract the role's high-privilege credentials via the Instance Metadata Service (IMDS)"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "The user can delete AWS Organizations root Service Control Policies (SCPs)"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "The user can bypass VPC security group ingress rules across all availability zones"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  },
+  {
+    "index": 6,
+    "prompt": "Which enterprise Windows defensive capability isolates the Local Security Authority Subsystem Service (LSASS.exe) into a hardware-isolated Virtual Secure Mode (VSM) to prevent credential-harvesting tools like Mimikatz from dumping plaintext passwords and Kerberos tickets?",
+    "category": "Medium (Host Forensics)",
+    "points": 100,
+    "timeLimitSeconds": 20,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Windows Defender Credential Guard"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "BitLocker Drive Encryption"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "User Account Control (UAC) Secure Desktop"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Windows Defender Firewall State Filtering"
+      }
+    ],
+    "correctOptionId": "opt_a"
+  },
+  {
+    "index": 7,
+    "prompt": "Which HTTP cookie attribute instructs modern web browsers to never send the session cookie in cross-site requests initiated by third-party links, effectively mitigating Cross-Site Request Forgery (CSRF) without server session tokens?",
+    "category": "Easy (Web Defense)",
+    "points": 100,
+    "timeLimitSeconds": 20,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Secure; HttpOnly"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Domain=.nullorigin.live"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "SameSite=Strict"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Max-Age=86400"
+      }
+    ],
+    "correctOptionId": "opt_c"
+  },
+  {
+    "index": 8,
+    "prompt": "Why are general-purpose cryptographic hash functions such as MD5, SHA-1, and SHA-256 unsuitable for secure user password storage, even when uniquely salted?",
+    "category": "Easy (Password Hashing)",
+    "points": 100,
+    "timeLimitSeconds": 20,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "They produce variable-length hash outputs that leak the length of the original password"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Salted hashes cannot be verified without disclosing the server's private RSA master key"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "They are mathematically proven to suffer reversible algebraic inverses in constant time"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "They are optimized for high computing speed, allowing modern GPUs/ASICs to compute billions of guesses per second; memory-hard functions like Argon2id or bcrypt are required"
+      }
+    ],
+    "correctOptionId": "opt_d"
+  },
+  {
+    "index": 9,
+    "prompt": "Under the NIST SP 800-61r2 Computer Security Incident Handling Guide, when a SOC detects active ransomware laterally traversing Windows domain shares via SMB, what is the immediate containment priority?",
+    "category": "Medium (Incident Response)",
+    "points": 100,
+    "timeLimitSeconds": 20,
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "A",
+        "text": "Immediately wipe all affected local hard drives and restore from tape backups"
+      },
+      {
+        "id": "opt_b",
+        "label": "B",
+        "text": "Isolate the compromised hosts from the network (via VLAN quarantine or EDR network containment) to halt lateral spread while preserving volatile memory for digital forensics"
+      },
+      {
+        "id": "opt_c",
+        "label": "C",
+        "text": "Publicly disclose the compromise to regulatory bodies before assessing incident scope"
+      },
+      {
+        "id": "opt_d",
+        "label": "D",
+        "text": "Reboot all Windows domain controllers into Directory Services Restore Mode (DSRM)"
+      }
+    ],
+    "correctOptionId": "opt_b"
+  }
+]

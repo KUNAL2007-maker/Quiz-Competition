@@ -197,7 +197,8 @@ export const ProfilePage: React.FC = () => {
       const effectiveTime = hasCalibratedLb && matchLeaderboard.completionTimeSeconds !== undefined
         ? matchLeaderboard.completionTimeSeconds
         : res.timeTakenSeconds;
-      const effectiveMax = res.maxScore || (matchComp as any)?.totalPoints || 3000;
+      const matchCompTotalQuestions = matchComp?.quizFormat?.totalQuestions || 30;
+      const effectiveMax = res.maxScore || (matchComp as any)?.totalPoints || (matchCompTotalQuestions * 100);
 
       list.push({
         id: res.id,
@@ -209,7 +210,7 @@ export const ProfilePage: React.FC = () => {
         accuracyPercent: effectiveAccuracy,
         timeTakenSeconds: effectiveTime,
         correctCount: hasCalibratedLb ? Math.round(effectiveScore / 100) : res.correctCount,
-        incorrectCount: hasCalibratedLb ? Math.max(0, 30 - Math.round(effectiveScore / 100)) : res.incorrectCount,
+        incorrectCount: hasCalibratedLb ? Math.max(0, matchCompTotalQuestions - Math.round(effectiveScore / 100)) : res.incorrectCount,
         unwrittenCount: res.unwrittenCount,
         rank: matchLeaderboard?.rank || 1,
       });
@@ -236,7 +237,8 @@ export const ProfilePage: React.FC = () => {
         if (isPractice) return;
 
         seenCompIds.add(compId);
-        const effectiveMax = (matchComp as any)?.totalPoints || 3000;
+        const matchCompTotalQuestions = matchComp?.quizFormat?.totalQuestions || 30;
+        const effectiveMax = (matchComp as any)?.totalPoints || (matchCompTotalQuestions * 100);
         list.push({
           id: l.participantId,
           competitionId: compId,
@@ -247,7 +249,7 @@ export const ProfilePage: React.FC = () => {
           accuracyPercent: l.accuracyPercent,
           timeTakenSeconds: l.completionTimeSeconds,
           correctCount: Math.round(l.score / 100),
-          incorrectCount: Math.max(0, 30 - Math.round(l.score / 100)),
+          incorrectCount: Math.max(0, matchCompTotalQuestions - Math.round(l.score / 100)),
           rank: l.rank || 1,
         });
       }

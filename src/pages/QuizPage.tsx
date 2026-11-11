@@ -29,6 +29,8 @@ import { getShuffledQuiz } from '../utils/shuffleQuiz';
 import { QuizQuestion } from '../types';
 import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
 import practiceQuizQuestions from '../constants/practiceQuizQuestions.json';
+import cyberDefenseQuestions from '../constants/cyberDefenseQuestions.json';
+import { CYBER_DEFENSE_COMP_ID } from '../constants/tournaments';
 import { EmptyStateBlock } from '../components/ui/EmptyStateBlock';
 import { CompetitorProfileModal } from '../components/profile/CompetitorProfileModal';
 import { QuizRulesModal } from '../components/quiz/QuizRulesModal';
@@ -87,7 +89,7 @@ export const QuizPage: React.FC = () => {
 
   // Deterministic question and option shuffling per candidate session (prevents answer-sharing)
   const questions = useMemo(() => {
-    // Fallback: if Firestore has no questions for the live Cyber Quiz 2026 or Practice Quiz,
+    // Fallback: if Firestore has no questions for the live Cyber Defense Challenge, Cyber Quiz 2026, or Practice Quiz,
     // use the bundled banks so tests are never blocked.
     const CYBER_QUIZ_ID = 'comp_1793963656835';
     const isPractice =
@@ -95,17 +97,26 @@ export const QuizPage: React.FC = () => {
       Boolean(activeCompId?.toLowerCase().includes('practice')) ||
       Boolean(activeCompetition?.title?.toLowerCase().includes('practice'));
 
-    const isCyberQuiz =
+    const isCyberDefense =
+      activeCompId === CYBER_DEFENSE_COMP_ID ||
+      Boolean(activeCompId?.toLowerCase().includes('cyber_defense')) ||
+      Boolean(activeCompetition?.title?.toLowerCase().includes('cyber defense'));
+
+    const isLegacyCyberQuiz =
       activeCompId === CYBER_QUIZ_ID ||
-      Boolean(activeCompId?.toLowerCase().includes('cyber')) ||
-      Boolean(activeCompetition?.title?.toLowerCase().includes('cyber'));
+      Boolean(activeCompetition?.title?.toLowerCase().includes('cyber quiz 2026'));
 
     const fallbackBank: QuizQuestion[] = isPractice
       ? (practiceQuizQuestions as unknown as QuizQuestion[]).map((q, i) => ({
           ...q,
           id: q.id || `practice_${q.index ?? i}`,
         }))
-      : isCyberQuiz
+      : isCyberDefense
+      ? (cyberDefenseQuestions as unknown as QuizQuestion[]).map((q, i) => ({
+          ...q,
+          id: q.id || `defense_${q.index ?? i}`,
+        }))
+      : isLegacyCyberQuiz
       ? (cyberQuizQuestions as unknown as QuizQuestion[]).map((q, i) => ({
           ...q,
           id: q.id || `json_${q.index ?? i}`,
@@ -120,14 +131,23 @@ export const QuizPage: React.FC = () => {
         (rawQuestions[0].category?.toLowerCase().includes('practice') ||
           rawQuestions[0].id?.includes('practice'));
       bank = hasPracticeQuestions ? rawQuestions : fallbackBank;
+    } else if (isCyberDefense) {
+      const hasDefenseQuestions =
+        rawQuestions &&
+        rawQuestions.length > 0 &&
+        (rawQuestions[0].id?.includes('defense') || rawQuestions[0].prompt?.includes('SQL'));
+      bank = hasDefenseQuestions ? rawQuestions : fallbackBank;
     } else {
       bank = rawQuestions && rawQuestions.length > 0 ? rawQuestions : fallbackBank;
     }
 
     if (!currentUser || !bank || bank.length === 0) return bank || [];
     const seed = `${currentUser.email || currentUser.uid}_${activeCompId}`;
-    // Bank holds questions; each candidate gets a random 30 (seeded per candidate, stable across reloads)
-    return getShuffledQuiz(bank, seed, 30);
+    const targetCount =
+      activeCompetition?.quizFormat?.totalQuestions ||
+      bank.length ||
+      10;
+    return getShuffledQuiz(bank, seed, targetCount);
   }, [rawQuestions, currentUser, activeCompId, isPracticeQuiz, activeCompetition]);
 
 

@@ -30,6 +30,7 @@ import {
 } from '../lib/firebase';
 import cyberQuizQuestions from '../constants/cyberQuizQuestions.json';
 import practiceQuizQuestions from '../constants/practiceQuizQuestions.json';
+import cyberDefenseQuestions from '../constants/cyberDefenseQuestions.json';
 import {
   Competition,
   QuizQuestion,
@@ -44,7 +45,12 @@ import {
 import { applyCalibration, isExcludedLeaderboardEntry, filterLeaderboardEntries } from '../utils/leaderboardCalibration';
 import { validateWhatsAppNumber } from '../utils/phoneValidation';
 import leaderboardSeed from '../constants/leaderboardSeed.json';
-import { ARCHIVED_CYBER_QUIZ, CYBER_QUIZ_COMP_ID } from '../constants/tournaments';
+import {
+  ARCHIVED_CYBER_QUIZ,
+  CYBER_QUIZ_COMP_ID,
+  LIVE_CYBER_DEFENSE_CHALLENGE,
+  CYBER_DEFENSE_COMP_ID,
+} from '../constants/tournaments';
 
 interface AppContextValue {
   // Auth & Backend Engine Status
@@ -191,7 +197,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ADMIN_EMAILS.includes(currentUser.email.trim().toLowerCase())
   );
 
-  const [competitions, setCompetitions] = useState<Competition[]>([ARCHIVED_CYBER_QUIZ]);
+  const [competitions, setCompetitions] = useState<Competition[]>([
+    LIVE_CYBER_DEFENSE_CHALLENGE,
+    ARCHIVED_CYBER_QUIZ,
+  ]);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => filterLeaderboardEntries(leaderboardSeed as LeaderboardEntry[]));
@@ -328,17 +337,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           };
         });
         // Ensure Cyber Security Quiz 2026 is always safely present as an archived (completed) tournament
-        const hasCyberComp = items.some(
-          (c) => c.id === CYBER_QUIZ_COMP_ID || c.title.toLowerCase().includes('cyber quiz 2026')
+        const mappedItems = items.map((c) =>
+          c.id === CYBER_QUIZ_COMP_ID || c.title.toLowerCase().includes('cyber quiz 2026')
+            ? { ...c, status: 'completed' as const }
+            : c
         );
-        const allComps = hasCyberComp
-          ? items.map((c) =>
-              c.id === CYBER_QUIZ_COMP_ID || c.title.toLowerCase().includes('cyber quiz 2026')
-                ? { ...c, status: 'completed' as const }
-                : c
-            )
-          : [ARCHIVED_CYBER_QUIZ, ...items];
-        setCompetitions(allComps);
+
+        // Ensure both ARCHIVED_CYBER_QUIZ and LIVE_CYBER_DEFENSE_CHALLENGE are present
+        const hasLiveComp = mappedItems.some((c) => c.id === CYBER_DEFENSE_COMP_ID);
+        const hasArchivedCyber = mappedItems.some((c) => c.id === CYBER_QUIZ_COMP_ID);
+
+        let finalComps = [...mappedItems];
+        if (!hasArchivedCyber) {
+          finalComps.push(ARCHIVED_CYBER_QUIZ);
+        }
+        if (!hasLiveComp) {
+          finalComps.unshift(LIVE_CYBER_DEFENSE_CHALLENGE);
+        }
+        setCompetitions(finalComps);
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, 'competitions');
@@ -374,22 +390,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           };
         });
         loaded.sort((a, b) => a.index - b.index);
-        // Fallback: if Firestore has no questions for Practice Quiz or Cyber Quiz 2026,
+        // Fallback: if Firestore has no questions for Practice Quiz, Cyber Defense Challenge, or Cyber Quiz 2026,
         // use bundled banks so candidates can always take tests and scoring does not fail.
         const isPractice =
           Boolean(selectedCompetition?.title?.toLowerCase().includes('practice')) ||
           Boolean(selectedCompetition?.id?.toLowerCase().includes('practice'));
-        const isCyberQuiz =
-          selectedCompetition?.id === 'comp_1793963656835' ||
-          Boolean(selectedCompetition?.title?.toLowerCase().includes('cyber')) ||
-          Boolean(selectedCompetition?.id?.toLowerCase().includes('cyber'));
+        const isCyberDefense =
+          selectedCompetition?.id === CYBER_DEFENSE_COMP_ID ||
+          Boolean(selectedCompetition?.title?.toLowerCase().includes('cyber defense'));
+        const isLegacyCyberQuiz =
+          selectedCompetition?.id === CYBER_QUIZ_COMP_ID ||
+          Boolean(selectedCompetition?.title?.toLowerCase().includes('cyber quiz 2026'));
 
         if (loaded.length === 0 && isPractice) {
           const fallback: QuizQuestion[] = (
             practiceQuizQuestions as unknown as QuizQuestion[]
           ).map((q, i) => ({ ...q, id: q.id || `practice_${q.index ?? i}` }));
           setQuestions(fallback);
-        } else if (loaded.length === 0 && isCyberQuiz) {
+        } else if (loaded.length === 0 && isCyberDefense) {
+          const fallback: QuizQuestion[] = (
+            cyberDefenseQuestions as unknown as QuizQuestion[]
+          ).map((q, i) => ({ ...q, id: q.id || `defense_${q.index ?? i}` }));
+          setQuestions(fallback);
+        } else if (loaded.length === 0 && isLegacyCyberQuiz) {
           const fallback: QuizQuestion[] = (
             cyberQuizQuestions as unknown as QuizQuestion[]
           ).map((q, i) => ({ ...q, id: q.id || `json_${q.index ?? i}` }));

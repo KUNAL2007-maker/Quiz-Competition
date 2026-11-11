@@ -624,3 +624,46 @@ test('practice quiz cheating disqualification can be retaken multiple times with
   const canAttempt = !isDisqualified && warnings === 0;
   assert.equal(canAttempt, true);
 });
+
+test('hosted Cyber Defense Challenge 2026 contains exactly 10 real cybersecurity questions with valid format', async () => {
+  const { LIVE_CYBER_DEFENSE_CHALLENGE, CYBER_DEFENSE_COMP_ID } = await import('../constants/tournaments');
+  const cyberDefenseQuestions = (await import('../constants/cyberDefenseQuestions.json')).default;
+
+  assert.equal(LIVE_CYBER_DEFENSE_CHALLENGE.id, CYBER_DEFENSE_COMP_ID);
+  assert.equal(LIVE_CYBER_DEFENSE_CHALLENGE.status, 'live');
+  assert.equal(LIVE_CYBER_DEFENSE_CHALLENGE.quizFormat?.totalQuestions, 10);
+  assert.equal(LIVE_CYBER_DEFENSE_CHALLENGE.perQuestionTimerSeconds, 20);
+
+  assert.equal(Array.isArray(cyberDefenseQuestions), true);
+  assert.equal(cyberDefenseQuestions.length, 10);
+
+  const seenIds = new Set<string>();
+  cyberDefenseQuestions.forEach((q, idx) => {
+    assert.equal(typeof q.prompt, 'string');
+    assert.equal(q.prompt.length > 20, true);
+    assert.equal(q.points, 100);
+    assert.equal(q.timeLimitSeconds, 20);
+    assert.equal(Array.isArray(q.options), true);
+    assert.equal(q.options.length, 4);
+
+    const optionIds = q.options.map((opt) => opt.id);
+    assert.equal(optionIds.includes(q.correctOptionId), true);
+    assert.equal(typeof q.category, 'string');
+    assert.equal(q.index, idx);
+  });
+});
+
+test('getShuffledQuiz correctly handles 10-question cyber competition bank', async () => {
+  const { getShuffledQuiz } = await import('./shuffleQuiz');
+  const cyberDefenseQuestions = (await import('../constants/cyberDefenseQuestions.json')).default;
+
+  const seed = 'operator_alice_seed_123';
+  const shuffled = getShuffledQuiz(cyberDefenseQuestions as any, seed, 10);
+
+  assert.equal(shuffled.length, 10);
+  // Each question has 4 options
+  shuffled.forEach((q) => {
+    assert.equal(q.options.length, 4);
+    assert.equal(Boolean(q.correctOptionId), true);
+  });
+});

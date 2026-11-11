@@ -19,6 +19,7 @@ export interface Competition {
     totalQuestions?: number;
     timeLimitMinutes?: number;
     scoringModel?: string;
+    passingScore?: number;
   };
 }
 

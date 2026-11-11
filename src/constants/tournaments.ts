@@ -1,6 +1,33 @@
 import { Competition } from '../types';
 
 export const CYBER_QUIZ_COMP_ID = 'comp_1793963656835';
+export const CYBER_DEFENSE_COMP_ID = 'comp_cyber_defense_2026';
+
+export const LIVE_CYBER_DEFENSE_CHALLENGE: Competition = {
+  id: CYBER_DEFENSE_COMP_ID,
+  title: 'Cyber Defense Challenge 2026',
+  description:
+    'Official live cybersecurity competition round. 10 tactical challenges covering Web Security, Network Forensics, Applied Cryptography, Cloud IAM, and Incident Response.',
+  status: 'live',
+  startTime: '2026-11-11T00:00:00.000Z',
+  durationMinutes: 3.5,
+  difficulty: 'Senior Analyst',
+  accessType: 'Open Clearance',
+  participantCount: 0,
+  perQuestionTimerSeconds: 20,
+  rules: [
+    'Strict forward progression without back navigation',
+    '20 seconds allocated per question',
+    '10 high-impact cybersecurity scenarios across core domains',
+    'Completion time and early submission serve as tie-breakers',
+  ],
+  quizFormat: {
+    totalQuestions: 10,
+    timeLimitMinutes: 3.5,
+    passingScore: 700,
+    scoringModel: '100 points per question (1000 max), completion time tie-breaker',
+  },
+};
 
 export const ARCHIVED_CYBER_QUIZ: Competition = {
   id: CYBER_QUIZ_COMP_ID,
