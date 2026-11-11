@@ -45,6 +45,7 @@ export default function App() {
             <Route path="arena" element={<Navigate to="/competitions" replace />} />
             <Route path="quiz" element={<QuizPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
+            <Route path="leaderboard/:competitionId" element={<LeaderboardPage />} />
             <Route path="standings" element={<StandingsPage />} />
             <Route path="standings/:competitionId" element={<StandingsPage />} />
             <Route path="profile" element={<ProfilePage />} />

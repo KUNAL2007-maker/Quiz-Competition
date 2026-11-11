@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   Trophy,
   Radio,
@@ -13,12 +13,18 @@ import { CYBER_QUIZ_COMP_ID } from '../constants/tournaments';
 
 export const LeaderboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const { competitionId: pathCompId } = useParams<{ competitionId?: string }>();
+  const [searchParams] = useSearchParams();
+  const queryCompId = searchParams.get('competitionId') || pathCompId;
+
   const { leaderboard, competitions, currentUser, profile, results } = useAppContext();
 
-  // Find any active live competition (excluding practice quizzes and past cyber quiz)
-  const activeLiveCompetition = useMemo(() => {
+  // Find all active live competitions (excluding practice quizzes and past cyber quiz)
+  // Sorted newest first so whenever a new competition is hosted, the live leaderboard
+  // automatically points to that newly hosted competition!
+  const availableLiveCompetitions = useMemo(() => {
     const now = Date.now();
-    return competitions.find((c) => {
+    const liveList = competitions.filter((c) => {
       if (c.title.toLowerCase().includes('practice')) return false;
       if (c.id === CYBER_QUIZ_COMP_ID) return false; // Cyber Quiz 2026 is officially archived
       if (c.status === 'completed') return false;
@@ -27,7 +33,34 @@ export const LeaderboardPage: React.FC = () => {
       if (c.startTime && new Date(c.startTime).getTime() <= now) return true;
       return false;
     });
+
+    return liveList.sort((a, b) => {
+      // Prioritize newest competition: numeric timestamp ID or startTime
+      const idTimeA = a.id.startsWith('comp_') ? Number(a.id.replace('comp_', '')) : 0;
+      const idTimeB = b.id.startsWith('comp_') ? Number(b.id.replace('comp_', '')) : 0;
+      if (!Number.isNaN(idTimeA) && !Number.isNaN(idTimeB) && idTimeA > 0 && idTimeB > 0) {
+        if (idTimeB !== idTimeA) return idTimeB - idTimeA;
+      }
+      const timeA = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const timeB = b.startTime ? new Date(b.startTime).getTime() : 0;
+      return timeB - timeA;
+    });
   }, [competitions]);
+
+  const [selectedCompId, setSelectedCompId] = useState<string | null>(null);
+
+  const activeLiveCompetition = useMemo(() => {
+    if (selectedCompId) {
+      const match = availableLiveCompetitions.find((c) => c.id === selectedCompId);
+      if (match) return match;
+    }
+    if (queryCompId) {
+      const match = availableLiveCompetitions.find((c) => c.id === queryCompId);
+      if (match) return match;
+    }
+    // Default to the newest active live competition (first in sorted list)
+    return availableLiveCompetitions[0] || null;
+  }, [availableLiveCompetitions, selectedCompId, queryCompId]);
 
   // Live scoreboard shows telemetry & scores for the currently active live tournament!
   // Past scores from completed tournaments are strictly quarantined to the /standings page.
@@ -131,6 +164,29 @@ export const LeaderboardPage: React.FC = () => {
               ? 'Real-time telemetry and active standings for the tournament currently in progress. Scores update automatically.'
               : 'The live scoreboard displays real-time telemetry while a competition is actively running. Concluded tournament records are archived in Final Standings.'}
           </p>
+
+          {availableLiveCompetitions.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2 pt-3">
+              {availableLiveCompetitions.map((comp) => {
+                const isSelected = comp.id === activeLiveCompetition?.id;
+                return (
+                  <button
+                    key={comp.id}
+                    type="button"
+                    onClick={() => setSelectedCompId(comp.id)}
+                    className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#8dc63f] text-[#141a09] shadow-md'
+                        : 'bg-[#1b1b19] border border-[#2e2e2a] text-[#a8a8a2] hover:text-[#f5f5f2]'
+                    }`}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${isSelected ? 'bg-[#141a09]' : 'bg-[#8dc63f] animate-ping'}`} />
+                    <span>{comp.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {activeLiveCompetition && (

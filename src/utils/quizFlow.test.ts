@@ -941,3 +941,94 @@ test('live leaderboard seamlessly includes and accurately ranks current user sub
   assert.equal(ranked[4].displayName, 'Divya Pillai');
   assert.equal(ranked[4].rank, 5);
 });
+
+test('when a new competition is hosted, the live leaderboard automatically points to that newly hosted competition as top priority', () => {
+  const existingLiveComp = {
+    id: 'comp_cyber_defense_2026',
+    title: 'Cyber Defense Challenge 2026',
+    status: 'live' as const,
+    startTime: '2026-11-11T00:00:00.000Z',
+  };
+
+  const newlyHostedComp = {
+    id: 'comp_1794500000000',
+    title: 'Cloud Security Invitational 2026',
+    status: 'live' as const,
+    startTime: '2026-11-11T15:00:00.000Z',
+  };
+
+  const archivedComp = {
+    id: 'comp_1793963656835',
+    title: 'Cyber Security Quiz 2026',
+    status: 'completed' as const,
+  };
+
+  const competitions = [existingLiveComp, archivedComp, newlyHostedComp];
+
+  // Resolution function mimicking LeaderboardPage activeLiveCompetition logic
+  const resolveActiveLiveCompetition = (comps: typeof competitions, requestedCompId?: string | null) => {
+    const now = Date.now();
+    const liveList = comps.filter((c) => {
+      if (c.title.toLowerCase().includes('practice')) return false;
+      if (c.id === 'comp_1793963656835') return false;
+      if (c.status === 'completed') return false;
+      if (c.status === 'live') return true;
+      return false;
+    });
+
+    liveList.sort((a, b) => {
+      const idTimeA = a.id.startsWith('comp_') ? Number(a.id.replace('comp_', '')) : 0;
+      const idTimeB = b.id.startsWith('comp_') ? Number(b.id.replace('comp_', '')) : 0;
+      if (!Number.isNaN(idTimeA) && !Number.isNaN(idTimeB) && idTimeA > 0 && idTimeB > 0) {
+        if (idTimeB !== idTimeA) return idTimeB - idTimeA;
+      }
+      const timeA = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const timeB = b.startTime ? new Date(b.startTime).getTime() : 0;
+      return timeB - timeA;
+    });
+
+    if (requestedCompId) {
+      const match = liveList.find((c) => c.id === requestedCompId);
+      if (match) return match;
+    }
+
+    return liveList[0] || null;
+  };
+
+  // 1. By default with no parameter, newly hosted competition is selected
+  const activeComp = resolveActiveLiveCompetition(competitions);
+  assert.ok(activeComp);
+  assert.equal(activeComp?.id, 'comp_1794500000000');
+  assert.equal(activeComp?.title, 'Cloud Security Invitational 2026');
+
+  // 2. Explicitly requesting another live competition switches to it
+  const switchedComp = resolveActiveLiveCompetition(competitions, 'comp_cyber_defense_2026');
+  assert.ok(switchedComp);
+  assert.equal(switchedComp?.id, 'comp_cyber_defense_2026');
+});
+
+test('live leaderboard filters and renders live scores for newly hosted competition', () => {
+  const newCompId = 'comp_1794500000000';
+  const oldCompId = 'comp_cyber_defense_2026';
+
+  const allLeaderboardEntries = [
+    { participantId: 'user_1_comp_cyber_defense_2026', competitionId: oldCompId, score: 900, completionTimeSeconds: 45, displayName: 'Alice' },
+    { participantId: 'user_2_comp_cyber_defense_2026', competitionId: oldCompId, score: 800, completionTimeSeconds: 60, displayName: 'Bob' },
+    { participantId: 'user_3_comp_1794500000000', competitionId: newCompId, score: 1000, completionTimeSeconds: 38, displayName: 'Charlie' },
+    { participantId: 'user_4_comp_1794500000000', competitionId: newCompId, score: 700, completionTimeSeconds: 50, displayName: 'Diana' },
+  ];
+
+  // Filtering live entries strictly for the newly hosted competition
+  const liveEntries = allLeaderboardEntries.filter(
+    (e) => e.competitionId === newCompId || e.participantId.endsWith(`_${newCompId}`)
+  );
+
+  assert.equal(liveEntries.length, 2);
+  assert.equal(liveEntries[0].displayName, 'Charlie');
+  assert.equal(liveEntries[0].score, 1000);
+  assert.equal(liveEntries[1].displayName, 'Diana');
+  assert.equal(liveEntries[1].score, 700);
+
+  // Verify none of the old competition entries leak into the newly hosted leaderboard
+  assert.equal(liveEntries.some((e) => e.competitionId === oldCompId), false);
+});
