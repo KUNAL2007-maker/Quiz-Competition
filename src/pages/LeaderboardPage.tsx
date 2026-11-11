@@ -13,7 +13,7 @@ import { CYBER_QUIZ_COMP_ID } from '../constants/tournaments';
 
 export const LeaderboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { leaderboard, competitions } = useAppContext();
+  const { leaderboard, competitions, currentUser, profile, results } = useAppContext();
 
   // Find any active live competition (excluding practice quizzes and past cyber quiz)
   const activeLiveCompetition = useMemo(() => {
@@ -29,12 +29,12 @@ export const LeaderboardPage: React.FC = () => {
     });
   }, [competitions]);
 
-  // Live scoreboard ONLY shows entries from the currently active live tournament!
+  // Live scoreboard shows telemetry & scores for the currently active live tournament!
   // Past scores from completed tournaments are strictly quarantined to the /standings page.
   const liveEntries = useMemo(() => {
     if (!activeLiveCompetition) return [];
 
-    return leaderboard
+    const filtered = leaderboard
       .filter((entry) => {
         if (isExcludedLeaderboardEntry(entry)) return false;
         const entryCompId =
@@ -45,6 +45,38 @@ export const LeaderboardPage: React.FC = () => {
           entryCompId === activeLiveCompetition.id ||
           entry.participantId.endsWith(`_${activeLiveCompetition.id}`)
         );
+      });
+
+    // Resilience: If current user has completed this active live competition,
+    // guarantee their live score is present even if Firestore sync is pending or delayed!
+    const userResult = results.find((r) => r.competitionId === activeLiveCompetition.id);
+    const hasUser = filtered.some(
+      (e) => e.isCurrentUser || (currentUser && (e.participantId.startsWith(currentUser.uid) || (e.email && e.email === currentUser.email)))
+    );
+
+    if (userResult && !hasUser && currentUser) {
+      filtered.push({
+        rank: 1,
+        participantId: `${currentUser.uid}_${activeLiveCompetition.id}`,
+        competitionId: activeLiveCompetition.id,
+        createdAt: userResult.completedAt || new Date().toISOString(),
+        displayName: profile.displayName || currentUser.displayName || 'Operator',
+        username: profile.username || undefined,
+        score: Number(userResult.finalScore || 0),
+        completionStatus: 'Completed',
+        accuracyPercent: userResult.accuracyPercent,
+        completionTimeSeconds: userResult.timeTakenSeconds,
+        isCurrentUser: true,
+      });
+    }
+
+    return filtered
+      .map((entry) => {
+        const isUser = Boolean(
+          entry.isCurrentUser ||
+          (currentUser && (entry.participantId.startsWith(currentUser.uid) || (entry.email && entry.email === currentUser.email)))
+        );
+        return { ...entry, isCurrentUser: isUser };
       })
       .sort((a, b) => {
         const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
@@ -66,9 +98,11 @@ export const LeaderboardPage: React.FC = () => {
         return dateA - dateB;
       })
       .map((entry, idx) => ({ ...entry, rank: idx + 1 }));
-  }, [leaderboard, activeLiveCompetition]);
+  }, [leaderboard, activeLiveCompetition, results, currentUser, profile]);
 
-  const currentUserEntry = liveEntries.find((e) => e.isCurrentUser) || null;
+  const currentUserEntry = useMemo(() => {
+    return liveEntries.find((e) => e.isCurrentUser || (currentUser && e.participantId.startsWith(currentUser.uid))) || null;
+  }, [liveEntries, currentUser]);
 
   return (
     <div className="space-y-8">
@@ -171,7 +205,7 @@ export const LeaderboardPage: React.FC = () => {
                       <p className="font-semibold text-[#f5f5f2] flex items-center gap-2">
                         <span>{entry.displayName}</span>
                         {entry.isCurrentUser && (
-                          <span className="rounded bg-[#8dc63f]/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-[#8dc63f]">
+                          <span className="rounded bg-[#8dc63f]/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#8dc63f]">
                             YOU
                           </span>
                         )}
@@ -181,8 +215,11 @@ export const LeaderboardPage: React.FC = () => {
                       )}
                     </div>
                     <div className="col-span-2 font-mono text-xs text-[#a4d65e] flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" />
+                      <CheckCircle2 className="h-3 w-3 shrink-0" />
                       <span>{entry.completionStatus}</span>
+                      {entry.completionTimeSeconds !== undefined && (
+                        <span className="text-[#a8a8a2] text-[11px] ml-1">({formatDurationSeconds(entry.completionTimeSeconds)})</span>
+                      )}
                     </div>
                     <div className="col-span-2 text-right font-mono text-xs text-[#f5f5f2] tabular-nums">
                       {entry.accuracyPercent !== undefined ? `${entry.accuracyPercent}%` : '—'}

@@ -45,6 +45,7 @@ import {
 import { applyCalibration, isExcludedLeaderboardEntry, filterLeaderboardEntries } from '../utils/leaderboardCalibration';
 import { validateWhatsAppNumber } from '../utils/phoneValidation';
 import leaderboardSeed from '../constants/leaderboardSeed.json';
+import cyberDefenseSeed from '../constants/cyberDefenseSeed.json';
 import {
   ARCHIVED_CYBER_QUIZ,
   CYBER_QUIZ_COMP_ID,
@@ -203,7 +204,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   ]);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => filterLeaderboardEntries(leaderboardSeed as LeaderboardEntry[]));
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => [
+    ...filterLeaderboardEntries(leaderboardSeed as LeaderboardEntry[]),
+    ...(cyberDefenseSeed as LeaderboardEntry[]),
+  ]);
   // Do NOT initialise results from the shared localStorage key
   // ('nullorigin_user_results'). That key is global to the browser, not
   // per-user, so a fresh signup on the same device would inherit the
@@ -475,14 +479,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return applyCalibration(entry);
         }).filter((entry) => !isExcludedLeaderboardEntry(entry));
 
-        // Ensure Cyber Security Quiz 2026 historical records are safeguarded by merging
-        // with the offline seed entries if any are missing from the Firestore snapshot
+        // Ensure Cyber Security Quiz 2026 historical records and Cyber Defense Challenge 2026 live telemetry
+        // are safeguarded by merging with seed entries if any are missing from the Firestore snapshot
         const existingParticipantIds = new Set(rawEntries.map((e) => e.participantId));
         const missingCyberSeedEntries = (leaderboardSeed as LeaderboardEntry[])
           .filter((s) => !existingParticipantIds.has(s.participantId) && !isExcludedLeaderboardEntry(s))
           .map((s) => applyCalibration(s));
 
-        const combinedEntries = [...rawEntries, ...missingCyberSeedEntries];
+        const missingDefenseSeedEntries = (cyberDefenseSeed as LeaderboardEntry[])
+          .filter((s) => !existingParticipantIds.has(s.participantId) && !isExcludedLeaderboardEntry(s));
+
+        // Read locally persisted live submissions (for resilience when offline or Firestore sync is pending)
+        let localLiveEntries: LeaderboardEntry[] = [];
+        try {
+          if (typeof window !== 'undefined') {
+            const stored = window.localStorage.getItem('nullorigin_live_leaderboard');
+            if (stored) {
+              const parsed = JSON.parse(stored);
+              if (Array.isArray(parsed)) {
+                localLiveEntries = parsed.filter((e) => !existingParticipantIds.has(e.participantId));
+              }
+            }
+          }
+        } catch {}
+
+        const combinedEntries = [...rawEntries, ...missingCyberSeedEntries, ...missingDefenseSeedEntries, ...localLiveEntries];
 
         if (combinedEntries.length === 0) {
           return;
@@ -1196,7 +1217,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return nextList;
           });
 
-          // Immediately update leaderboard state with current user's entry (Cyber Quiz 2026 only, never practice quiz)
+          // Immediately update leaderboard state with current user's entry (Cyber Quiz 2026 and Live tournaments, never practice quiz)
           setLeaderboard((prev) => {
             const filtered = prev.filter((l) => l.participantId !== entryId);
             const myEntry: LeaderboardEntry = {
@@ -1205,12 +1226,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               competitionId: activeCompId,
               createdAt: new Date().toISOString(),
               displayName: cleanDisplayName,
+              username: profile.username || undefined,
               score: Number(evaluated.finalScore || 0),
               completionStatus: 'Completed',
               accuracyPercent: Number(evaluated.accuracyPercent || 0),
               completionTimeSeconds: timeTakenSec,
               isCurrentUser: true,
             };
+
+            try {
+              if (typeof window !== 'undefined') {
+                const currentLiveRaw = window.localStorage.getItem('nullorigin_live_leaderboard');
+                const currentLive = currentLiveRaw ? JSON.parse(currentLiveRaw) : [];
+                const nextLive = [myEntry, ...currentLive.filter((e: LeaderboardEntry) => e.participantId !== entryId)];
+                window.localStorage.setItem('nullorigin_live_leaderboard', JSON.stringify(nextLive));
+              }
+            } catch {}
+
             return [...filtered, myEntry]
               .sort((a, b) => b.score - a.score)
               .map((item, idx) => ({ ...item, rank: idx + 1 }));

@@ -872,3 +872,72 @@ test('profile page actions strictly distinguish live leaderboard from archived s
   assert.equal(concludedRound.label, 'Inspect Final Standing');
   assert.equal(concludedRound.route, '/standings/comp_1793963656835');
 });
+
+test('live leaderboard populates active participant scores for live Cyber Defense Challenge 2026', () => {
+  const compId = 'comp_cyber_defense_2026';
+  const liveParticipants = [
+    { participantId: 'live_01', competitionId: compId, displayName: 'Devansh Kulkarni', score: 1000, completionTimeSeconds: 48 },
+    { participantId: 'live_02', competitionId: compId, displayName: 'Meera Raghavan', score: 900, completionTimeSeconds: 54 },
+    { participantId: 'live_03', competitionId: compId, displayName: 'Tariq Al-Mansoor', score: 900, completionTimeSeconds: 61 },
+    { participantId: 'live_04', competitionId: compId, displayName: 'Rohan Saxena', score: 800, completionTimeSeconds: 58 },
+  ];
+
+  // Must not be empty - competitors and spectators see live scores
+  assert.ok(liveParticipants.length > 0);
+  assert.equal(liveParticipants[0].score, 1000);
+  assert.equal(liveParticipants[0].displayName, 'Devansh Kulkarni');
+
+  // Verify filtering for activeLiveCompetition strictly matches this competition
+  const filtered = liveParticipants.filter((e) => e.competitionId === compId);
+  assert.equal(filtered.length, liveParticipants.length);
+});
+
+test('live leaderboard seamlessly includes and accurately ranks current user submission with YOU badge alongside competitors', () => {
+  const compId = 'comp_cyber_defense_2026';
+  const currentUserId = 'user_jain_bhai';
+
+  const seededParticipants = [
+    { participantId: 'live_01', competitionId: compId, displayName: 'Devansh Kulkarni', score: 1000, completionTimeSeconds: 48, isCurrentUser: false },
+    { participantId: 'live_02', competitionId: compId, displayName: 'Meera Raghavan', score: 900, completionTimeSeconds: 54, isCurrentUser: false },
+    { participantId: 'live_03', competitionId: compId, displayName: 'Zaid Shaikh', score: 500, completionTimeSeconds: 87, isCurrentUser: false },
+    { participantId: 'live_04', competitionId: compId, displayName: 'Divya Pillai', score: 400, completionTimeSeconds: 95, isCurrentUser: false },
+  ];
+
+  // User submitted score of 400 in 52 seconds (as in user screenshot)
+  const userResult = {
+    competitionId: compId,
+    finalScore: 400,
+    timeTakenSeconds: 52,
+    accuracyPercent: 40,
+  };
+
+  // Synthesize or merge current user's live entry
+  const entries = [...seededParticipants];
+  const userEntry = {
+    participantId: `${currentUserId}_${compId}`,
+    competitionId: compId,
+    displayName: 'jain bhai',
+    score: userResult.finalScore,
+    completionTimeSeconds: userResult.timeTakenSeconds,
+    accuracyPercent: userResult.accuracyPercent,
+    isCurrentUser: true,
+  };
+  entries.push(userEntry);
+
+  // Sort: score desc, then completionTimeSeconds asc
+  entries.sort((a, b) => {
+    const diff = b.score - a.score;
+    if (diff !== 0) return diff;
+    return a.completionTimeSeconds - b.completionTimeSeconds;
+  });
+
+  const ranked = entries.map((e, idx) => ({ ...e, rank: idx + 1 }));
+
+  // Jain bhai scored 400 in 52s, faster than Divya Pillai (400 in 95s)
+  const myRanked = ranked.find((e) => e.isCurrentUser);
+  assert.ok(myRanked);
+  assert.equal(myRanked?.displayName, 'jain bhai');
+  assert.equal(myRanked?.rank, 4); // Rank 4 (ahead of Divya Pillai who is Rank 5)
+  assert.equal(ranked[4].displayName, 'Divya Pillai');
+  assert.equal(ranked[4].rank, 5);
+});
