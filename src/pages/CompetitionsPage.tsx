@@ -49,11 +49,7 @@ export const CompetitionsPage: React.FC = () => {
         }
       }
     });
-    // 3. From active quizSession if submitted
-    if (quizSession?.isSubmitted && quizSession?.competitionId) {
-      ids.add(quizSession.competitionId);
-    }
-    // 4. From local storage cache (UID and Email)
+    // 3. From local storage cache (UID and Email)
     if (typeof window !== 'undefined') {
       try {
         if (currentUser) {
@@ -199,13 +195,7 @@ export const CompetitionsPage: React.FC = () => {
         navigate('/login?redirect=/quiz');
         return;
       }
-      const isPractice = comp.title.toLowerCase().includes('practice');
-      // Strictly one attempt: if already completed, navigate to locked view
-      if (!isPractice && completedCompetitionIds.has(comp.id)) {
-        selectCompetition(comp);
-        navigate('/quiz');
-        return;
-      }
+      // Mandatory Profile Completion check must always precede quiz entry
       if (!isAdmin && !profile.isProfileComplete) {
         addToast(
           'Profile 100% Completion Required',
@@ -213,6 +203,13 @@ export const CompetitionsPage: React.FC = () => {
           'alert'
         );
         navigate('/profile?required=1');
+        return;
+      }
+      const isPractice = comp.title.toLowerCase().includes('practice');
+      // Strictly one attempt: if already completed, navigate to locked view
+      if (!isPractice && completedCompetitionIds.has(comp.id)) {
+        selectCompetition(comp);
+        navigate('/quiz');
         return;
       }
       resetQuizSession();
@@ -235,14 +232,25 @@ export const CompetitionsPage: React.FC = () => {
         return;
       }
 
-      // 2. Strictly ONE attempt only: once completed, no second attempt is allowed!
+      // 2. Mandatory Profile Completion check must always precede quiz entry
+      if (!isAdmin && !profile.isProfileComplete) {
+        addToast(
+          'Profile 100% Completion Required',
+          'You must complete your profile (Full Legal Name & WhatsApp contact number) before entering any quiz.',
+          'alert'
+        );
+        navigate('/profile?required=1');
+        return;
+      }
+
+      // 3. Strictly ONE attempt only: once completed, no second attempt is allowed!
       if (!isPractice && completedCompetitionIds.has(comp.id)) {
         selectCompetition(comp);
         navigate('/quiz');
         return;
       }
 
-      // 3. Check if live now OR admin testing mode
+      // 4. Check if live now OR admin testing mode
       const isLive =
         isAdmin ||
         comp.status === 'live' ||
@@ -255,13 +263,13 @@ export const CompetitionsPage: React.FC = () => {
         return;
       }
 
-      // 4. If upcoming (strictly future start time and not ended), show countdown modal
+      // 5. If upcoming (strictly future start time and not ended), show countdown modal
       if (comp.startTime && new Date(comp.startTime).getTime() > Date.now()) {
         setIsModalUnlocked(false);
         setUpcomingModalComp(comp);
       }
     },
-    [completedCompetitionIds, handleEnterLiveQuiz, selectCompetition, navigate, isAdmin]
+    [completedCompetitionIds, handleEnterLiveQuiz, selectCompetition, navigate, isAdmin, profile.isProfileComplete, addToast]
   );
 
   return (

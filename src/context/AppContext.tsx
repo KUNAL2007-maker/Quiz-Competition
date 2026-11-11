@@ -630,8 +630,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (isPractice) {
             // Silently purge any legacy practice results from Firestore so participant history is 100% clean
             deleteDoc(doc(db, 'results', r.id)).catch(() => {});
+            return false;
           }
-          return !isPractice;
+          // Self-heal bogus 0-score lock from initial launch if candidate never answered questions
+          const isBogusDefenseGlitch =
+            compId === CYBER_DEFENSE_COMP_ID &&
+            r.finalScore === 0 &&
+            (r.unwrittenCount === 10 || r.timeTakenSeconds === 86400 || (r.accuracyPercent ?? 0) === 0) &&
+            (!r.wrongAnswerCount || r.wrongAnswerCount === 0);
+          if (isBogusDefenseGlitch) {
+            deleteDoc(doc(db, 'results', r.id)).catch(() => {});
+            deleteDoc(doc(db, 'leaderboard', r.id)).catch(() => {});
+            if (typeof window !== 'undefined') {
+              try {
+                window.localStorage.removeItem(`completed_comp_${currentUser.uid}_${CYBER_DEFENSE_COMP_ID}`);
+                window.localStorage.removeItem(`nullorigin_disqualified_${currentUser.uid}_${CYBER_DEFENSE_COMP_ID}`);
+                if (currentUser.email) {
+                  const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+                  window.localStorage.removeItem(`completed_email_${cleanEmail}_${CYBER_DEFENSE_COMP_ID}`);
+                  window.localStorage.removeItem(`nullorigin_disqualified_email_${cleanEmail}_${CYBER_DEFENSE_COMP_ID}`);
+                }
+              } catch {}
+            }
+            return false;
+          }
+          return true;
         });
 
         setResults((prev) => {
@@ -830,6 +853,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (comp?.startTime) {
       setTargetStartTime(comp.startTime);
     }
+    setQuizSession((prev) => {
+      if (comp && prev.competitionId && prev.competitionId !== comp.id) {
+        return DEFAULT_QUIZ_SESSION;
+      }
+      return prev;
+    });
   }, []);
 
   const transitionCompetitionToLive = useCallback(

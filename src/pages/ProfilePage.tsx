@@ -255,33 +255,6 @@ export const ProfilePage: React.FC = () => {
       }
     });
 
-    // 3. Synthesize from submitted quizSession if not in results yet
-    if (
-      quizSession?.isSubmitted &&
-      quizSession?.competitionId &&
-      validCompIds.has(quizSession.competitionId) &&
-      !seenCompIds.has(quizSession.competitionId)
-    ) {
-      const compId = quizSession.competitionId;
-      const matchComp = competitions.find((c) => c.id === compId);
-      const isPractice =
-        (quizSession.competitionTitle || matchComp?.title || '').toLowerCase().includes('practice') ||
-        compId.toLowerCase().includes('practice');
-      if (isPractice) return list;
-
-      seenCompIds.add(compId);
-      list.push({
-        id: `session_${compId}`,
-        competitionId: compId,
-        competitionTitle:
-          quizSession.competitionTitle || matchComp?.title || 'Cybersecurity Quiz Competition',
-        completedAt: quizSession.submittedAt || new Date().toISOString(),
-        finalScore: 0,
-        maxScore: (matchComp as any)?.totalPoints || 100,
-        rank: 1,
-      });
-    }
-
     return list;
   }, [results, competitions, leaderboard, currentUser, quizSession]);
 
@@ -802,6 +775,10 @@ export const ProfilePage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => {
+                            if (!is100PercentComplete) {
+                              handleOpenEdit();
+                              return;
+                            }
                             if (isCompletedByUser) {
                               navigate(`/standings/${comp.id}`);
                               return;
@@ -810,11 +787,7 @@ export const ProfilePage: React.FC = () => {
                               resetQuizSession();
                             }
                             selectCompetition(comp);
-                            if (!is100PercentComplete) {
-                              handleOpenEdit();
-                            } else {
-                              navigate('/quiz');
-                            }
+                            navigate('/quiz');
                           }}
                           className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-[#8dc63f] px-4 h-9 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-sm"
                         >

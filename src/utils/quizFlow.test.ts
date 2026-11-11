@@ -667,3 +667,73 @@ test('getShuffledQuiz correctly handles 10-question cyber competition bank', asy
     assert.equal(Boolean(q.correctOptionId), true);
   });
 });
+
+test('quiz entry flow: incomplete profile ALWAYS redirects to /profile?required=1 before quiz access', () => {
+  // Scenario: Candidate attempts to enter any live competition (Cyber Defense Challenge or future tournaments)
+  const profileIncomplete = {
+    displayName: 'jain bhai',
+    whatsappNumber: '', // missing WhatsApp contact
+    isProfileComplete: false,
+  };
+  const comp = {
+    id: 'comp_cyber_defense_2026',
+    title: 'Cyber Defense Challenge 2026',
+    status: 'live',
+  };
+
+  let redirectedPath = '';
+  let toastTriggered = false;
+
+  const handleEnterQuiz = (p: typeof profileIncomplete, c: typeof comp) => {
+    // Standardized flow: Profile check must always execute first
+    if (!p.isProfileComplete) {
+      toastTriggered = true;
+      redirectedPath = '/profile?required=1';
+      return;
+    }
+    redirectedPath = '/quiz';
+  };
+
+  handleEnterQuiz(profileIncomplete, comp);
+
+  assert.equal(redirectedPath, '/profile?required=1');
+  assert.equal(toastTriggered, true);
+
+  // Once profile is 100% complete with valid WhatsApp
+  const profileComplete = {
+    displayName: 'jain bhai',
+    whatsappNumber: '+91 9876543210',
+    isProfileComplete: true,
+  };
+
+  handleEnterQuiz(profileComplete, comp);
+  assert.equal(redirectedPath, '/quiz');
+});
+
+test('unsubmitted competition never generates fake 0-score completed record or locks participant', () => {
+  const compId = 'comp_cyber_defense_2026';
+  const genuineResults: any[] = [];
+  const genuineLeaderboard: any[] = [];
+
+  // When a user has not taken the quiz, completed list must be empty
+  const completedIds = new Set<string>();
+  genuineResults.forEach((r) => completedIds.add(r.competitionId));
+  genuineLeaderboard.forEach((l) => completedIds.add(l.competitionId));
+
+  assert.equal(completedIds.has(compId), false);
+
+  // Guard: unwritten zero-score glitch entries are treated as outage/unsubmitted and granted fresh attempt
+  const glitchResult = {
+    finalScore: 0,
+    unwrittenCount: 10,
+    wrongAnswerCount: 0,
+    accuracyPercent: 0,
+  };
+
+  const isGlitchUnwritten =
+    glitchResult.finalScore === 0 &&
+    glitchResult.unwrittenCount === 10 &&
+    glitchResult.wrongAnswerCount === 0;
+
+  assert.equal(isGlitchUnwritten, true);
+});

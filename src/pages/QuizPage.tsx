@@ -184,22 +184,10 @@ export const QuizPage: React.FC = () => {
   // get one fresh retake, so the bug does not cost them the quiz.
   const RESET_CUTOFF_ISO = '2026-11-08T06:41:00.000Z'; // 12:11 PM IST
   const isOutageEraBlock = useMemo(() => {
-    if (activeCompId !== 'comp_1793963656835') return false;
-    const cutoff = new Date(RESET_CUTOFF_ISO).getTime();
-    const resultTime = previousResult?.completedAt
-      ? new Date(previousResult.completedAt).getTime()
-      : null;
-    const lbTime = previousLeaderboardEntry?.createdAt
-      ? new Date(previousLeaderboardEntry.createdAt).getTime()
-      : null;
-    // Low-score retake: 0% or 3% accuracy with no DQ flag gets a fresh
-    // attempt, REGARDLESS of when the result was created. The scoring fix
-    // went live at 12:27 PM IST, but browsers cache the old bundle, so a
-    // student who retakes on the cached build still scores 0 (the old
-    // AppContext scored over an empty question list). Sunidhi Singh is the
-    // proof: she retook after the fix and still got 0%. The quiz closes at
-    // 5:00 PM IST, which bounds how many retakes anyone can take. Cheaters
-    // (DQ flag) never get a retake.
+    const isCyberQuiz = activeCompId === 'comp_1793963656835';
+    const isCyberDefense = activeCompId === CYBER_DEFENSE_COMP_ID;
+    if (!isCyberQuiz && !isCyberDefense) return false;
+
     const hasDqFlag = (() => {
       try {
         if (window.localStorage.getItem(`nullorigin_disqualified_${currentUser?.uid}_${activeCompId}`)) return true;
@@ -210,6 +198,31 @@ export const QuizPage: React.FC = () => {
       } catch {}
       return false;
     })();
+
+    // For Cyber Defense Challenge: if there is an accidental 0-score or unwritten glitch with no cheating flag,
+    // allow a clean fresh attempt so candidates can actually take their quiz!
+    if (isCyberDefense) {
+      if (
+        previousResult &&
+        (previousResult.finalScore === 0 || (previousResult.accuracyPercent ?? 100) <= 3) &&
+        !hasDqFlag
+      ) {
+        return true;
+      }
+      if (!previousResult && !previousLeaderboardEntry) {
+        return true;
+      }
+      return false;
+    }
+
+    const cutoff = new Date(RESET_CUTOFF_ISO).getTime();
+    const resultTime = previousResult?.completedAt
+      ? new Date(previousResult.completedAt).getTime()
+      : null;
+    const lbTime = previousLeaderboardEntry?.createdAt
+      ? new Date(previousLeaderboardEntry.createdAt).getTime()
+      : null;
+
     if (
       previousResult &&
       (previousResult.accuracyPercent ?? 100) <= 3 &&
@@ -347,13 +360,26 @@ export const QuizPage: React.FC = () => {
     }
   }, [currentUser, activeCompId, isPracticeQuiz, isOutageEraBlock]);
 
-  // Active quiz session state: automatically resumes if active session already started and deadline not passed
+  // Active quiz session state: automatically resumes ONLY if active session belongs to this competition and deadline not passed
   const [isQuizActive, setIsQuizActive] = useState<boolean>(() => {
-    if (typeof window !== 'undefined' && quizSession.deadlineTimestamp && !quizSession.isSubmitted) {
+    if (
+      typeof window !== 'undefined' &&
+      quizSession.competitionId === activeCompId &&
+      quizSession.deadlineTimestamp &&
+      !quizSession.isSubmitted
+    ) {
       return quizSession.deadlineTimestamp > Date.now();
     }
     return false;
   });
+
+  // Reset quiz session if active competition mismatches session competitionId
+  useEffect(() => {
+    if (quizSession.competitionId && activeCompId && quizSession.competitionId !== activeCompId) {
+      resetQuizSession();
+      setIsQuizActive(false);
+    }
+  }, [quizSession.competitionId, activeCompId, resetQuizSession]);
 
   // Animated 3-2-1 Countdown State (Requirement 3)
   const [countdownValue, setCountdownValue] = useState<number | null>(null);
@@ -1171,7 +1197,50 @@ export const QuizPage: React.FC = () => {
     );
   }
 
-  // Guard 2: Single Attempt Enforcement (Requirement 4)
+  // Guard 2: Mandatory Profile Completion (100% Required)
+  // Must always be completed before any quiz can be accessed or started
+  if (!isAdmin && !profile.isProfileComplete) {
+    return (
+      <div className="mx-auto max-w-xl py-12 text-center space-y-6">
+        <div className="rounded-2xl border border-[#FFB800]/40 bg-[#1b1b19] p-8 text-center space-y-5 shadow-2xl">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#FFB800]/50 bg-[#FFB800]/10 text-[#FFB800]">
+            <Lock className="h-8 w-8" />
+          </div>
+          <div className="space-y-2">
+            <span className="rounded bg-[#FFB800]/20 px-3 py-1 font-mono text-xs font-bold text-[#FFB800] tracking-wider uppercase">
+              100% Profile Completion Required
+            </span>
+            <h2 className="mt-2 font-display text-2xl font-bold text-[#f5f5f2]">
+              Complete Your Operator Profile
+            </h2>
+            <p className="text-xs text-[#a8a8a2] max-w-md mx-auto leading-relaxed">
+              Official tournament integrity rules require a 100% completed profile (Full Legal Name and WhatsApp contact number) before accessing or starting any quiz competition.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
+            <button
+              type="button"
+              onClick={() => navigate('/profile?required=1')}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-2.5 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
+            >
+              <User className="h-4 w-4" />
+              <span>Go to My Profile & Complete (100%)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/competitions')}
+              className="w-full sm:w-auto rounded-lg border border-[#2e2e2a] bg-[#1b1b19] px-5 py-2.5 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
+            >
+              Return to Directory
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Guard 2.5: Single Attempt Enforcement (Requirement 4)
   if (hasAlreadyAttempted) {
     return (
       <QuizAttemptLockedCard
@@ -1303,49 +1372,6 @@ export const QuizPage: React.FC = () => {
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Return to Competitions Directory</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Guard 3: Mandatory Profile Completion (100% Required)
-  // Timers DO NOT start while entering details!
-  if (!isAdmin && !profile.isProfileComplete) {
-    return (
-      <div className="mx-auto max-w-xl py-12 text-center space-y-6">
-        <div className="rounded-2xl border border-[#FFB800]/40 bg-[#1b1b19] p-8 text-center space-y-5 shadow-2xl">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#FFB800]/50 bg-[#FFB800]/10 text-[#FFB800]">
-            <Lock className="h-8 w-8" />
-          </div>
-          <div className="space-y-2">
-            <span className="rounded bg-[#FFB800]/20 px-3 py-1 font-mono text-xs font-bold text-[#FFB800] tracking-wider uppercase">
-              100% Profile Completion Required
-            </span>
-            <h2 className="mt-2 font-display text-2xl font-bold text-[#f5f5f2]">
-              Complete Your Operator Profile
-            </h2>
-            <p className="text-xs text-[#a8a8a2] max-w-md mx-auto leading-relaxed">
-              Official tournament integrity rules require a 100% completed profile (Full Legal Name and WhatsApp contact number) before accessing or starting any quiz competition.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
-            <button
-              type="button"
-              onClick={() => navigate('/profile?required=1')}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-2.5 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
-            >
-              <User className="h-4 w-4" />
-              <span>Go to My Profile & Complete (100%)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/competitions')}
-              className="w-full sm:w-auto rounded-lg border border-[#2e2e2a] bg-[#1b1b19] px-5 py-2.5 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
-            >
-              Return to Directory
             </button>
           </div>
         </div>

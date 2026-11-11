@@ -40,9 +40,6 @@ export const DashboardPage: React.FC = () => {
         }
       }
     });
-    if (quizSession?.isSubmitted && quizSession?.competitionId) {
-      ids.add(quizSession.competitionId);
-    }
     if (typeof window !== 'undefined') {
       try {
         if (currentUser) {
@@ -234,10 +231,24 @@ export const DashboardPage: React.FC = () => {
                     navigate(`/standings/${selected.id}`);
                     return;
                   }
+
+                  if (!currentUser) {
+                    navigate('/login?redirect=/quiz');
+                    return;
+                  }
+
+                  // Mandatory Profile Completion check must always precede quiz entry
+                  if (!profile.isProfileComplete) {
+                    addToast(
+                      'Profile 100% Completion Required',
+                      'You must complete your profile with Full Name and WhatsApp number before entering any quiz.',
+                      'alert'
+                    );
+                    navigate('/profile?required=1');
+                    return;
+                  }
+
                   if (!isPractice && completedCompetitionIds.has(selected.id)) {
-                    if (isPractice) {
-                      resetQuizSession();
-                    }
                     selectCompetition(selected);
                     navigate('/quiz');
                     return;
@@ -250,22 +261,7 @@ export const DashboardPage: React.FC = () => {
                       selected.status !== 'completed');
 
                   if (isLive) {
-                    if (!currentUser) {
-                      navigate('/login?redirect=/quiz');
-                      return;
-                    }
-                    if (!profile.isProfileComplete) {
-                      addToast(
-                        'Profile 100% Completion Required',
-                        'You must complete your profile with Full Name and WhatsApp number before entering any quiz.',
-                        'alert'
-                      );
-                      navigate('/profile?required=1');
-                      return;
-                    }
-                    if (isPractice) {
-                      resetQuizSession();
-                    }
+                    resetQuizSession();
                     selectCompetition(selected);
                     navigate('/quiz');
                   } else {
