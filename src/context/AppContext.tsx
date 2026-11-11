@@ -45,7 +45,6 @@ import {
 import { applyCalibration, isExcludedLeaderboardEntry, filterLeaderboardEntries } from '../utils/leaderboardCalibration';
 import { validateWhatsAppNumber } from '../utils/phoneValidation';
 import leaderboardSeed from '../constants/leaderboardSeed.json';
-import cyberDefenseSeed from '../constants/cyberDefenseSeed.json';
 import {
   ARCHIVED_CYBER_QUIZ,
   CYBER_QUIZ_COMP_ID,
@@ -204,10 +203,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   ]);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => [
-    ...filterLeaderboardEntries(leaderboardSeed as LeaderboardEntry[]),
-    ...(cyberDefenseSeed as LeaderboardEntry[]),
-  ]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() =>
+    filterLeaderboardEntries(leaderboardSeed as LeaderboardEntry[])
+  );
   // Do NOT initialise results from the shared localStorage key
   // ('nullorigin_user_results'). That key is global to the browser, not
   // per-user, so a fresh signup on the same device would inherit the
@@ -479,17 +477,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return applyCalibration(entry);
         }).filter((entry) => !isExcludedLeaderboardEntry(entry));
 
-        // Ensure Cyber Security Quiz 2026 historical records and Cyber Defense Challenge 2026 live telemetry
-        // are safeguarded by merging with seed entries if any are missing from the Firestore snapshot
+        // Ensure Cyber Security Quiz 2026 historical records are safeguarded by merging
+        // with the offline seed entries if any are missing from the Firestore snapshot
         const existingParticipantIds = new Set(rawEntries.map((e) => e.participantId));
         const missingCyberSeedEntries = (leaderboardSeed as LeaderboardEntry[])
           .filter((s) => !existingParticipantIds.has(s.participantId) && !isExcludedLeaderboardEntry(s))
           .map((s) => applyCalibration(s));
 
-        const missingDefenseSeedEntries = (cyberDefenseSeed as LeaderboardEntry[])
-          .filter((s) => !existingParticipantIds.has(s.participantId) && !isExcludedLeaderboardEntry(s));
-
-        // Read locally persisted live submissions (for resilience when offline or Firestore sync is pending)
+        // Read real locally persisted live submissions (for resilience when offline or Firestore sync is pending)
         let localLiveEntries: LeaderboardEntry[] = [];
         try {
           if (typeof window !== 'undefined') {
@@ -497,13 +492,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             if (stored) {
               const parsed = JSON.parse(stored);
               if (Array.isArray(parsed)) {
-                localLiveEntries = parsed.filter((e) => !existingParticipantIds.has(e.participantId));
+                // Strictly exclude any synthetic/fake IDs
+                localLiveEntries = parsed.filter(
+                  (e) => !existingParticipantIds.has(e.participantId) && !e.participantId.startsWith('live_op_') && !e.participantId.startsWith('sim_')
+                );
               }
             }
           }
         } catch {}
 
-        const combinedEntries = [...rawEntries, ...missingCyberSeedEntries, ...missingDefenseSeedEntries, ...localLiveEntries];
+        const combinedEntries = [...rawEntries, ...missingCyberSeedEntries, ...localLiveEntries].filter(
+          (e) => !e.participantId.startsWith('live_op_') && !e.participantId.startsWith('sim_')
+        );
 
         if (combinedEntries.length === 0) {
           return;

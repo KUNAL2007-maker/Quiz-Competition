@@ -13,7 +13,7 @@ export const LIVE_CYBER_DEFENSE_CHALLENGE: Competition = {
   durationMinutes: 3.5,
   difficulty: 'Senior Analyst',
   accessType: 'Open Clearance',
-  participantCount: 12,
+  participantCount: 0,
   perQuestionTimerSeconds: 20,
   rules: [
     'Strict forward progression without back navigation',

@@ -873,73 +873,109 @@ test('profile page actions strictly distinguish live leaderboard from archived s
   assert.equal(concludedRound.route, '/standings/comp_1793963656835');
 });
 
-test('live leaderboard populates active participant scores for live Cyber Defense Challenge 2026', () => {
-  const compId = 'comp_cyber_defense_2026';
-  const liveParticipants = [
-    { participantId: 'live_01', competitionId: compId, displayName: 'Devansh Kulkarni', score: 1000, completionTimeSeconds: 48 },
-    { participantId: 'live_02', competitionId: compId, displayName: 'Meera Raghavan', score: 900, completionTimeSeconds: 54 },
-    { participantId: 'live_03', competitionId: compId, displayName: 'Tariq Al-Mansoor', score: 900, completionTimeSeconds: 61 },
-    { participantId: 'live_04', competitionId: compId, displayName: 'Rohan Saxena', score: 800, completionTimeSeconds: 58 },
+test('fair score calculation: evaluates questions accurately with points, percentage accuracy, and time taken', () => {
+  const questions = [
+    { id: 'q1', points: 100, correctOptionId: 'opt_a' },
+    { id: 'q2', points: 100, correctOptionId: 'opt_c' },
+    { id: 'q3', points: 100, correctOptionId: 'opt_b' },
+    { id: 'q4', points: 100, correctOptionId: 'opt_d' },
+    { id: 'q5', points: 100, correctOptionId: 'opt_a' },
   ];
 
-  // Must not be empty - competitors and spectators see live scores
-  assert.ok(liveParticipants.length > 0);
-  assert.equal(liveParticipants[0].score, 1000);
-  assert.equal(liveParticipants[0].displayName, 'Devansh Kulkarni');
-
-  // Verify filtering for activeLiveCompetition strictly matches this competition
-  const filtered = liveParticipants.filter((e) => e.competitionId === compId);
-  assert.equal(filtered.length, liveParticipants.length);
-});
-
-test('live leaderboard seamlessly includes and accurately ranks current user submission with YOU badge alongside competitors', () => {
-  const compId = 'comp_cyber_defense_2026';
-  const currentUserId = 'user_jain_bhai';
-
-  const seededParticipants = [
-    { participantId: 'live_01', competitionId: compId, displayName: 'Devansh Kulkarni', score: 1000, completionTimeSeconds: 48, isCurrentUser: false },
-    { participantId: 'live_02', competitionId: compId, displayName: 'Meera Raghavan', score: 900, completionTimeSeconds: 54, isCurrentUser: false },
-    { participantId: 'live_03', competitionId: compId, displayName: 'Zaid Shaikh', score: 500, completionTimeSeconds: 87, isCurrentUser: false },
-    { participantId: 'live_04', competitionId: compId, displayName: 'Divya Pillai', score: 400, completionTimeSeconds: 95, isCurrentUser: false },
-  ];
-
-  // User submitted score of 400 in 52 seconds (as in user screenshot)
-  const userResult = {
-    competitionId: compId,
-    finalScore: 400,
-    timeTakenSeconds: 52,
-    accuracyPercent: 40,
+  const userAnswers: Record<string, string> = {
+    q1: 'opt_a', // correct (100 pts)
+    q2: 'opt_c', // correct (100 pts)
+    q3: 'opt_d', // wrong (0 pts)
+    q4: 'opt_d', // correct (100 pts)
+    // q5 unwritten (0 pts)
   };
 
-  // Synthesize or merge current user's live entry
-  const entries = [...seededParticipants];
-  const userEntry = {
-    participantId: `${currentUserId}_${compId}`,
-    competitionId: compId,
-    displayName: 'jain bhai',
-    score: userResult.finalScore,
-    completionTimeSeconds: userResult.timeTakenSeconds,
-    accuracyPercent: userResult.accuracyPercent,
-    isCurrentUser: true,
-  };
-  entries.push(userEntry);
+  let score = 0;
+  let correct = 0;
+  let wrong = 0;
+  let unwritten = 0;
 
-  // Sort: score desc, then completionTimeSeconds asc
-  entries.sort((a, b) => {
-    const diff = b.score - a.score;
-    if (diff !== 0) return diff;
-    return a.completionTimeSeconds - b.completionTimeSeconds;
+  questions.forEach((q) => {
+    const chosen = userAnswers[q.id];
+    if (chosen !== undefined) {
+      if (chosen === q.correctOptionId) {
+        score += q.points;
+        correct += 1;
+      } else {
+        wrong += 1;
+      }
+    } else {
+      unwritten += 1;
+    }
   });
 
-  const ranked = entries.map((e, idx) => ({ ...e, rank: idx + 1 }));
+  const accuracy = Math.round((correct / questions.length) * 100);
 
-  // Jain bhai scored 400 in 52s, faster than Divya Pillai (400 in 95s)
-  const myRanked = ranked.find((e) => e.isCurrentUser);
-  assert.ok(myRanked);
-  assert.equal(myRanked?.displayName, 'jain bhai');
-  assert.equal(myRanked?.rank, 4); // Rank 4 (ahead of Divya Pillai who is Rank 5)
-  assert.equal(ranked[4].displayName, 'Divya Pillai');
-  assert.equal(ranked[4].rank, 5);
+  assert.equal(score, 300);
+  assert.equal(correct, 3);
+  assert.equal(wrong, 1);
+  assert.equal(unwritten, 1);
+  assert.equal(accuracy, 60);
+});
+
+test('live leaderboard strictly excludes fake or synthetic entries without authorization', () => {
+  const rawLeaderboard = [
+    { participantId: 'real_user_001_comp_cyber_defense_2026', score: 800, displayName: 'Real Candidate' },
+    { participantId: 'live_op_001_comp_cyber_defense_2026', score: 1000, displayName: 'Fake Devansh' },
+    { participantId: 'sim_bot_002_comp_cyber_defense_2026', score: 900, displayName: 'Fake Bot' },
+  ];
+
+  // Filter out any synthetic/fake participant IDs
+  const genuineOnly = rawLeaderboard.filter(
+    (e) => !e.participantId.startsWith('live_op_') && !e.participantId.startsWith('sim_')
+  );
+
+  assert.equal(genuineOnly.length, 1);
+  assert.equal(genuineOnly[0].displayName, 'Real Candidate');
+  assert.equal(genuineOnly.some((e) => e.displayName.includes('Fake')), false);
+});
+
+test('live leaderboard strictly filters entries by tournament window: only submissions on/after start and before end are displayed', () => {
+  const compStartTime = '2026-11-11T12:00:00.000Z';
+  const compEndTime = '2026-11-11T18:00:00.000Z';
+  const startMs = new Date(compStartTime).getTime();
+  const endMs = new Date(compEndTime).getTime();
+
+  const submissions = [
+    { id: 'sub_early', displayName: 'Early Submitter', createdAt: '2026-11-11T11:45:00.000Z', score: 900 },
+    { id: 'sub_valid_1', displayName: 'Candidate Alpha', createdAt: '2026-11-11T12:15:00.000Z', score: 800 },
+    { id: 'sub_valid_2', displayName: 'Candidate Beta', createdAt: '2026-11-11T16:30:00.000Z', score: 1000 },
+    { id: 'sub_late', displayName: 'Late Submitter', createdAt: '2026-11-11T18:05:00.000Z', score: 950 },
+  ];
+
+  const liveValidSubmissions = submissions.filter((sub) => {
+    const time = new Date(sub.createdAt).getTime();
+    return time >= startMs && time <= endMs;
+  });
+
+  assert.equal(liveValidSubmissions.length, 2);
+  assert.equal(liveValidSubmissions[0].displayName, 'Candidate Alpha');
+  assert.equal(liveValidSubmissions[1].displayName, 'Candidate Beta');
+  assert.equal(liveValidSubmissions.some((s) => s.displayName === 'Early Submitter'), false);
+  assert.equal(liveValidSubmissions.some((s) => s.displayName === 'Late Submitter'), false);
+});
+
+test('live leaderboard stops displaying active telemetry when competition status is completed and directs to standings', () => {
+  const completedComp = {
+    id: 'comp_cyber_defense_2026',
+    status: 'completed' as const,
+    endTime: '2026-11-11T18:00:00.000Z',
+  };
+
+  const isLive =
+    completedComp.status === 'live' &&
+    (!completedComp.endTime || new Date(completedComp.endTime).getTime() > Date.now());
+
+  assert.equal(isLive, false);
+
+  // When competition is not live, live leaderboard displays standby and archived results go to /standings
+  const destination = isLive ? '/leaderboard' : `/standings/${completedComp.id}`;
+  assert.equal(destination, '/standings/comp_cyber_defense_2026');
 });
 
 test('when a new competition is hosted, the live leaderboard automatically points to that newly hosted competition as top priority', () => {

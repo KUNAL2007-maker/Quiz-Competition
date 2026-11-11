@@ -64,20 +64,46 @@ export const LeaderboardPage: React.FC = () => {
 
   // Live scoreboard shows telemetry & scores for the currently active live tournament!
   // Past scores from completed tournaments are strictly quarantined to the /standings page.
+  // Requirement: ONLY genuine entries submitted AFTER competition start and BEFORE competition end
+  // are shown. No fake or synthetic entries are added without explicit user directive.
   const liveEntries = useMemo(() => {
     if (!activeLiveCompetition) return [];
+
+    const startMs = activeLiveCompetition.startTime
+      ? new Date(activeLiveCompetition.startTime).getTime()
+      : 0;
+    const endMs = activeLiveCompetition.endTime
+      ? new Date(activeLiveCompetition.endTime).getTime()
+      : Infinity;
 
     const filtered = leaderboard
       .filter((entry) => {
         if (isExcludedLeaderboardEntry(entry)) return false;
+        // Strictly exclude fake or synthetic entries
+        if (entry.participantId.startsWith('live_op_') || entry.participantId.startsWith('sim_')) {
+          return false;
+        }
+
         const entryCompId =
           entry.competitionId ||
           (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');
 
-        return (
+        const matchesComp =
           entryCompId === activeLiveCompetition.id ||
-          entry.participantId.endsWith(`_${activeLiveCompetition.id}`)
-        );
+          entry.participantId.endsWith(`_${activeLiveCompetition.id}`);
+
+        if (!matchesComp) return false;
+
+        // Rule: Only entries submitted after competition start and before competition end
+        if (entry.createdAt) {
+          const entryTime = new Date(entry.createdAt).getTime();
+          if (!Number.isNaN(entryTime)) {
+            if (startMs > 0 && entryTime < startMs) return false;
+            if (Number.isFinite(endMs) && entryTime > endMs) return false;
+          }
+        }
+
+        return true;
       });
 
     // Resilience: If current user has completed this active live competition,
@@ -88,19 +114,24 @@ export const LeaderboardPage: React.FC = () => {
     );
 
     if (userResult && !hasUser && currentUser) {
-      filtered.push({
-        rank: 1,
-        participantId: `${currentUser.uid}_${activeLiveCompetition.id}`,
-        competitionId: activeLiveCompetition.id,
-        createdAt: userResult.completedAt || new Date().toISOString(),
-        displayName: profile.displayName || currentUser.displayName || 'Operator',
-        username: profile.username || undefined,
-        score: Number(userResult.finalScore || 0),
-        completionStatus: 'Completed',
-        accuracyPercent: userResult.accuracyPercent,
-        completionTimeSeconds: userResult.timeTakenSeconds,
-        isCurrentUser: true,
-      });
+      const resultTime = userResult.completedAt ? new Date(userResult.completedAt).getTime() : Date.now();
+      const isValidWindow = (startMs === 0 || resultTime >= startMs) && (endMs === Infinity || resultTime <= endMs);
+
+      if (isValidWindow) {
+        filtered.push({
+          rank: 1,
+          participantId: `${currentUser.uid}_${activeLiveCompetition.id}`,
+          competitionId: activeLiveCompetition.id,
+          createdAt: userResult.completedAt || new Date().toISOString(),
+          displayName: profile.displayName || currentUser.displayName || 'Operator',
+          username: profile.username || undefined,
+          score: Number(userResult.finalScore || 0),
+          completionStatus: 'Completed',
+          accuracyPercent: userResult.accuracyPercent,
+          completionTimeSeconds: userResult.timeTakenSeconds,
+          isCurrentUser: true,
+        });
+      }
     }
 
     return filtered
