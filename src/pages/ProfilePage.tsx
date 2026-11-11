@@ -653,16 +653,36 @@ export const ProfilePage: React.FC = () => {
                     {!(
                       (item.competitionTitle || '').toLowerCase().includes('practice') ||
                       (item.competitionId || '').toLowerCase().includes('practice')
-                    ) && (
-                      <button
-                        type="button"
-                        onClick={() => navigate(item.competitionId ? `/standings/${item.competitionId}` : '/standings')}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8dc63f] hover:underline cursor-pointer"
-                      >
-                        <span>Inspect Final Standing</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
-                    )}
+                    ) && (() => {
+                      const compObj = competitions.find((c) => c.id === item.competitionId);
+                      const isCompEnded = compObj
+                        ? compObj.status === 'completed' ||
+                          (compObj.endTime && new Date(compObj.endTime).getTime() <= Date.now())
+                        : false;
+                      const isLiveComp = compObj ? (compObj.status === 'live' || !isCompEnded) : false;
+
+                      return isLiveComp ? (
+                        <button
+                          type="button"
+                          onClick={() => navigate('/leaderboard')}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8dc63f] hover:underline cursor-pointer"
+                        >
+                          <Trophy className="h-3.5 w-3.5" />
+                          <span>View Live Leaderboard</span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => navigate(item.competitionId ? `/standings/${item.competitionId}` : '/standings')}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8dc63f] hover:underline cursor-pointer"
+                        >
+                          <Trophy className="h-3.5 w-3.5" />
+                          <span>Inspect Final Standing</span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
               ))}
@@ -780,7 +800,7 @@ export const ProfilePage: React.FC = () => {
                               return;
                             }
                             if (isCompletedByUser) {
-                              navigate(`/standings/${comp.id}`);
+                              navigate('/leaderboard');
                               return;
                             }
                             if (isPractice) {
@@ -791,9 +811,10 @@ export const ProfilePage: React.FC = () => {
                           }}
                           className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-[#8dc63f] px-4 h-9 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-sm"
                         >
+                          <Trophy className={isCompletedByUser ? 'h-3.5 w-3.5 mr-0.5' : 'hidden'} />
                           <span>
                             {isCompletedByUser
-                              ? 'Attempt Completed'
+                              ? 'View Live Leaderboard'
                               : !is100PercentComplete
                               ? 'Complete Profile'
                               : 'Enter Quiz Directly'}

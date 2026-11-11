@@ -196,7 +196,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
               className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-md bg-[#1b1b19] border border-[#a4d65e]/40 px-4 h-10 text-xs font-semibold text-[#a4d65e] transition-colors hover:bg-[#a4d65e]/15 hover:border-[#a4d65e] whitespace-nowrap cursor-pointer shadow-sm"
             >
               <Trophy className="h-3.5 w-3.5 text-[#a4d65e]" />
-              <span>View Standings</span>
+              <span>{isLive ? 'View Live Leaderboard' : 'View Final Standings'}</span>
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           ) : isLive ? (

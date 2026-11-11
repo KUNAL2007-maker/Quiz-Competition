@@ -10,15 +10,18 @@ import {
   ShieldAlert,
   RotateCcw,
 } from 'lucide-react';
-import { CompetitionResult, LeaderboardEntry } from '../../types';
+import { CompetitionResult, LeaderboardEntry, Competition } from '../../types';
 import { formatDurationSeconds } from '../../utils/timerLogic';
+import { useAppContext } from '../../context/AppContext';
 
-interface QuizAttemptLockedCardProps {
+export interface QuizAttemptLockedCardProps {
   competitionTitle?: string;
   result?: CompetitionResult | null;
   leaderboardEntry?: LeaderboardEntry | null;
   isAdmin?: boolean;
   onResetAdminSession?: () => void;
+  isLive?: boolean;
+  competition?: Competition | null;
 }
 
 export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
@@ -27,9 +30,20 @@ export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
   leaderboardEntry,
   isAdmin,
   onResetAdminSession,
+  isLive,
+  competition,
 }) => {
   const navigate = useNavigate();
+  const { competitions } = useAppContext();
   const targetCompId = result?.competitionId || leaderboardEntry?.competitionId;
+
+  const matchedComp = competition || competitions.find((c) => c.id === targetCompId);
+  const isCompEnded = matchedComp
+    ? matchedComp.status === 'completed' ||
+      (matchedComp.endTime && new Date(matchedComp.endTime).getTime() <= Date.now())
+    : false;
+  const isCompetitionLive =
+    isLive ?? (matchedComp ? (matchedComp.status === 'live' || !isCompEnded) : false);
 
   const lbScore = leaderboardEntry?.score ?? 0;
   const hasCalibratedLb = lbScore > (result?.finalScore || 0);
@@ -116,14 +130,25 @@ export const QuizAttemptLockedCard: React.FC<QuizAttemptLockedCardProps> = ({
 
         {/* Action Controls */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => navigate(targetCompId ? `/standings/${targetCompId}` : '/standings')}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-2.5 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
-          >
-            <Trophy className="h-4 w-4" />
-            <span>View Final Standings</span>
-          </button>
+          {isCompetitionLive ? (
+            <button
+              type="button"
+              onClick={() => navigate('/leaderboard')}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-2.5 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
+            >
+              <Trophy className="h-4 w-4" />
+              <span>View Live Leaderboard</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate(targetCompId ? `/standings/${targetCompId}` : '/standings')}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-2.5 text-xs font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-lg"
+            >
+              <Trophy className="h-4 w-4" />
+              <span>View Final Standings</span>
+            </button>
+          )}
 
           <button
             type="button"

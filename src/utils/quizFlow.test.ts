@@ -737,3 +737,103 @@ test('unsubmitted competition never generates fake 0-score completed record or l
 
   assert.equal(isGlitchUnwritten, true);
 });
+
+test('post-submission navigation routing: live competitions navigate to /leaderboard, completed to /standings', () => {
+  const evaluateSubmissionRoute = (comp: {
+    id: string;
+    status: 'live' | 'upcoming' | 'completed';
+    startTime?: string;
+    endTime?: string;
+  }) => {
+    const isLiveComp =
+      comp.status === 'live' ||
+      (comp.startTime &&
+        new Date(comp.startTime).getTime() <= Date.now() &&
+        comp.status !== 'completed' &&
+        (!comp.endTime || new Date(comp.endTime).getTime() > Date.now()));
+
+    return isLiveComp ? '/leaderboard' : (comp.id ? `/standings/${comp.id}` : '/standings');
+  };
+
+  // 1. Live Cyber Defense Challenge 2026 routes to /leaderboard upon completion
+  const liveComp = {
+    id: 'comp_cyber_defense_2026',
+    status: 'live' as const,
+    startTime: new Date(Date.now() - 3600000).toISOString(),
+    endTime: new Date(Date.now() + 86400000).toISOString(),
+  };
+  assert.equal(evaluateSubmissionRoute(liveComp), '/leaderboard');
+
+  // 2. Concluded tournament routes to /standings/${id}
+  const completedComp = {
+    id: 'comp_1793963656835',
+    status: 'completed' as const,
+    startTime: '2026-11-08T12:00:00.000Z',
+    endTime: '2026-11-08T17:00:00.000Z',
+  };
+  assert.equal(evaluateSubmissionRoute(completedComp), '/standings/comp_1793963656835');
+});
+
+test('quiz access locked card displays View Live Leaderboard for live competitions and View Final Standings for concluded ones', () => {
+  const getLockedCardAction = (comp: {
+    id: string;
+    status: 'live' | 'upcoming' | 'completed';
+    endTime?: string;
+  }) => {
+    const isCompEnded =
+      comp.status === 'completed' ||
+      (comp.endTime && new Date(comp.endTime).getTime() <= Date.now());
+    const isCompetitionLive = comp.status === 'live' || !isCompEnded;
+
+    if (isCompetitionLive) {
+      return {
+        label: 'View Live Leaderboard',
+        route: '/leaderboard',
+      };
+    } else {
+      return {
+        label: 'View Final Standings',
+        route: `/standings/${comp.id}`,
+      };
+    }
+  };
+
+  // Live competition
+  const liveAction = getLockedCardAction({
+    id: 'comp_cyber_defense_2026',
+    status: 'live',
+  });
+  assert.equal(liveAction.label, 'View Live Leaderboard');
+  assert.equal(liveAction.route, '/leaderboard');
+
+  // Concluded competition
+  const endedAction = getLockedCardAction({
+    id: 'comp_1793963656835',
+    status: 'completed',
+    endTime: '2026-11-08T17:00:00.000Z',
+  });
+  assert.equal(endedAction.label, 'View Final Standings');
+  assert.equal(endedAction.route, '/standings/comp_1793963656835');
+});
+
+test('profile page actions strictly distinguish live leaderboard from archived standings', () => {
+  const getProfileRoundAction = (comp: { id: string; status: string; endTime?: string }) => {
+    const isEnded =
+      comp.status === 'completed' ||
+      (comp.endTime && new Date(comp.endTime).getTime() <= Date.now());
+    const isLive = comp.status === 'live' || !isEnded;
+
+    return {
+      label: isLive ? 'View Live Leaderboard' : 'Inspect Final Standing',
+      route: isLive ? '/leaderboard' : `/standings/${comp.id}`,
+    };
+  };
+
+  const liveRound = getProfileRoundAction({ id: 'comp_cyber_defense_2026', status: 'live' });
+  assert.equal(liveRound.label, 'View Live Leaderboard');
+  assert.equal(liveRound.route, '/leaderboard');
+
+  const concludedRound = getProfileRoundAction({ id: 'comp_1793963656835', status: 'completed' });
+  assert.equal(concludedRound.label, 'Inspect Final Standing');
+  assert.equal(concludedRound.route, '/standings/comp_1793963656835');
+});

@@ -245,8 +245,19 @@ export const CompetitionsPage: React.FC = () => {
 
       // 3. Strictly ONE attempt only: once completed, no second attempt is allowed!
       if (!isPractice && completedCompetitionIds.has(comp.id)) {
-        selectCompetition(comp);
-        navigate('/quiz');
+        const isLive =
+          isAdmin ||
+          comp.status === 'live' ||
+          (comp.startTime &&
+            new Date(comp.startTime).getTime() <= Date.now() &&
+            comp.status !== 'completed');
+
+        if (isLive) {
+          navigate('/leaderboard');
+        } else {
+          selectCompetition(comp);
+          navigate('/quiz');
+        }
         return;
       }
 

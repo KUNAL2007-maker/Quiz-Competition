@@ -463,7 +463,20 @@ export const QuizPage: React.FC = () => {
         });
         setIsQuizActive(false);
       } else {
-        navigate('/profile');
+        // Requirement: Submitting a live competition must immediately route to the Live Leaderboard (/leaderboard).
+        // Only concluded/completed competitions route to /standings.
+        const isLiveComp =
+          activeCompetition?.status === 'live' ||
+          (activeCompetition?.startTime &&
+            new Date(activeCompetition.startTime).getTime() <= Date.now() &&
+            activeCompetition.status !== 'completed' &&
+            (!activeCompetition.endTime || new Date(activeCompetition.endTime).getTime() > Date.now()));
+
+        if (isLiveComp) {
+          navigate('/leaderboard');
+        } else {
+          navigate(activeCompId ? `/standings/${activeCompId}` : '/standings');
+        }
       }
     } catch (err) {
       addToast(
@@ -480,6 +493,8 @@ export const QuizPage: React.FC = () => {
     recordQuestionTime,
     submitQuizSession,
     isPracticeQuiz,
+    activeCompetition,
+    activeCompId,
     navigate,
     addToast,
   ]);
@@ -1242,9 +1257,18 @@ export const QuizPage: React.FC = () => {
 
   // Guard 2.5: Single Attempt Enforcement (Requirement 4)
   if (hasAlreadyAttempted) {
+    const isLiveAttempt =
+      activeCompetition?.status === 'live' ||
+      (activeCompetition?.startTime &&
+        new Date(activeCompetition.startTime).getTime() <= Date.now() &&
+        activeCompetition.status !== 'completed' &&
+        (!activeCompetition.endTime || new Date(activeCompetition.endTime).getTime() > Date.now()));
+
     return (
       <QuizAttemptLockedCard
         competitionTitle={activeCompetition?.title || quizSession.competitionTitle || 'Cybersecurity Quiz Competition'}
+        competition={activeCompetition}
+        isLive={Boolean(isLiveAttempt)}
         result={previousResult}
         leaderboardEntry={previousLeaderboardEntry}
         isAdmin={isAdmin}
