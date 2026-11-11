@@ -168,7 +168,10 @@ export const QuizPage: React.FC = () => {
     if (!currentUser || !activeCompId) return null;
     return (
       leaderboard.find(
-        (l) => l.participantId === `${currentUser.uid}_${activeCompId}`
+        (l) =>
+          l.participantId === `${currentUser.uid}_${activeCompId}` ||
+          ((l as any).ownerId === currentUser.uid && l.competitionId === activeCompId) ||
+          (currentUser.email && l.email && l.email.toLowerCase() === currentUser.email.toLowerCase() && l.competitionId === activeCompId)
       ) || null
     );
   }, [currentUser, activeCompId, leaderboard]);

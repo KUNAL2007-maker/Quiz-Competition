@@ -137,8 +137,11 @@ export const LeaderboardPage: React.FC = () => {
     return filtered
       .map((entry) => {
         const isUser = Boolean(
-          entry.isCurrentUser ||
-          (currentUser && (entry.participantId.startsWith(currentUser.uid) || (entry.email && entry.email === currentUser.email)))
+          currentUser && (
+            (entry as any).ownerId === currentUser.uid ||
+            entry.participantId.startsWith(`${currentUser.uid}_`) ||
+            (currentUser.email && entry.email && entry.email.toLowerCase() === currentUser.email.toLowerCase())
+          )
         );
         return { ...entry, isCurrentUser: isUser };
       })

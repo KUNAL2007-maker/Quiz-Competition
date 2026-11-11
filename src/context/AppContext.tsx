@@ -288,7 +288,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Track Firebase Authentication State
   useEffect(() => {
+    let lastUid: string | null = null;
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const newUid = user ? user.uid : null;
+      if (newUid !== lastUid) {
+        // When switching users or signing out, strictly clear user-scoped state
+        // to prevent history, results, or lockouts leaking across accounts on the same machine
+        setResults([]);
+        setQuizSession(DEFAULT_QUIZ_SESSION);
+        try {
+          if (typeof window !== 'undefined') {
+            window.sessionStorage.removeItem(QUIZ_STORAGE_KEY);
+            window.sessionStorage.removeItem('aegis_quiz_session_v1');
+            window.localStorage.removeItem('nullorigin_user_results');
+            window.localStorage.removeItem('aegis_cipher_user_results');
+          }
+        } catch {}
+      }
+      lastUid = newUid;
       setCurrentUser(user);
       setIsAuthReady(true);
     });
@@ -538,7 +555,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return accDiff;
         });
 
-        setLeaderboard(combinedEntries.map((item, idx) => ({ ...item, rank: idx + 1 })));
+        setLeaderboard(
+          combinedEntries.map((item, idx) => {
+            const isMine = Boolean(
+              currentUser && (
+                (item as any).ownerId === currentUser.uid ||
+                item.participantId.startsWith(`${currentUser.uid}_`) ||
+                (currentUser.email && item.email && item.email.toLowerCase() === currentUser.email.toLowerCase())
+              )
+            );
+            return {
+              ...item,
+              rank: idx + 1,
+              isCurrentUser: isMine,
+            };
+          })
+        );
       },
       (error) => {
         console.warn('Leaderboard stream warning, preserving calibrated standing:', error.message);
@@ -550,6 +582,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Real-time Firestore listener for Operator Profile & Private Results when signed in
   useEffect(() => {
     if (!isAuthReady || !currentUser) {
+      setResults([]);
       return;
     }
 
@@ -678,32 +711,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return true;
         });
 
-        setResults((prev) => {
-          const map = new Map<string, CompetitionResult>();
-          prev.forEach((r) => {
-            const isPractice =
-              (r.competitionName || '').toLowerCase().includes('practice') ||
-              (r.competitionId || '').toLowerCase().includes('practice');
-            if (r.competitionId && !isPractice) map.set(r.competitionId, r);
-          });
-          cleanItems.forEach((r) => {
-            if (r.competitionId) map.set(r.competitionId, r);
-          });
-          const merged = Array.from(map.values());
-          try {
-            if (typeof window !== 'undefined') {
-              window.localStorage.setItem('nullorigin_user_results', JSON.stringify(merged));
-              window.localStorage.setItem('aegis_cipher_user_results', JSON.stringify(merged));
-              if (currentUser) {
-                window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(merged));
-                window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(merged));
-              }
-            }
-          } catch {
-            // Ignore storage write errors
+        // The results stream is scoped to ownerId == currentUser.uid, which is the sole source of truth.
+        // Set cleanItems directly without merging with prev to strictly prevent cross-user result leakage.
+        setResults(cleanItems);
+        try {
+          if (typeof window !== 'undefined' && currentUser) {
+            window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(cleanItems));
+            window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(cleanItems));
+            // Ensure no legacy un-scoped results pollute this or future user sessions on this browser
+            window.localStorage.removeItem('nullorigin_user_results');
+            window.localStorage.removeItem('aegis_cipher_user_results');
           }
-          return merged;
-        });
+        } catch {
+          // Ignore storage write errors
+        }
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, 'results');
@@ -738,6 +759,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await firebaseSignOut(auth);
       setProfile(DEFAULT_PROFILE);
       setResults([]);
+      setQuizSession(DEFAULT_QUIZ_SESSION);
+      try {
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.removeItem(QUIZ_STORAGE_KEY);
+          window.sessionStorage.removeItem('aegis_quiz_session_v1');
+          window.localStorage.removeItem('nullorigin_user_results');
+          window.localStorage.removeItem('aegis_cipher_user_results');
+        }
+      } catch {}
       addToast('Operator Signed Out', 'Disconnected from authenticated session.');
     } catch (err) {
       addToast(
@@ -1198,17 +1228,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const remaining = prev.filter((r) => r.competitionId !== activeCompId);
             const nextList = [newResultItem, ...remaining];
             try {
-              if (typeof window !== 'undefined') {
-                window.localStorage.setItem('nullorigin_user_results', JSON.stringify(nextList));
-                window.localStorage.setItem('aegis_cipher_user_results', JSON.stringify(nextList));
-                if (currentUser) {
-                  window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(nextList));
-                  window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
-                  window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
-                  if (currentUser.email) {
-                    const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
-                    window.localStorage.setItem(`completed_email_${cleanEmail}_${activeCompId}`, 'true');
-                  }
+              if (typeof window !== 'undefined' && currentUser) {
+                window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(nextList));
+                window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
+                window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
+                if (currentUser.email) {
+                  const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+                  window.localStorage.setItem(`completed_email_${cleanEmail}_${activeCompId}`, 'true');
                 }
               }
             } catch {
@@ -1232,6 +1258,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               accuracyPercent: Number(evaluated.accuracyPercent || 0),
               completionTimeSeconds: timeTakenSec,
               isCurrentUser: true,
+              email: currentUser.email || undefined,
+              ownerId: currentUser.uid,
             };
 
             try {
@@ -1346,19 +1374,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const remaining = prev.filter((r) => r.competitionId !== activeCompId);
             const nextList = [disqualifiedResultItem, ...remaining];
             try {
-              if (typeof window !== 'undefined') {
-                window.localStorage.setItem('nullorigin_user_results', JSON.stringify(nextList));
-                window.localStorage.setItem('aegis_cipher_user_results', JSON.stringify(nextList));
-                if (currentUser) {
-                  window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(nextList));
-                  window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
-                  window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
-                  if (currentUser.email) {
-                    const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
-                    window.localStorage.setItem(`completed_email_${cleanEmail}_${activeCompId}`, 'true');
-                  }
-                  window.localStorage.setItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`, reason);
+              if (typeof window !== 'undefined' && currentUser) {
+                window.localStorage.setItem(`nullorigin_user_results_${currentUser.uid}`, JSON.stringify(nextList));
+                window.localStorage.setItem(`aegis_user_results_${currentUser.uid}`, JSON.stringify(nextList));
+                window.localStorage.setItem(`completed_comp_${currentUser.uid}_${activeCompId}`, 'true');
+                if (currentUser.email) {
+                  const cleanEmail = currentUser.email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+                  window.localStorage.setItem(`completed_email_${cleanEmail}_${activeCompId}`, 'true');
                 }
+                window.localStorage.setItem(`nullorigin_disqualified_${currentUser.uid}_${activeCompId}`, reason);
               }
             } catch {}
             return nextList;
@@ -1377,6 +1401,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               accuracyPercent: 0,
               completionTimeSeconds: 86400,
               isCurrentUser: true,
+              email: currentUser.email || undefined,
+              ownerId: currentUser.uid,
             };
             return [...filtered, dqEntry]
               .sort((a, b) => b.score - a.score || (a.completionTimeSeconds ?? 0) - (b.completionTimeSeconds ?? 0))

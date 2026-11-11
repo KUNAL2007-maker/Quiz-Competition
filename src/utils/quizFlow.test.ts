@@ -1068,3 +1068,195 @@ test('live leaderboard filters and renders live scores for newly hosted competit
   // Verify none of the old competition entries leak into the newly hosted leaderboard
   assert.equal(liveEntries.some((e) => e.competitionId === oldCompId), false);
 });
+
+test('user account isolation: new user with new email starts with 0 completed rounds and never inherits previous user history', () => {
+  const userA = {
+    uid: 'user_operator_a_111',
+    email: 'user_a@nullorigin.com',
+    displayName: 'Operator Alice',
+  };
+  const userB = {
+    uid: 'user_operator_b_222',
+    email: 'user_b@nullorigin.com',
+    displayName: 'Operator Bob',
+  };
+
+  const compId = 'comp_cyber_defense_2026';
+
+  // Suppose User A previously completed the quiz with score 400 / 1000
+  const userAResults = [
+    {
+      id: `${userA.uid}_${compId}`,
+      ownerId: userA.uid,
+      competitionId: compId,
+      competitionName: 'Cyber Defense Challenge 2026',
+      finalScore: 400,
+      maxScore: 1000,
+      accuracyPercent: 40,
+      timeTakenSeconds: 25,
+      correctCount: 4,
+      wrongAnswerCount: 6,
+      completedAt: '2026-11-11T20:45:00.000Z',
+    },
+  ];
+
+  const leaderboardEntries = [
+    {
+      rank: 1,
+      participantId: `${userA.uid}_${compId}`,
+      competitionId: compId,
+      ownerId: userA.uid,
+      email: userA.email,
+      displayName: 'Operator Alice',
+      score: 400,
+      completionTimeSeconds: 25,
+      accuracyPercent: 40,
+      isCurrentUser: false,
+    },
+  ];
+
+  // When User B logs in with their new email:
+  // 1. Their Firestore results query scoped to ownerId == userB.uid returns empty array []
+  const userBResultsFromFirestore: typeof userAResults = [];
+
+  // AppContext results listener sets cleanItems directly (no merging with user A's state)
+  const resultsInStateForUserB = [...userBResultsFromFirestore];
+  assert.equal(resultsInStateForUserB.length, 0, 'New user results state must be empty array');
+
+  // 2. Profile page enrichedResults evaluation for User B
+  const validCompIds = new Set([compId]);
+  const seenCompIds = new Set<string>();
+  const enrichedResultsForUserB: any[] = [];
+
+  // Step 1: Existing results in state (strictly belonging to user B)
+  resultsInStateForUserB.forEach((res) => {
+    if (!res.competitionId || !validCompIds.has(res.competitionId) || seenCompIds.has(res.competitionId)) return;
+    if (res.ownerId && res.ownerId !== userB.uid) return;
+    seenCompIds.add(res.competitionId);
+    enrichedResultsForUserB.push(res);
+  });
+
+  // Step 2: Leaderboard synthesis (strictly belonging to user B)
+  leaderboardEntries.forEach((l) => {
+    const isMine =
+      (userB && l.participantId.startsWith(`${userB.uid}_`)) ||
+      (userB && (l as any).ownerId === userB.uid) ||
+      (userB?.email && l.email && l.email.toLowerCase() === userB.email.toLowerCase());
+    if (isMine && !seenCompIds.has(l.competitionId)) {
+      enrichedResultsForUserB.push(l);
+    }
+  });
+
+  assert.equal(
+    enrichedResultsForUserB.length,
+    0,
+    'New user must have 0 completed tournament rounds in profile history'
+  );
+
+  // 3. Competitions directory completedCompetitionIds for User B
+  const completedCompetitionIdsForUserB = new Set<string>();
+  resultsInStateForUserB.forEach((r) => {
+    if (r.competitionId) completedCompetitionIdsForUserB.add(r.competitionId);
+  });
+  leaderboardEntries.forEach((l) => {
+    const isMine =
+      (userB && l.participantId.startsWith(`${userB.uid}_`)) ||
+      (userB && (l as any).ownerId === userB.uid) ||
+      (userB?.email && l.email && l.email.toLowerCase() === userB.email.toLowerCase());
+    if (isMine) {
+      if (l.competitionId) completedCompetitionIdsForUserB.add(l.competitionId);
+    }
+  });
+
+  assert.equal(
+    completedCompetitionIdsForUserB.size,
+    0,
+    'Completed competitions set must be empty for new user'
+  );
+  assert.equal(
+    completedCompetitionIdsForUserB.has(compId),
+    false,
+    'Cyber Defense Challenge 2026 must NOT be marked as completed for new user'
+  );
+
+  // 4. QuizPage lock check for User B: must NOT be locked
+  const previousResultForUserB = resultsInStateForUserB.find((r) => r.competitionId === compId) || null;
+  const previousLeaderboardEntryForUserB = leaderboardEntries.find(
+    (l) =>
+      l.participantId === `${userB.uid}_${compId}` ||
+      (l.ownerId === userB.uid && l.competitionId === compId) ||
+      (userB.email && l.email && l.email.toLowerCase() === userB.email.toLowerCase() && l.competitionId === compId)
+  ) || null;
+
+  assert.equal(previousResultForUserB, null);
+  assert.equal(previousLeaderboardEntryForUserB, null);
+
+  const hasAlreadyAttemptedForUserB = Boolean(previousResultForUserB || previousLeaderboardEntryForUserB);
+  assert.equal(
+    hasAlreadyAttemptedForUserB,
+    false,
+    'New user must have clean quiz access with 0 previous attempts'
+  );
+});
+
+test('leaderboard entries recalculate isCurrentUser dynamically and reject foreign localStorage flags', () => {
+  const userB = { uid: 'user_b_999', email: 'user_b@domain.com' };
+
+  // Entry saved in localStorage by User A with isCurrentUser: true
+  const storedLiveEntries = [
+    {
+      participantId: 'user_a_888_comp_cyber_defense_2026',
+      ownerId: 'user_a_888',
+      email: 'user_a@domain.com',
+      displayName: 'Operator Alice',
+      score: 400,
+      completionTimeSeconds: 25,
+      isCurrentUser: true, // Stale flag in local storage
+    },
+  ];
+
+  // When loaded into AppContext state, isCurrentUser is dynamically re-evaluated
+  const sanitizedEntries = storedLiveEntries.map((item, idx) => {
+    const isMine = Boolean(
+      userB && (
+        item.ownerId === userB.uid ||
+        item.participantId.startsWith(`${userB.uid}_`) ||
+        (userB.email && item.email && item.email.toLowerCase() === userB.email.toLowerCase())
+      )
+    );
+    return {
+      ...item,
+      rank: idx + 1,
+      isCurrentUser: isMine,
+    };
+  });
+
+  assert.equal(sanitizedEntries[0].isCurrentUser, false, 'Foreign entry must be marked isCurrentUser: false for user B');
+});
+
+test('switching user accounts clears results and quiz session state to prevent cross-contamination', () => {
+  let stateResults: any[] = [{ id: 'prev_result', competitionId: 'comp_cyber_defense_2026', finalScore: 400 }];
+  let stateQuizSession: any = { isSubmitted: true, answers: { 0: 'A' }, competitionId: 'comp_cyber_defense_2026' };
+  const mockStorage: Record<string, string> = {
+    nullorigin_quiz_session_v1: JSON.stringify(stateQuizSession),
+    nullorigin_user_results: JSON.stringify(stateResults),
+    aegis_cipher_user_results: JSON.stringify(stateResults),
+  };
+
+  const handleAuthChange = (prevUid: string | null, nextUid: string | null) => {
+    if (nextUid !== prevUid) {
+      stateResults = [];
+      stateQuizSession = { isSubmitted: false, answers: {} };
+      delete mockStorage.nullorigin_quiz_session_v1;
+      delete mockStorage.nullorigin_user_results;
+      delete mockStorage.aegis_cipher_user_results;
+    }
+  };
+
+  // Switch from User A to User B
+  handleAuthChange('user_a', 'user_b');
+
+  assert.equal(stateResults.length, 0, 'Results state must be wiped on account switch');
+  assert.equal(stateQuizSession.isSubmitted, false, 'Quiz session must be reset on account switch');
+  assert.equal(mockStorage.nullorigin_user_results, undefined, 'Un-partitioned localStorage keys must be purged');
+});

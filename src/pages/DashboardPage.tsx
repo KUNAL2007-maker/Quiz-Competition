@@ -28,11 +28,17 @@ export const DashboardPage: React.FC = () => {
   // Completed competition IDs for current user
   const completedCompetitionIds = useMemo(() => {
     const ids = new Set<string>();
+    if (!currentUser) return ids;
+
     results.forEach((r) => {
       if (r.competitionId) ids.add(r.competitionId);
     });
     leaderboard.forEach((l) => {
-      if (l.isCurrentUser) {
+      const isMine =
+        (currentUser && l.participantId.startsWith(`${currentUser.uid}_`)) ||
+        (currentUser && (l as any).ownerId === currentUser.uid) ||
+        (currentUser?.email && l.email && l.email.toLowerCase() === currentUser.email.toLowerCase());
+      if (isMine) {
         if (l.competitionId) ids.add(l.competitionId);
         if (currentUser && l.participantId.startsWith(`${currentUser.uid}_`)) {
           const compId = l.participantId.replace(`${currentUser.uid}_`, '');

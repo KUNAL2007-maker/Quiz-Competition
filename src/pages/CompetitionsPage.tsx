@@ -35,13 +35,19 @@ export const CompetitionsPage: React.FC = () => {
   // Set of competition IDs the current user has already completed (Requirement 4)
   const completedCompetitionIds = useMemo(() => {
     const ids = new Set<string>();
+    if (!currentUser) return ids;
+
     // 1. From results state
     results.forEach((r) => {
       if (r.competitionId) ids.add(r.competitionId);
     });
-    // 2. From leaderboard entries
+    // 2. From leaderboard entries strictly belonging to current user
     leaderboard.forEach((l) => {
-      if (l.isCurrentUser) {
+      const isMine =
+        (currentUser && l.participantId.startsWith(`${currentUser.uid}_`)) ||
+        (currentUser && (l as any).ownerId === currentUser.uid) ||
+        (currentUser?.email && l.email && l.email.toLowerCase() === currentUser.email.toLowerCase());
+      if (isMine) {
         if (l.competitionId) ids.add(l.competitionId);
         if (currentUser && l.participantId.startsWith(`${currentUser.uid}_`)) {
           const compId = l.participantId.replace(`${currentUser.uid}_`, '');

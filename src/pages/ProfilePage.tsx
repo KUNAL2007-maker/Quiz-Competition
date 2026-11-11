@@ -154,6 +154,8 @@ export const ProfilePage: React.FC = () => {
 
   // Find user's standing for completed quizzes, synthesizing local records if Firestore sync is pending
   const enrichedResults = useMemo(() => {
+    if (!currentUser) return [];
+
     const list: Array<{
       id: string;
       competitionId: string;
@@ -171,9 +173,12 @@ export const ProfilePage: React.FC = () => {
     const validCompIds = new Set(competitions.map((c) => c.id));
     const seenCompIds = new Set<string>();
 
-    // 1. Existing results in state
+    // 1. Existing results in state (strictly belonging to current authenticated user)
     results.forEach((res) => {
       if (!res.competitionId || !validCompIds.has(res.competitionId) || seenCompIds.has(res.competitionId)) return;
+      // Strict user boundary check: verify ownerId if available
+      if ((res as any).ownerId && (res as any).ownerId !== currentUser.uid) return;
+
       const matchComp = competitions.find((c) => c.id === res.competitionId);
       // Practice simulations are never recorded in individual participant history
       const isPractice =
@@ -186,7 +191,9 @@ export const ProfilePage: React.FC = () => {
       const matchLeaderboard = leaderboard.find(
         (l) =>
           (l.competitionId === res.competitionId || l.participantId.endsWith(`_${res.competitionId}`)) &&
-          (l.isCurrentUser || (currentUser && l.participantId.startsWith(currentUser.uid)))
+          ((currentUser && l.participantId.startsWith(`${currentUser.uid}_`)) ||
+           (currentUser && (l as any).ownerId === currentUser.uid) ||
+           (currentUser.email && l.email && l.email.toLowerCase() === currentUser.email.toLowerCase()))
       );
 
       const hasCalibratedLb = matchLeaderboard && matchLeaderboard.score > (res.finalScore || 0);
@@ -216,19 +223,20 @@ export const ProfilePage: React.FC = () => {
       });
     });
 
-    // 2. Synthesize from current user's leaderboard records if not in results yet
+    // 2. Synthesize from current user's verified leaderboard records if not in results yet
     leaderboard.forEach((l) => {
       const compId =
         l.competitionId ||
         (currentUser && l.participantId.startsWith(`${currentUser.uid}_`)
           ? l.participantId.replace(`${currentUser.uid}_`, '')
           : '');
+      // Strict identification by UID or exact verified email only:
+      // NEVER match on loose display names or unauthenticated flags!
       const isMine =
-        l.isCurrentUser ||
-        (currentUser && l.participantId.startsWith(currentUser.uid)) ||
-        (profile.username && l.username && l.username.toLowerCase() === profile.username.toLowerCase()) ||
-        (currentUser?.email && l.email && l.email.toLowerCase() === currentUser.email.toLowerCase()) ||
-        (currentUser?.displayName && l.displayName && l.displayName.toLowerCase() === currentUser.displayName.toLowerCase());
+        (currentUser && l.participantId.startsWith(`${currentUser.uid}_`)) ||
+        (currentUser && (l as any).ownerId === currentUser.uid) ||
+        (currentUser?.email && l.email && l.email.toLowerCase() === currentUser.email.toLowerCase());
+
       if (isMine && compId && validCompIds.has(compId) && !seenCompIds.has(compId)) {
         const matchComp = competitions.find((c) => c.id === compId);
         const isPractice =
@@ -256,7 +264,7 @@ export const ProfilePage: React.FC = () => {
     });
 
     return list;
-  }, [results, competitions, leaderboard, currentUser, quizSession]);
+  }, [results, competitions, leaderboard, currentUser]);
 
   // Categorize competitions into Live, Coming Soon, and Completed
   const completedIds = useMemo(
