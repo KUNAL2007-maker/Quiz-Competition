@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   AlertCircle,
   HelpCircle,
+  RotateCcw,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
@@ -22,7 +23,6 @@ export const LoginPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const redirectTarget = searchParams.get('redirect') || '/competitions';
   const queryOobCode = searchParams.get('oobCode') || '';
-  const queryMode = searchParams.get('mode') || '';
 
   const {
     currentUser,
@@ -46,7 +46,7 @@ export const LoginPage: React.FC = () => {
   const [resetSentMessage, setResetSentMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // In-App Password Reset State (for oobCode links and codes)
+  // In-App Password Reset State (when opened via URL oobCode)
   const [resetCode, setResetCode] = useState<string>(queryOobCode);
   const [resetEmail, setResetEmail] = useState<string>('');
   const [isVerifyingCode, setIsVerifyingCode] = useState<boolean>(false);
@@ -54,8 +54,22 @@ export const LoginPage: React.FC = () => {
   const [newPassword, setNewPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [showNewPassword, setShowNewPassword] = useState<boolean>(false);
-  const [showManualCodeBox, setShowManualCodeBox] = useState<boolean>(false);
-  const [manualCodeInput, setManualCodeInput] = useState<string>('');
+
+  // 1-Time OTP Verification & Password Binding State (for Google users switching to manual sign-in)
+  const [isOtpBindingMode, setIsOtpBindingMode] = useState<boolean>(false);
+  const [otpCodeInput, setOtpCodeInput] = useState<string>('');
+  const [pendingOtpEmail, setPendingOtpEmail] = useState<string>('');
+  const [pendingOtpPassword, setPendingOtpPassword] = useState<string>('');
+  const [otpResendCooldown, setOtpResendCooldown] = useState<number>(0);
+
+  // Resend cooldown countdown timer
+  useEffect(() => {
+    if (otpResendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setOtpResendCooldown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [otpResendCooldown]);
 
   // If URL has oobCode, verify it immediately
   useEffect(() => {
@@ -79,33 +93,6 @@ export const LoginPage: React.FC = () => {
       isCancelled = true;
     };
   }, [resetCode, verifyResetCode]);
-
-  const handleExtractManualCode = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const raw = manualCodeInput.trim();
-    if (!raw) return;
-
-    // Check if user pasted a full URL
-    let extractedCode = raw;
-    try {
-      if (raw.includes('oobCode=')) {
-        const urlObj = new URL(raw.startsWith('http') ? raw : `https://${raw}`);
-        const code = urlObj.searchParams.get('oobCode');
-        if (code) {
-          extractedCode = code;
-        }
-      }
-    } catch {
-      // Regex fallback if URL parsing throws
-      const match = raw.match(/oobCode=([^&]+)/);
-      if (match && match[1]) {
-        extractedCode = decodeURIComponent(match[1]);
-      }
-    }
-
-    setResetCode(extractedCode);
-    setShowManualCodeBox(false);
-  };
 
   const handleConfirmReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,6 +135,66 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const handleVerifyOtpAndBind = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    const rawCode = otpCodeInput.trim();
+    if (!rawCode) {
+      setErrorMessage('Please enter the verification code or OTP from your email.');
+      return;
+    }
+
+    // Parse code (whether user pastes code, 6-digit OTP, or full action link)
+    let extractedCode = rawCode;
+    try {
+      if (rawCode.includes('oobCode=')) {
+        const urlObj = new URL(rawCode.startsWith('http') ? rawCode : `https://${rawCode}`);
+        const c = urlObj.searchParams.get('oobCode');
+        if (c) extractedCode = c;
+      }
+    } catch {
+      const match = rawCode.match(/oobCode=([^&]+)/);
+      if (match && match[1]) extractedCode = decodeURIComponent(match[1]);
+    }
+
+    setIsSubmitting(true);
+    try {
+      // 1. Bind the entered password to this user's account using the code
+      const bindRes = await confirmResetPassword(extractedCode, pendingOtpPassword);
+      if (bindRes.success) {
+        // 2. Automatically sign in directly with the newly bound credentials!
+        const loginRes = await signInWithEmail(pendingOtpEmail, pendingOtpPassword);
+        if (loginRes.success) {
+          setIsOtpBindingMode(false);
+          const effectiveTarget =
+            redirectTarget === '/quiz' && !profile.isProfileComplete
+              ? '/profile?required=1'
+              : redirectTarget;
+          navigate(effectiveTarget);
+          return;
+        }
+      } else {
+        setErrorMessage(
+          bindRes.error || 'Invalid or expired code. Please enter the code sent to your email.'
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (otpResendCooldown > 0 || !pendingOtpEmail) return;
+    setErrorMessage('');
+    const res = await sendPasswordReset(pendingOtpEmail);
+    if (res.success) {
+      setOtpResendCooldown(30);
+      setResetSentMessage(`New verification code dispatched to ${pendingOtpEmail}.`);
+    } else {
+      setErrorMessage(res.error || 'Failed to resend code.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -177,12 +224,37 @@ export const LoginPage: React.FC = () => {
         if (res.success) {
           navigate(effectiveTarget);
         } else {
+          // Requirement 2: When new user tries to sign in without an account:
+          if (res.code === 'auth/user-not-found') {
+            setErrorMessage('No account found with this email. Please sign up first, then sign in.');
+            setErrorCode(res.code);
+            return;
+          }
+
+          // Requirement 3: When account was registered with Google, but now user wants manual sign-in:
+          // Directly dispatch an OTP to their email and transition to the OTP binding screen!
+          if (
+            res.code === 'auth/invalid-credential' ||
+            res.code === 'auth/wrong-password'
+          ) {
+            setPendingOtpEmail(cleanEmail);
+            setPendingOtpPassword(password);
+            setErrorMessage('');
+            const otpRes = await sendPasswordReset(cleanEmail);
+            if (otpRes.success) {
+              setIsOtpBindingMode(true);
+              setOtpResendCooldown(30);
+              return;
+            }
+          }
+
           setErrorMessage(res.error || 'Failed to sign in. Please verify your credentials.');
           setErrorCode(res.code);
         }
       } else {
         const res = await signUpWithEmail(cleanEmail, password);
         if (res.success) {
+          // Immediately redirect to profile completion
           navigate('/profile?required=1');
         } else {
           setErrorMessage(res.error || 'Failed to create account. Please try again.');
@@ -203,8 +275,10 @@ export const LoginPage: React.FC = () => {
     setErrorMessage('');
     const res = await sendPasswordReset(cleanEmail);
     if (res.success) {
+      setPendingOtpEmail(cleanEmail);
+      setPendingOtpPassword(password || '');
       setResetSentMessage(
-        `A password link was dispatched to ${cleanEmail}. Check your inbox or spam folder, or click "Enter Reset Link / Code" below once received.`
+        `A verification code was dispatched to ${cleanEmail}. Check your inbox or spam folder.`
       );
     } else {
       setErrorMessage(res.error || 'Unable to send password setup email.');
@@ -230,7 +304,7 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-md py-6 sm:py-12">
-      {/* 1. In-App Branded Password Setup Screen (When resetCode is present) */}
+      {/* 1. URL-Based Password Reset View (When resetCode is present in URL) */}
       {resetCode ? (
         <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-6 sm:p-8 space-y-6 shadow-2xl">
           <div className="text-center space-y-1">
@@ -373,8 +447,109 @@ export const LoginPage: React.FC = () => {
             </form>
           )}
         </div>
+      ) : isOtpBindingMode ? (
+        /* 2. One-Time OTP Verification & Password Binding Screen (Requirement 3) */
+        <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-6 sm:p-8 space-y-6 shadow-2xl">
+          <div className="text-center space-y-1">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[#7ab32e] bg-[#111110] text-[#8dc63f]">
+              <KeyRound className="h-6 w-6" />
+            </div>
+            <h1 className="font-display text-2xl font-bold text-[#f5f5f2]">
+              Verify OTP &amp; Bind Password
+            </h1>
+            <p className="text-xs text-[#a8a8a2]">
+              Enter the verification code dispatched to your email to bind your manual password and sign in.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-[#2e2e2a] bg-[#111110] p-3 space-y-1.5 text-xs">
+            <div className="flex items-center justify-between font-mono">
+              <span className="text-[#a8a8a2]">ACCOUNT:</span>
+              <span className="font-semibold text-[#f5f5f2]">{pendingOtpEmail}</span>
+            </div>
+            <div className="flex items-center justify-between font-mono">
+              <span className="text-[#a8a8a2]">MANUAL PASSWORD:</span>
+              <span className="text-[#8dc63f] font-semibold">•••••••• (Ready to Bind)</span>
+            </div>
+          </div>
+
+          {errorMessage && (
+            <div className="rounded-md border border-[#FF365B]/60 bg-[#FF365B]/10 px-3.5 py-2.5 text-xs text-[#FF365B]">
+              {errorMessage}
+            </div>
+          )}
+
+          {resetSentMessage && (
+            <div className="rounded-md border border-[#8dc63f]/60 bg-[#8dc63f]/10 px-3.5 py-2.5 text-xs text-[#a4d65e] flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-[#8dc63f]" />
+              <span>{resetSentMessage}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleVerifyOtpAndBind} className="space-y-4">
+            <div>
+              <label
+                htmlFor="otp-input"
+                className="block font-mono text-[11px] font-medium text-[#a8a8a2] mb-1.5"
+              >
+                ENTER VERIFICATION CODE / OTP FROM EMAIL
+              </label>
+              <div className="relative">
+                <input
+                  id="otp-input"
+                  type="text"
+                  required
+                  autoFocus
+                  value={otpCodeInput}
+                  onChange={(e) => setOtpCodeInput(e.target.value)}
+                  placeholder="Paste verification code or link"
+                  className="w-full rounded-lg border border-[#2e2e2a] bg-[#111110] py-2.5 px-3.5 text-sm text-[#f5f5f2] placeholder-[#a8a8a2]/50 focus:border-[#7ab32e] focus:outline-none transition-colors font-mono"
+                />
+              </div>
+              <p className="mt-1 text-[11px] text-[#a8a8a2]">
+                Check your inbox or spam folder. You only need to verify this once — next time, you can sign in directly using email &amp; password!
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] py-3 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors disabled:opacity-50 cursor-pointer shadow-md"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span>{isSubmitting ? 'Verifying & Binding...' : 'Verify OTP & Sign In'}</span>
+            </button>
+
+            <div className="flex items-center justify-between pt-2 border-t border-[#2e2e2a] text-xs">
+              <button
+                type="button"
+                disabled={otpResendCooldown > 0}
+                onClick={handleResendOtp}
+                className="inline-flex items-center gap-1 font-mono text-[11px] text-[#8dc63f] hover:underline disabled:opacity-50 cursor-pointer"
+              >
+                <RotateCcw className="h-3 w-3" />
+                <span>
+                  {otpResendCooldown > 0
+                    ? `Resend Code (${otpResendCooldown}s)`
+                    : 'Resend Verification Code'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOtpBindingMode(false);
+                  setErrorMessage('');
+                }}
+                className="font-mono text-[11px] text-[#a8a8a2] hover:text-[#f5f5f2] underline cursor-pointer"
+              >
+                Cancel & Return
+              </button>
+            </div>
+          </form>
+        </div>
       ) : currentUser ? (
-        /* 2. Active Session View if already signed in */
+        /* 3. Active Session View if already signed in */
         <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-6 sm:p-8 space-y-6 shadow-2xl">
           <div className="flex items-center justify-between border-b border-[#2e2e2a] pb-4">
             <div className="flex items-center gap-2">
@@ -454,7 +629,7 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* 3. Main Sign In / Sign Up Card */
+        /* 4. Main Sign In / Sign Up Card */
         <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-6 sm:p-8 space-y-6 shadow-2xl">
           {/* Header */}
           <div className="text-center space-y-1">
@@ -473,82 +648,42 @@ export const LoginPage: React.FC = () => {
 
           {/* Success / Info Message */}
           {resetSentMessage && (
-            <div className="rounded-md border border-[#8dc63f]/60 bg-[#8dc63f]/10 px-3.5 py-3 text-xs text-[#a4d65e] space-y-2">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#8dc63f]" />
-                <span className="font-medium">{resetSentMessage}</span>
-              </div>
-              <div className="border-t border-[#8dc63f]/20 pt-1.5">
-                <button
-                  type="button"
-                  onClick={() => setShowManualCodeBox(true)}
-                  className="font-mono text-[11px] underline text-[#f5f5f2] hover:text-[#a4d65e] cursor-pointer"
-                >
-                  Have the link or code from email? Click here to set password now →
-                </button>
-              </div>
+            <div className="rounded-md border border-[#8dc63f]/60 bg-[#8dc63f]/10 px-3.5 py-3 text-xs text-[#a4d65e] flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-[#8dc63f]" />
+              <span className="font-medium">{resetSentMessage}</span>
             </div>
           )}
 
-          {/* Manual Code / Link Paste Box */}
-          {showManualCodeBox && (
-            <div className="rounded-lg border border-[#8dc63f]/40 bg-[#111110] p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#8dc63f]">
-                  <KeyRound className="h-3.5 w-3.5" />
-                  <span>Enter Reset Link or Code</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowManualCodeBox(false)}
-                  className="font-mono text-[10px] text-[#a8a8a2] hover:text-[#f5f5f2]"
-                >
-                  ✕ Close
-                </button>
+          {/* Requirement 2: Dedicated "Sign Up First" Banner for New Users */}
+          {errorCode === 'auth/user-not-found' && mode === 'signin' ? (
+            <div className="rounded-lg border border-[#8dc63f]/60 bg-[#8dc63f]/10 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-[#f5f5f2]">
+                <UserPlus className="h-4 w-4 text-[#8dc63f]" />
+                <span>No account found with this email.</span>
               </div>
-              <p className="text-[11px] text-[#a8a8a2]">
-                Paste the full reset link from your Gmail inbox or enter the authorization code below:
+              <p className="text-xs text-[#a4d65e] leading-relaxed">
+                Please sign up first to create your competitor account, then you can sign in directly with your email and password!
               </p>
-              <form onSubmit={handleExtractManualCode} className="space-y-2">
-                <input
-                  type="text"
-                  required
-                  value={manualCodeInput}
-                  onChange={(e) => setManualCodeInput(e.target.value)}
-                  placeholder="https://...oobCode=... or code"
-                  className="w-full rounded-md border border-[#2e2e2a] bg-[#1b1b19] py-2 px-3 text-xs text-[#f5f5f2] placeholder-[#a8a8a2]/50 focus:border-[#7ab32e] focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  className="w-full rounded-md bg-[#8dc63f] py-2 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] cursor-pointer"
-                >
-                  Verify Code & Set Password
-                </button>
-              </form>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('signup');
+                  setErrorMessage('');
+                  setErrorCode(undefined);
+                }}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-[#8dc63f] py-2.5 px-4 font-bold text-xs text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer shadow-md"
+              >
+                <UserPlus className="h-4 w-4" />
+                <span>Sign Up First →</span>
+              </button>
             </div>
-          )}
-
-          {/* Error Message with Smart Recovery Actions */}
-          {errorMessage && (
-            <div className="rounded-md border border-[#FF365B]/60 bg-[#FF365B]/10 px-3.5 py-3 text-xs text-[#FF365B] space-y-2.5">
+          ) : errorMessage ? (
+            /* General Error Message */
+            <div className="rounded-md border border-[#FF365B]/60 bg-[#FF365B]/10 px-3.5 py-3 text-xs text-[#FF365B] space-y-2">
               <p className="leading-relaxed">{errorMessage}</p>
 
-              {errorCode === 'auth/user-not-found' && mode === 'signin' && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode('signup');
-                    setErrorMessage('');
-                    setErrorCode(undefined);
-                  }}
-                  className="inline-flex items-center gap-1 font-semibold text-[#8dc63f] underline hover:text-[#a4d65e] cursor-pointer"
-                >
-                  <span>→ Switch to "Create Account" with this email</span>
-                </button>
-              )}
-
               {errorCode === 'auth/email-already-in-use' && mode === 'signup' && (
-                <div className="space-y-1.5 pt-1 border-t border-[#FF365B]/20">
+                <div className="pt-1 border-t border-[#FF365B]/20">
                   <button
                     type="button"
                     onClick={() => {
@@ -562,39 +697,8 @@ export const LoginPage: React.FC = () => {
                   </button>
                 </div>
               )}
-
-              {(errorCode === 'auth/invalid-credential' || errorCode === 'auth/wrong-password') && (
-                <div className="space-y-2 pt-1 border-t border-[#FF365B]/20">
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleForgotPassword}
-                      className="inline-flex items-center justify-center gap-1.5 rounded bg-[#8dc63f] px-3 py-1.5 font-semibold text-xs text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer"
-                    >
-                      <KeyRound className="h-3.5 w-3.5" />
-                      <span>Send Password Setup Link</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleGoogleSignIn}
-                      className="inline-flex items-center justify-center gap-1.5 rounded border border-[#2e2e2a] bg-[#111110] px-3 py-1.5 font-semibold text-xs text-[#f5f5f2] hover:border-[#8dc63f] transition-colors cursor-pointer"
-                    >
-                      <span>Sign In with Google</span>
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => setShowManualCodeBox(true)}
-                      className="text-[11px] text-[#a8a8a2] hover:text-[#f5f5f2] underline cursor-pointer"
-                    >
-                      Have a reset link or code from email? Enter here →
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
-          )}
+          ) : null}
 
           {/* Email / Password Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -632,23 +736,13 @@ export const LoginPage: React.FC = () => {
                   Password
                 </label>
                 {mode === 'signin' && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleForgotPassword}
-                      className="font-mono text-[10px] text-[#8dc63f] hover:underline cursor-pointer"
-                    >
-                      Forgot Password?
-                    </button>
-                    <span className="text-[#2e2e2a]">·</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowManualCodeBox((v) => !v)}
-                      className="font-mono text-[10px] text-[#a8a8a2] hover:text-[#8dc63f] hover:underline cursor-pointer"
-                    >
-                      Enter Code
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="font-mono text-[10px] text-[#8dc63f] hover:underline cursor-pointer"
+                  >
+                    Forgot Password?
+                  </button>
                 )}
               </div>
               <div className="relative">
@@ -739,7 +833,7 @@ export const LoginPage: React.FC = () => {
             <div className="border-t border-[#2e2e2a] w-full" />
           </div>
 
-          {/* Google Login Button */}
+          {/* Google Login Button (Requirement 1: Fast & Direct) */}
           <button
             type="button"
             disabled={isSubmitting}
@@ -767,11 +861,11 @@ export const LoginPage: React.FC = () => {
             <span>Continue with Google</span>
           </button>
 
-          {/* Unrestricted Dual Sign-In Assurance */}
+          {/* Dual Sign-In Assurance */}
           <div className="rounded-lg border border-[#2e2e2a] bg-[#111110] p-3 text-[11px] text-[#a8a8a2] flex items-start gap-2">
             <HelpCircle className="h-4 w-4 shrink-0 text-[#8dc63f] mt-0.5" />
             <p>
-              <strong className="text-[#f5f5f2]">Unrestricted Sign-In:</strong> You can sign in using Google or email and password interchangeably. Once signed in, you can set or change your manual password anytime in your Profile.
+              <strong className="text-[#f5f5f2]">Seamless Access:</strong> You can sign in using Google or email and password interchangeably. If you originally registered with Google, entering your email and password will verify you once with an OTP to bind your password, and from then on you can sign in directly!
             </p>
           </div>
         </div>
