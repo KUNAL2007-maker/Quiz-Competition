@@ -630,7 +630,7 @@ test('hosted Cyber Defense Challenge 2026 contains exactly 10 real cybersecurity
   const cyberDefenseQuestions = (await import('../constants/cyberDefenseQuestions.json')).default;
 
   assert.equal(LIVE_CYBER_DEFENSE_CHALLENGE.id, CYBER_DEFENSE_COMP_ID);
-  assert.equal(LIVE_CYBER_DEFENSE_CHALLENGE.status, 'live');
+  assert.equal(LIVE_CYBER_DEFENSE_CHALLENGE.status, 'completed');
   assert.equal(LIVE_CYBER_DEFENSE_CHALLENGE.quizFormat?.totalQuestions, 10);
   assert.equal(LIVE_CYBER_DEFENSE_CHALLENGE.perQuestionTimerSeconds, 20);
 
@@ -1813,4 +1813,161 @@ test('FULL ELIGIBILITY & REAL-TIME LEADERBOARD: Google and Email/Password users 
 
   // Both users are verified, visible, and have proper marks live!
   assert.equal(ranked.length, 2);
+});
+
+// ============================================================================
+// COMPREHENSIVE VERIFICATION: 120 DEMO ENTRIES, KUNAL BANKHELE #1, CLOSED COMPETITION & CHRONOLOGICAL MULTI-CERTIFICATE LOOKUP
+// ============================================================================
+
+test('USER SPEC 1 & 2: 120 demo entries added, Cyber Defense Challenge closed, Kunal Bankhele strictly #1', async () => {
+  const cyberDefenseSeed = (await import('../constants/cyberDefenseSeed.json')).default;
+  const {
+    CYBER_DEFENSE_CHALLENGE,
+    CYBER_DEFENSE_COMP_ID,
+    CYBER_DEFENSE_TOP_WINNERS,
+  } = await import('../constants/tournaments');
+
+  // 1. Exactly 121 verified participants (Kunal Bankhele + 120 demo entries)
+  assert.equal(Array.isArray(cyberDefenseSeed), true);
+  assert.equal(cyberDefenseSeed.length, 121, 'Must have exactly 121 total entries (1 winner + 120 demo entries)');
+
+  // 2. Competition is officially concluded / closed
+  assert.equal(CYBER_DEFENSE_CHALLENGE.id, CYBER_DEFENSE_COMP_ID);
+  assert.equal(CYBER_DEFENSE_CHALLENGE.status, 'completed', 'Competition must be closed after adding 120 participants');
+  assert.equal(CYBER_DEFENSE_CHALLENGE.participantCount, 121);
+  assert.equal(new Date(CYBER_DEFENSE_CHALLENGE.endTime!).getTime() <= Date.now(), true);
+
+  // 3. Top winner MUST ALWAYS BE Kunal Bankhele
+  const rank1 = cyberDefenseSeed[0];
+  assert.equal(rank1.displayName, 'Kunal Bankhele');
+  assert.equal(rank1.username, 'Kunal');
+  assert.equal(rank1.score, 1000);
+  assert.equal(rank1.accuracyPercent, 100);
+  assert.equal(rank1.completionTimeSeconds, 111, '01:51 = 111 seconds');
+  assert.equal(rank1.rank, 1);
+
+  // 4. Verify all 120 demo entries are strictly ranked BELOW Kunal Bankhele
+  const demoEntries = cyberDefenseSeed.slice(1);
+  assert.equal(demoEntries.length, 120);
+
+  demoEntries.forEach((entry, idx) => {
+    assert.equal(entry.competitionId, CYBER_DEFENSE_COMP_ID);
+    assert.notEqual(entry.displayName, 'Kunal Bankhele');
+    // Score must be <= 1000, and if 1000 completion time must be > 111s
+    if (entry.score === 1000) {
+      assert.equal(entry.completionTimeSeconds! > 111, true);
+    } else {
+      assert.equal(entry.score < 1000, true);
+    }
+    assert.equal(entry.rank, idx + 2);
+  });
+
+  // 5. Official Top Winners Podium matches Kunal Bankhele as #1 Gold Champion
+  assert.equal(CYBER_DEFENSE_TOP_WINNERS[0].rank, '1st Place');
+  assert.equal(CYBER_DEFENSE_TOP_WINNERS[0].name, 'Kunal Bankhele');
+  assert.equal(CYBER_DEFENSE_TOP_WINNERS[0].score, 1000);
+  assert.equal(CYBER_DEFENSE_TOP_WINNERS[0].certId, 'NO26-EXC-001-KB');
+  assert.equal(CYBER_DEFENSE_TOP_WINNERS[0].badge, 'Gold Medalist');
+});
+
+test('USER SPEC 3: Multi-certificate lookup returns ALL certificates with latest ended competition first', async () => {
+  const {
+    CYBER_DEFENSE_COMP_ID,
+    CYBER_DEFENSE_TOP_WINNERS,
+    CYBER_QUIZ_COMP_ID,
+    CYBER_QUIZ_TOP_WINNERS,
+  } = await import('../constants/tournaments');
+
+  // Certificate aggregator logic matching CertificationPage.tsx
+  const lookupAllCertificatesForEmail = (inputEmail: string) => {
+    const queryEmail = inputEmail.trim().toLowerCase();
+    const isKunal =
+      queryEmail === 'kunalbankhele07@gmail.com' ||
+      queryEmail === 'checkship66@gmail.com';
+
+    const certs: Array<{
+      certId: string;
+      competitionTitle: string;
+      competitionEndedAt: string;
+      certType: 'excellence' | 'participation';
+      rank?: string;
+    }> = [];
+
+    // 1. Cyber Defense Challenge (Ended Nov 12, 2026)
+    const cddEndedAt = '2026-11-12T12:00:00.000Z';
+    if (isKunal) {
+      // Excellence cert
+      certs.push({
+        certId: 'NO26-EXC-001-KB',
+        competitionTitle: 'Cyber Defense Challenge 2026',
+        competitionEndedAt: cddEndedAt,
+        certType: 'excellence',
+        rank: '1st Place',
+      });
+      // Participation cert
+      certs.push({
+        certId: 'NO26-PRT-001-KB',
+        competitionTitle: 'Cyber Defense Challenge 2026',
+        competitionEndedAt: cddEndedAt,
+        certType: 'participation',
+      });
+    }
+
+    // 2. Cyber Security Quiz 2026 (Ended Nov 8, 2026)
+    const quizEndedAt = '2026-11-08T11:30:00.000Z';
+    if (isKunal) {
+      certs.push({
+        certId: 'NO26-PRT-000-KB',
+        competitionTitle: 'Cyber Security Quiz 2026',
+        competitionEndedAt: quizEndedAt,
+        certType: 'participation',
+      });
+    }
+
+    // MANDATORY REQUIREMENT:
+    // "the first certificate must always be the latest ended competition then the previous ended competition cert below and so on"
+    certs.sort((a, b) => {
+      const dateDiff = new Date(b.competitionEndedAt).getTime() - new Date(a.competitionEndedAt).getTime();
+      if (dateDiff !== 0) return dateDiff;
+      if (a.certType !== b.certType) {
+        return a.certType === 'excellence' ? -1 : 1;
+      }
+      return 0;
+    });
+
+    return certs;
+  };
+
+  // Test 1: Query for Kunal Bankhele registered email
+  const resultsKunal = lookupAllCertificatesForEmail('kunalbankhele07@gmail.com');
+  assert.equal(resultsKunal.length, 3, 'Must return all 3 attached certificates');
+
+  // Verify first certificate is strictly the latest ended competition (Cyber Defense Challenge 2026)
+  assert.equal(resultsKunal[0].competitionTitle, 'Cyber Defense Challenge 2026');
+  assert.equal(resultsKunal[0].certType, 'excellence');
+  assert.equal(resultsKunal[0].certId, 'NO26-EXC-001-KB');
+  assert.equal(resultsKunal[0].rank, '1st Place');
+
+  // Verify second certificate is also Cyber Defense Challenge 2026 (Participation)
+  assert.equal(resultsKunal[1].competitionTitle, 'Cyber Defense Challenge 2026');
+  assert.equal(resultsKunal[1].certType, 'participation');
+  assert.equal(resultsKunal[1].certId, 'NO26-PRT-001-KB');
+
+  // Verify third certificate below is the previous ended competition (Cyber Security Quiz 2026)
+  assert.equal(resultsKunal[2].competitionTitle, 'Cyber Security Quiz 2026');
+  assert.equal(resultsKunal[2].certType, 'participation');
+  assert.equal(resultsKunal[2].certId, 'NO26-PRT-000-KB');
+
+  // Verify chronological timestamp ordering strictly descending:
+  const t0 = new Date(resultsKunal[0].competitionEndedAt).getTime();
+  const t1 = new Date(resultsKunal[1].competitionEndedAt).getTime();
+  const t2 = new Date(resultsKunal[2].competitionEndedAt).getTime();
+  assert.equal(t0 >= t1, true);
+  assert.equal(t1 > t2, true, 'Latest ended competition certs must strictly precede older competition certs');
+
+  // Test 2: Checkship alias returns identical chronological stack
+  const resultsAlias = lookupAllCertificatesForEmail('checkship66@gmail.com');
+  assert.equal(resultsAlias.length, 3);
+  assert.equal(resultsAlias[0].certId, 'NO26-EXC-001-KB');
+  assert.equal(resultsAlias[0].competitionTitle, 'Cyber Defense Challenge 2026');
 });

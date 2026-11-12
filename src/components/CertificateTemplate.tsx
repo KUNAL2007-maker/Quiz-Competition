@@ -35,7 +35,17 @@ const LEFT_SIGNATURE_PATH =
  * linked anywhere on the site frontend — it only opens when the QR is
  * scanned. No cert ID text and no date appear on the certificate itself.
  */
-export function CertificateTemplate({ name, certId, brandTop = 96 }: { name: string; certId?: string; brandTop?: number }) {
+export function CertificateTemplate({
+  name,
+  certId,
+  eventTitle = 'Cyber Security Quiz 2026',
+  brandTop = 96,
+}: {
+  name: string;
+  certId?: string;
+  eventTitle?: string;
+  brandTop?: number;
+}) {
   const displayName = (name || '').trim() || 'Participant';
   const [fontSize, setFontSize] = useState(72);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -301,7 +311,7 @@ export function CertificateTemplate({ name, certId, brandTop = 96 }: { name: str
             }}
           >
             has actively participated in{' '}
-            <b>Cyber Security Quiz 2026</b>, a national-level cybersecurity
+            <b>{eventTitle}</b>, a national-level cybersecurity
             championship organized by <b>Team Null Origin</b>, and is awarded
             the <b style={{ color: ORANGE }}>Certificate of Participation</b>{' '}
             for their active engagement and commitment throughout the

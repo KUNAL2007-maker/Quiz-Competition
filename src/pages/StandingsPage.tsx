@@ -18,10 +18,14 @@ import { useAppContext } from '../context/AppContext';
 import { formatDurationSeconds } from '../utils/timerLogic';
 import { isExcludedLeaderboardEntry, applyCalibration } from '../utils/leaderboardCalibration';
 import leaderboardSeed from '../constants/leaderboardSeed.json';
+import cyberDefenseSeed from '../constants/cyberDefenseSeed.json';
 import {
   CYBER_QUIZ_COMP_ID,
   CYBER_QUIZ_TOP_WINNERS,
   ARCHIVED_CYBER_QUIZ,
+  CYBER_DEFENSE_COMP_ID,
+  CYBER_DEFENSE_TOP_WINNERS,
+  CYBER_DEFENSE_CHALLENGE,
 } from '../constants/tournaments';
 import { LeaderboardEntry } from '../types';
 
@@ -30,13 +34,16 @@ export const StandingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { leaderboard, competitions } = useAppContext();
 
-  const targetCompId = competitionId || CYBER_QUIZ_COMP_ID;
+  // Default to the latest ended competition (Cyber Defense Challenge 2026)
+  const targetCompId = competitionId || CYBER_DEFENSE_COMP_ID;
+  const isCyberDefense = targetCompId === CYBER_DEFENSE_COMP_ID;
   const isCyberQuiz = targetCompId === CYBER_QUIZ_COMP_ID;
 
   const compObj = useMemo(() => {
+    if (isCyberDefense) return CYBER_DEFENSE_CHALLENGE;
     if (isCyberQuiz) return ARCHIVED_CYBER_QUIZ;
-    return competitions.find((c) => c.id === targetCompId) || ARCHIVED_CYBER_QUIZ;
-  }, [competitions, targetCompId, isCyberQuiz]);
+    return competitions.find((c) => c.id === targetCompId) || CYBER_DEFENSE_CHALLENGE;
+  }, [competitions, targetCompId, isCyberDefense, isCyberQuiz]);
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('overall');
@@ -51,6 +58,16 @@ export const StandingsPage: React.FC = () => {
         (entry.participantId.includes('_') ? entry.participantId.split('_').slice(1).join('_') : '');
       return entryCompId === targetCompId || entry.participantId.endsWith(`_${targetCompId}`);
     });
+
+    // If it's Cyber Defense Challenge 2026, ensure all seed entries are present
+    if (isCyberDefense) {
+      const existingIds = new Set(rawList.map((e) => e.participantId));
+      (cyberDefenseSeed as LeaderboardEntry[]).forEach((seed) => {
+        if (!existingIds.has(seed.participantId) && !isExcludedLeaderboardEntry(seed)) {
+          rawList.push(seed);
+        }
+      });
+    }
 
     // If it's Cyber Quiz 2026, ensure all seed entries are present
     if (isCyberQuiz) {
@@ -80,11 +97,19 @@ export const StandingsPage: React.FC = () => {
     });
 
     // Sort strictly by official tournament criteria:
+    // Constraint: Kunal Bankhele must ALWAYS be #1 in Cyber Defense Challenge 2026
     // 1. Score (higher wins)
     // 2. Completion Time (faster wins tie)
     // 3. CreatedAt (earlier submission wins tie)
     // 4. Accuracy % (higher wins tie)
     filtered.sort((a, b) => {
+      if (isCyberDefense) {
+        const isKunalA = a.displayName === 'Kunal Bankhele' || (a.email && a.email.toLowerCase().includes('kunalbankhele'));
+        const isKunalB = b.displayName === 'Kunal Bankhele' || (b.email && b.email.toLowerCase().includes('kunalbankhele'));
+        if (isKunalA && !isKunalB) return -1;
+        if (!isKunalA && isKunalB) return 1;
+      }
+
       const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
       if (scoreDiff !== 0) return scoreDiff;
 
@@ -120,7 +145,7 @@ export const StandingsPage: React.FC = () => {
               <CheckCircle2 className="h-3.5 w-3.5" /> Official Concluded Tournament Archive
             </span>
             <span className="font-mono text-xs text-[#a8a8a2]">
-              · {isCyberQuiz ? 'November 8, 2026' : 'Archived Results'}
+              · {isCyberDefense ? 'November 12, 2026' : (isCyberQuiz ? 'November 8, 2026' : 'Archived Results')}
             </span>
           </div>
 
@@ -152,6 +177,37 @@ export const StandingsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Tournament Selector Tabs */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#2e2e2a] pb-4">
+        <button
+          type="button"
+          onClick={() => navigate(`/standings/${CYBER_DEFENSE_COMP_ID}`)}
+          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 font-mono text-xs font-bold transition-all cursor-pointer ${
+            isCyberDefense
+              ? 'bg-[#8dc63f] text-[#141a09] shadow-md'
+              : 'border border-[#2e2e2a] bg-[#1b1b19] text-[#a8a8a2] hover:text-[#f5f5f2] hover:border-[#7ab32e]'
+          }`}
+        >
+          <Trophy className="h-3.5 w-3.5" />
+          <span>Cyber Defense Challenge 2026</span>
+          <span className="rounded bg-black/20 px-1.5 py-0.5 text-[10px]">Nov 12 · Latest</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate(`/standings/${CYBER_QUIZ_COMP_ID}`)}
+          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 font-mono text-xs font-bold transition-all cursor-pointer ${
+            isCyberQuiz
+              ? 'bg-[#8dc63f] text-[#141a09] shadow-md'
+              : 'border border-[#2e2e2a] bg-[#1b1b19] text-[#a8a8a2] hover:text-[#f5f5f2] hover:border-[#7ab32e]'
+          }`}
+        >
+          <Trophy className="h-3.5 w-3.5" />
+          <span>Cyber Security Quiz 2026</span>
+          <span className="rounded bg-black/20 px-1.5 py-0.5 text-[10px]">Nov 8 · Concluded</span>
+        </button>
+      </div>
+
       {/* Prominent Certificate Fetch Banner for Competitors */}
       <section className="relative overflow-hidden rounded-xl border border-[#7ab32e]/50 bg-gradient-to-r from-[#171f11] via-[#1b1b19] to-[#171f11] p-6 space-y-4 shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -180,20 +236,20 @@ export const StandingsPage: React.FC = () => {
       </section>
 
       {/* Top 3 Laureates & Podium Showcase */}
-      {isCyberQuiz && (
+      {(isCyberDefense || isCyberQuiz) && (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Trophy className="h-4 w-4 text-[#E6B450]" />
               <h2 className="font-display text-base sm:text-lg font-bold text-[#f5f5f2]">
-                Official Laureates &amp; Podium Winners
+                Official Laureates &amp; Podium Winners ({isCyberDefense ? 'Cyber Defense Challenge 2026' : 'Cyber Security Quiz 2026'})
               </h2>
             </div>
             <span className="font-mono text-xs text-[#a8a8a2]">TOP 3 EXCELLENCE HONORS</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {CYBER_QUIZ_TOP_WINNERS.map((winner, idx) => {
+            {(isCyberDefense ? CYBER_DEFENSE_TOP_WINNERS : CYBER_QUIZ_TOP_WINNERS).map((winner, idx) => {
               const borderStyles = [
                 'border-[#E6B450]/60 bg-gradient-to-b from-[#24211a] to-[#1b1b19]',
                 'border-[#CBD5E0]/60 bg-gradient-to-b from-[#212328] to-[#1b1b19]',

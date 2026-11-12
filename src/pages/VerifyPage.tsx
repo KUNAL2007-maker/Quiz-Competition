@@ -4,7 +4,7 @@ import { ShieldCheck, ShieldAlert, BadgeCheck } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { certRegistry } from '../constants/certRegistry';
-import { CYBER_QUIZ_TOP_WINNERS } from '../constants/tournaments';
+import { CYBER_QUIZ_TOP_WINNERS, CYBER_DEFENSE_TOP_WINNERS } from '../constants/tournaments';
 
 /**
  * Hidden certificate verification page.
@@ -31,6 +31,7 @@ export const VerifyPage: React.FC = () => {
   const [name, setName] = useState('');
   const [certType, setCertType] = useState<'participation' | 'excellence'>('participation');
   const [rank, setRank] = useState('');
+  const [event, setEvent] = useState('Cyber Security Quiz 2026');
 
   useEffect(() => {
     let cancelled = false;
@@ -48,6 +49,7 @@ export const VerifyPage: React.FC = () => {
           setName((data.name || '').trim());
           setCertType(data.certType === 'excellence' ? 'excellence' : 'participation');
           setRank((data.rank || '').trim());
+          setEvent(data.event || (id.includes('KB') || id.includes('CDD') ? 'Cyber Defense Challenge 2026' : 'Cyber Security Quiz 2026'));
           setStatus('verified');
           return;
         }
@@ -56,22 +58,45 @@ export const VerifyPage: React.FC = () => {
       }
       if (cancelled) return;
 
-      // 1. Fallback check for Top 3 Excellence Certificates
+      // 1. Fallback check for Cyber Defense Challenge Top Winners
+      const defWinMatch = CYBER_DEFENSE_TOP_WINNERS.find((w) => w.certId.toUpperCase() === id);
+      if (defWinMatch) {
+        setName(defWinMatch.name);
+        setCertType('excellence');
+        setRank(defWinMatch.rank);
+        setEvent('Cyber Defense Challenge 2026');
+        setStatus('verified');
+        return;
+      }
+
+      // 2. Check for Kunal Bankhele participation cert for Cyber Defense Challenge
+      if (id === 'NO26-PRT-001-KB') {
+        setName('Kunal Bankhele');
+        setCertType('participation');
+        setRank('');
+        setEvent('Cyber Defense Challenge 2026');
+        setStatus('verified');
+        return;
+      }
+
+      // 3. Fallback check for Top 3 Excellence Certificates (Cyber Security Quiz)
       const winMatch = CYBER_QUIZ_TOP_WINNERS.find((w) => w.certId.toUpperCase() === id);
       if (winMatch) {
         setName(winMatch.name);
         setCertType('excellence');
         setRank(winMatch.rank);
+        setEvent('Cyber Security Quiz 2026');
         setStatus('verified');
         return;
       }
 
-      // 2. Fallback check for Participant Certificates in certified registry
+      // 4. Fallback check for Participant Certificates in certified registry
       const regMatch = Object.values(certRegistry).find((entry) => entry.id.toUpperCase() === id);
       if (regMatch) {
         setName(regMatch.name);
         setCertType('participation');
         setRank('');
+        setEvent('Cyber Security Quiz 2026');
         setStatus('verified');
         return;
       }
@@ -152,7 +177,7 @@ export const VerifyPage: React.FC = () => {
               </div>
               <div>
                 <dt style={{ fontSize: 12, color: '#a8a8a2', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Event</dt>
-                <dd style={{ margin: '2px 0 0' }}>Cyber Security Quiz 2026 — {isExcellence ? 'Certificate of Excellence' : 'Certificate of Participation'}</dd>
+                <dd style={{ margin: '2px 0 0' }}>{event} — {isExcellence ? 'Certificate of Excellence' : 'Certificate of Participation'}</dd>
               </div>
               {isExcellence && rank && (
                 <div>
@@ -171,7 +196,7 @@ export const VerifyPage: React.FC = () => {
             </dl>
             <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '20px 0 0', fontSize: 13, color: '#a8a8a2' }}>
               <BadgeCheck style={{ width: 16, height: 16, color: '#8dc63f' }} />
-              This certificate was issued to {isExcellence ? `the ${rank || ''} winner` : 'a participant'} of Cyber Security Quiz 2026.
+              This certificate was issued to {isExcellence ? `the ${rank || ''} winner` : 'a participant'} of {event}.
             </p>
           </div>
         ) : (

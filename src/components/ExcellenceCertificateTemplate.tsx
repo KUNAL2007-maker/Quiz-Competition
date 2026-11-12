@@ -34,7 +34,19 @@ const LEFT_SIGNATURE_PATH =
  * (NO26-EXC-###-XX). The verify page reads the `certificates` doc and
  * shows Certificate of Excellence + rank for these ids.
  */
-export function ExcellenceCertificateTemplate({ name, certId, rank, brandTop = 96 }: { name: string; certId?: string; rank: string; brandTop?: number }) {
+export function ExcellenceCertificateTemplate({
+  name,
+  certId,
+  rank,
+  eventTitle = 'Cyber Security Quiz 2026',
+  brandTop = 96,
+}: {
+  name: string;
+  certId?: string;
+  rank: string;
+  eventTitle?: string;
+  brandTop?: number;
+}) {
   const displayName = (name || '').trim() || 'Participant';
   const [fontSize, setFontSize] = useState(72);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -325,7 +337,7 @@ export function ExcellenceCertificateTemplate({ name, certId, rank, brandTop = 9
             }}
           >
             has secured <b>{rank}</b> in{' '}
-            <b>Cyber Security Quiz 2026</b>, a national-level cybersecurity
+            <b>{eventTitle}</b>, a national-level cybersecurity
             championship organized by <b>Team Null Origin</b>, and is awarded
             the <b style={{ color: ORANGE }}>Certificate of Excellence</b>{' '}
             for their outstanding performance and excellence throughout the

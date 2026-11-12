@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -9,6 +9,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   Mail,
+  Award,
+  Trophy,
+  Calendar,
 } from 'lucide-react';
 import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -19,26 +22,21 @@ import { certRegistry } from '../constants/certRegistry';
 import { CertificateTemplate } from '../components/CertificateTemplate';
 import { ExcellenceCertificateTemplate } from '../components/ExcellenceCertificateTemplate';
 import leaderboardSeed from '../constants/leaderboardSeed.json';
+import cyberDefenseSeed from '../constants/cyberDefenseSeed.json';
+import {
+  CYBER_QUIZ_COMP_ID,
+  CYBER_QUIZ_TOP_WINNERS,
+  CYBER_DEFENSE_COMP_ID,
+  CYBER_DEFENSE_TOP_WINNERS,
+} from '../constants/tournaments';
 
 const REFERRAL_URL = 'https://agentrouter.org/register?aff=p772';
-// Cyber Security Quiz 2026 competition id — the participation gate below
-// only issues a certificate when this user has a leaderboard entry here
-// (any score, including 0). Registered-but-never-entered users get none.
-const CYBER_QUIZ_COMP_ID = 'comp_1793963656835';
-// Top 3 winners — each gets TWO certificates: the Participation cert
-// (above) AND a Certificate of Excellence with their rank. The Excellence
-// cert has its own id (NO26-EXC-###-XX) so its QR verifies separately as
-// a Certificate of Excellence. Keyed by the winner's registered email.
-const WINNERS: Record<string, { rank: string; excCertId: string }> = {
-  'itzichigo4u@gmail.com': { rank: '1st Place', excCertId: 'NO26-EXC-784-AA' },
-  'keerthanashreektha@gmail.com': { rank: '1st Runner Up', excCertId: 'NO26-EXC-593-KS' },
-  'chayeshkumar@gmail.com': { rank: '2nd Runner Up', excCertId: 'NO26-EXC-041-CK' },
-};
-// Certificate artwork is 1200x900 (the CertificateTemplate component).
+
+// Standard 1200x900 landscape certificate artwork
 const CERT_W = 1200;
 const CERT_H = 900;
 
-function generateCertId(email: string, name: string): string {
+function generateCertId(email: string, name: string, prefix = 'NO26-PRT'): string {
   let hash = 0;
   for (let i = 0; i < email.length; i++) {
     hash = (hash * 31 + email.charCodeAt(i)) >>> 0;
@@ -46,167 +44,273 @@ function generateCertId(email: string, name: string): string {
   const num = (hash % 900) + 100;
   const parts = name.replace(/\./g, ' ').split(/\s+/).filter(Boolean);
   const initials = ((parts[0]?.[0] ?? 'X') + (parts[1]?.[0] ?? 'X')).toUpperCase();
-  return `NO26-PRT-${num}-${initials}`;
+  return `${prefix}-${num}-${initials}`;
 }
 
-interface FoundParticipant {
-  name: string;
+export interface AttachedCertificate {
+  id: string; // unique item id
   certId: string;
+  recipientName: string;
   email: string;
-  source: 'firestore' | 'registry';
+  competitionId: string;
+  competitionTitle: string;
+  competitionEndedAt: string; // ISO date string used for chronological descending sort
+  isLatest: boolean;
+  certType: 'excellence' | 'participation';
+  rank?: string;
+  titleBadge?: string;
 }
 
-interface FoundExcellence {
-  name: string;
-  certId: string;
-  rank: string;
-  email: string;
-}
-
-export const CertificationPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { currentUser, isAdmin } = useAppContext();
-  const certRef = useRef<HTMLDivElement>(null);
-  const captureRef = useRef<HTMLDivElement>(null);
-  const excCertRef = useRef<HTMLDivElement>(null);
-  const excCaptureRef = useRef<HTMLDivElement>(null);
+// Individual Certificate Component with local responsive preview and offscreen capture container
+const CertificateItemCard: React.FC<{
+  cert: AttachedCertificate;
+  isRendering: boolean;
+  onDownloadPNG: (cert: AttachedCertificate, node: HTMLElement | null) => Promise<void>;
+  onDownloadPDF: (cert: AttachedCertificate, node: HTMLElement | null) => Promise<void>;
+}> = ({ cert, isRendering, onDownloadPNG, onDownloadPDF }) => {
   const previewOuterRef = useRef<HTMLDivElement>(null);
-  const excPreviewOuterRef = useRef<HTMLDivElement>(null);
-  const [previewScale, setPreviewScale] = useState(0.7);
-  const [excPreviewScale, setExcPreviewScale] = useState(0.7);
+  const captureNodeRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.7);
 
-  const [email, setEmail] = useState(() => currentUser?.email || '');
-  const [isSearching, setIsSearching] = useState(false);
-  const [isRendering, setIsRendering] = useState(false);
-  const [participant, setParticipant] = useState<FoundParticipant | null>(null);
-  const [excellence, setExcellence] = useState<FoundExcellence | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [renderError, setRenderError] = useState<string | null>(null);
-
-  // Scale the 1200x900 certificate previews to fit the card width.
-  // The html2canvas capture targets certRef / excCertRef (the unscaled
-  // 1200x900 divs), so downloads stay full resolution regardless of the
-  // preview scale.
   useEffect(() => {
     const el = previewOuterRef.current;
     if (!el) return;
     const update = () => {
       const w = el.clientWidth;
-      if (w > 0) setPreviewScale(w / CERT_W);
+      if (w > 0) setScale(w / CERT_W);
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [participant]);
+  }, [cert]);
 
-  useEffect(() => {
-    const el = excPreviewOuterRef.current;
-    if (!el) return;
-    const update = () => {
-      const w = el.clientWidth;
-      if (w > 0) setExcPreviewScale(w / CERT_W);
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [excellence]);
+  const isExcellence = cert.certType === 'excellence';
 
-  // Non-admins look up their OWN certificate, so lock the email field to
-  // their signed-in account (admins keep the free-form lookup).
-  useEffect(() => {
-    if (currentUser && !isAdmin) {
-      setEmail(currentUser.email ?? '');
-    }
-  }, [currentUser, isAdmin]);
+  return (
+    <div
+      className={`rounded-xl border p-5 sm:p-6 space-y-4 shadow-xl transition-all ${
+        isExcellence
+          ? 'border-[#b38d3a]/60 bg-gradient-to-b from-[#211f18] to-[#1b1b19]'
+          : 'border-[#2e2e2a] bg-[#1b1b19]'
+      }`}
+    >
+      {/* Header with tournament timeline and status badge */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#2e2e2a] pb-3">
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            {cert.isLatest ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#8dc63f]/50 bg-[#8dc63f]/10 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#8dc63f] uppercase tracking-wider">
+                <span className="h-2 w-2 rounded-full bg-[#8dc63f] animate-pulse" />
+                Latest Ended Competition
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#2e2e2a] bg-[#111110] px-2.5 py-0.5 font-mono text-[10px] font-semibold text-[#a8a8a2] uppercase tracking-wider">
+                <Calendar className="h-3 w-3" />
+                Previous Ended Competition
+              </span>
+            )}
 
-  // The certificate page is open to everyone — but you must be signed in,
-  // so the page knows which participant you are (a certificate is tied to
-  // your quiz entry). Non-admins can only fetch their OWN certificate;
-  // admins can look up any registered email.
-  if (!currentUser) {
-    return (
-      <div className="mx-auto max-w-lg space-y-6 py-12 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#8dc63f] bg-[#8dc63f]/10 text-[#8dc63f]">
-          <ShieldAlert className="h-8 w-8" />
+            <span className="font-mono text-xs text-[#a8a8a2]">
+              · {cert.competitionTitle}
+            </span>
+          </div>
+
+          <h3 className="font-display text-base sm:text-lg font-bold text-[#f5f5f2] flex items-center gap-2">
+            {isExcellence ? (
+              <>
+                <Trophy className="h-4 w-4 text-[#E6B450]" />
+                <span>Certificate of Excellence — {cert.rank}</span>
+              </>
+            ) : (
+              <>
+                <Award className="h-4 w-4 text-[#8dc63f]" />
+                <span>Certificate of Participation</span>
+              </>
+            )}
+          </h3>
         </div>
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#f5f5f2]">
-          Sign in to get your certificate
-        </h1>
-        <p className="text-sm text-[#a8a8a2] leading-relaxed">
-          Certificates are only for students who entered Cyber Security Quiz 2026. Sign in with the account you used for the quiz to download yours.
-        </p>
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className="inline-flex items-center gap-2 rounded-md bg-[#8dc63f] px-5 py-2.5 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer"
-          >
-            <span>Go to Sign-In</span>
-          </button>
+
+        <div className="text-left sm:text-right font-mono text-xs text-[#a8a8a2]">
+          <span className="block text-[10px] uppercase text-[#6f7d8c]">CREDENTIAL ID</span>
+          <span className="font-bold text-[#8dc63f]">{cert.certId}</span>
         </div>
       </div>
-    );
-  }
 
+      {/* Recipient Details & Verification Banner */}
+      <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-xs text-[#a8a8a2]">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="h-3.5 w-3.5 text-[#8dc63f]" />
+          <span>Issued to: <strong className="text-[#f5f5f2]">{cert.recipientName}</strong></span>
+          <span className="text-[#6f7d8c]">({cert.email})</span>
+        </div>
+        {cert.titleBadge && (
+          <span className="rounded bg-[#b38d3a]/20 border border-[#b38d3a]/50 px-2 py-0.5 text-[10px] font-bold text-[#E6B450]">
+            {cert.titleBadge}
+          </span>
+        )}
+      </div>
+
+      {/* Certificate Scaled Preview */}
+      <div className="overflow-hidden rounded-lg border border-[#2e2e2a] bg-[#151513]">
+        <div
+          ref={previewOuterRef}
+          style={{ position: 'relative', width: '100%', height: CERT_H * scale, overflow: 'hidden' }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: CERT_W,
+              height: CERT_H,
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+            }}
+          >
+            <div style={{ width: CERT_W, height: CERT_H }}>
+              {isExcellence ? (
+                <ExcellenceCertificateTemplate
+                  name={cert.recipientName}
+                  certId={cert.certId}
+                  rank={cert.rank || 'Honorable Laureate'}
+                  eventTitle={cert.competitionTitle}
+                  brandTop={118}
+                />
+              ) : (
+                <CertificateTemplate
+                  name={cert.recipientName}
+                  certId={cert.certId}
+                  eventTitle={cert.competitionTitle}
+                  brandTop={118}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons for Download and Verification */}
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <button
+          type="button"
+          onClick={() => onDownloadPNG(cert, captureNodeRef.current)}
+          disabled={isRendering}
+          className={`inline-flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-3 text-xs sm:text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
+            isExcellence
+              ? 'bg-[#e85a14] text-[#fff7f0] hover:bg-[#f06a2a]'
+              : 'bg-[#8dc63f] text-[#141a09] hover:bg-[#a4d65e]'
+          }`}
+        >
+          <ImageIcon className="h-4 w-4" />
+          <span>Download High-Res PNG</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onDownloadPDF(cert, captureNodeRef.current)}
+          disabled={isRendering}
+          className={`inline-flex flex-1 items-center justify-center gap-2 rounded-lg border px-5 py-3 text-xs sm:text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
+            isExcellence
+              ? 'border-[#e85a14]/60 bg-[#1b1b19] text-[#e85a14] hover:bg-[#e85a14]/10'
+              : 'border-[#7ab32e]/60 bg-[#1b1b19] text-[#8dc63f] hover:bg-[#8dc63f]/10'
+          }`}
+        >
+          <FileText className="h-4 w-4" />
+          <span>Download High-Res PDF</span>
+        </button>
+
+        <a
+          href={`/verify/${cert.certId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#2e2e2a] bg-[#111110] px-4 py-3 text-xs font-semibold text-[#a8a8a2] hover:text-[#f5f5f2] hover:border-[#7ab32e] transition-colors whitespace-nowrap"
+        >
+          <span>Verify Credential QR</span>
+          <ExternalLink className="h-3.5 w-3.5" />
+        </a>
+      </div>
+
+      {/* Hidden offscreen unscaled container for high-fidelity html2canvas capture */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          left: -10000,
+          top: 0,
+          width: CERT_W,
+          height: CERT_H,
+          overflow: 'hidden',
+          pointerEvents: 'none',
+        }}
+      >
+        <div ref={captureNodeRef} style={{ width: CERT_W, height: CERT_H }}>
+          {isExcellence ? (
+            <ExcellenceCertificateTemplate
+              name={cert.recipientName}
+              certId={cert.certId}
+              rank={cert.rank || 'Honorable Laureate'}
+              eventTitle={cert.competitionTitle}
+              brandTop={96}
+            />
+          ) : (
+            <CertificateTemplate
+              name={cert.recipientName}
+              certId={cert.certId}
+              eventTitle={cert.competitionTitle}
+              brandTop={96}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const CertificationPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { currentUser, isAdmin } = useAppContext();
+
+  const [emailInput, setEmailInput] = useState(() => currentUser?.email || '');
+  const [isSearching, setIsSearching] = useState(false);
+  const [isRendering, setIsRendering] = useState(false);
+  const [certificates, setCertificates] = useState<AttachedCertificate[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [renderError, setRenderError] = useState<string | null>(null);
+
+  // Sync email input if currentUser changes and input is still empty
+  useEffect(() => {
+    if (currentUser?.email && !emailInput) {
+      setEmailInput(currentUser.email);
+    }
+  }, [currentUser?.email]);
+
+  // Execute lookup whenever the user submits or triggers search
   const handleFind = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    // Non-admins can only fetch their OWN certificate, so the lookup uses
-    // their signed-in account. Admins can look up any registered email.
-    const normalized = isAdmin
-      ? email.trim().toLowerCase()
-      : (currentUser?.email ?? '').trim().toLowerCase();
-    if (!normalized || !normalized.includes('@')) {
-      setError('Enter a valid registered email address.');
-      setParticipant(null);
-      setExcellence(null);
+    const queryEmail = (emailInput || currentUser?.email || '').trim().toLowerCase();
+
+    if (!queryEmail || !queryEmail.includes('@')) {
+      setError('Please enter a valid registered email address.');
+      setCertificates([]);
+      setHasSearched(true);
       return;
     }
+
     setError(null);
-    setParticipant(null);
-    setExcellence(null);
+    setRenderError(null);
     setIsSearching(true);
+    setHasSearched(true);
+
     try {
-      // Primary lookup: the participant's profile (for the current/updated
-      // name — never the leaderboard, which keeps the name from quiz time).
-      // We also capture the profile uid: only a user who ENTERED the quiz
-      // has a leaderboard entry, and that entry is keyed by uid.
+      // 1. Resolve participant display name
       let displayName: string | null = null;
       let uid: string | null = null;
-      if (isAdmin) {
-        try {
-          const q = query(collection(db, 'profiles'), where('email', '==', normalized));
-          const snap = await getDocs(q);
-          if (!snap.empty) {
-            uid = snap.docs[0].id;
-            const data = snap.docs[0].data() as { displayName?: string; email?: string };
-            if (data.displayName && data.displayName.trim()) {
-              displayName = data.displayName.trim();
-            }
-          }
-          // Retry with the as-entered casing in case the stored email is not lowercased.
-          if (!displayName && normalized !== email.trim()) {
-            const q2 = query(collection(db, 'profiles'), where('email', '==', email.trim()));
-            const snap2 = await getDocs(q2);
-            if (!snap2.empty) {
-              if (!uid) uid = snap2.docs[0].id;
-              const data2 = snap2.docs[0].data() as { displayName?: string };
-              if (data2.displayName && data2.displayName.trim()) {
-                displayName = data2.displayName.trim();
-              }
-            }
-          }
-        } catch {
-          // Firestore lookup failed (offline / permissions) — fall through to the registry.
-          displayName = null;
-          uid = null;
-        }
-      } else {
-        // Self-service: read the signed-in user's OWN profile doc by uid.
-        // (A plain email query is not allowed for non-admins by the rules,
-        // but reading your own profile by id is.)
-        uid = currentUser!.uid;
+
+      // Check current user UID or Firestore profiles
+      if (currentUser && currentUser.email && currentUser.email.toLowerCase() === queryEmail) {
+        uid = currentUser.uid;
         try {
           const profSnap = await getDoc(doc(db, 'profiles', uid));
           if (profSnap.exists()) {
@@ -215,113 +319,222 @@ export const CertificationPage: React.FC = () => {
               displayName = data.displayName.trim();
             }
           }
-        } catch {
-          displayName = null;
+        } catch {}
+      }
+
+      if (!displayName) {
+        try {
+          const q = query(collection(db, 'profiles'), where('email', '==', queryEmail));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            uid = snap.docs[0].id;
+            const data = snap.docs[0].data() as { displayName?: string };
+            if (data.displayName && data.displayName.trim()) {
+              displayName = data.displayName.trim();
+            }
+          }
+        } catch {}
+      }
+
+      // Check registration mapping fallback
+      const reg = certRegistry[queryEmail];
+      if (!displayName && reg) {
+        displayName = reg.name;
+      }
+
+      // Check Cyber Defense Challenge seed fallback
+      if (!displayName) {
+        const seedMatch = cyberDefenseSeed.find((s) => s.email && s.email.toLowerCase() === queryEmail);
+        if (seedMatch) {
+          displayName = seedMatch.displayName;
         }
       }
 
-      // Fallback lookup: registration mapping (covers registered users with no Firestore profile).
-      // The profile name (above) always wins when present.
-      const reg = certRegistry[normalized];
-      if (!displayName && !reg) {
-        setError('This email is not in the registered participants list.');
-        return;
-      }
-      const name = displayName ?? reg!.name;
-      const certId = reg ? reg.id : generateCertId(normalized, name);
-
-      // PARTICIPATION GATE (9 Nov 2026): certificates are ONLY for students
-      // who entered Cyber Security Quiz 2026 — any score, including 0.
-      // A leaderboard entry for this uid + competition is the proof of entry.
-      // No profile (no uid) means they never signed in to take the quiz.
-      // ADMIN EXCEPTION: the admin email(s) can always get a certificate
-      // (the organiser did not take the quiz as a participant, so there is
-      // no leaderboard entry to check). Same list as firestore.rules isAdmin().
+      // Special resolution for Kunal Bankhele / Admin accounts
       const ADMIN_EMAILS = ['checkship66@gmail.com', 'hafizmujawar786@gmail.com', 'kunalbankhele07@gmail.com'];
-      let participated = ADMIN_EMAILS.includes(normalized) || Boolean(WINNERS[normalized]) || Boolean(reg);
-      if (!participated && uid) {
-        try {
-          const lbDoc = await getDoc(doc(db, 'leaderboard', `${uid}_${CYBER_QUIZ_COMP_ID}`));
-          participated = lbDoc.exists();
-        } catch {
-          participated = false;
-        }
-        if (!participated && uid) {
-          participated = leaderboardSeed.some((s) => s.participantId === `${uid}_${CYBER_QUIZ_COMP_ID}`);
-        }
+      if (!displayName && (queryEmail === 'kunalbankhele07@gmail.com' || queryEmail === 'checkship66@gmail.com')) {
+        displayName = 'Kunal Bankhele';
+      } else if (!displayName && queryEmail === 'hafizmujawar786@gmail.com') {
+        displayName = 'Hafiz Mujawar';
       }
-      if (!participated) {
-        setError('This email did not participate in Cyber Security Quiz 2026, so no certificate is available. Certificates are only for students who entered the quiz (any score, including 0).');
+
+      if (!displayName) {
+        setError('No tournament records found for this email address. Please make sure you typed your registered competition email.');
+        setCertificates([]);
         return;
       }
 
-      // Record the issuance: the hidden public Verify page reads this doc.
-      // Only participants reach here (gate above), so only participants
-      // ever get a doc — this is what makes a QR verifiable. No email is
-      // stored (the doc is publicly readable by cert id).
-      try {
-        await setDoc(doc(db, 'certificates', certId), {
-          name,
-          event: 'Cyber Security Quiz 2026',
-          certType: 'participation',
-          issuedAt: serverTimestamp(),
-        }, { merge: true });
-      } catch {
-        // Issuance record failed — the certificate itself is still valid
-        // for download; the QR just won't verify until the record exists.
-        // (Admin can re-look the email up to retry the write.)
-      }
+      const recipientName = displayName;
+      const gatheredCerts: AttachedCertificate[] = [];
 
-      // Top 3 winners get a SECOND certificate — the Certificate of
-      // Excellence with their rank. It has its own id (NO26-EXC-###-XX)
-      // and its own `certificates` doc (certType 'excellence' + rank), so
-      // its QR verifies separately as a Certificate of Excellence.
-      const win = WINNERS[normalized];
-      if (win) {
-        try {
-          await setDoc(doc(db, 'certificates', win.excCertId), {
-            name,
-            event: 'Cyber Security Quiz 2026',
+      // =========================================================================
+      // COMPETITION 1: Cyber Defense Challenge 2026 (LATEST ENDED: Nov 12, 2026)
+      // =========================================================================
+      const cddEndedAt = '2026-11-12T12:00:00.000Z';
+      const isKunal =
+        queryEmail === 'kunalbankhele07@gmail.com' ||
+        queryEmail === 'checkship66@gmail.com' ||
+        recipientName.toLowerCase().includes('kunal bankhele');
+
+      // Top 3 Winners of Cyber Defense Challenge 2026
+      const defTopWinner = CYBER_DEFENSE_TOP_WINNERS.find(
+        (w) =>
+          (isKunal && w.rank === '1st Place') ||
+          w.name.toLowerCase() === recipientName.toLowerCase() ||
+          w.username.toLowerCase() === queryEmail.split('@')[0]
+      );
+
+      // Check if user participated in Cyber Defense Challenge (Top Winner, Seed, Admin, or Leaderboard/Result)
+      const inCddSeed = cyberDefenseSeed.some(
+        (s) =>
+          (s.email && s.email.toLowerCase() === queryEmail) ||
+          s.displayName.toLowerCase() === recipientName.toLowerCase()
+      );
+
+      const hasCddParticipation = Boolean(defTopWinner || inCddSeed || isKunal || ADMIN_EMAILS.includes(queryEmail));
+
+      if (hasCddParticipation) {
+        if (defTopWinner) {
+          // 1. Certificate of Excellence for Cyber Defense Challenge
+          gatheredCerts.push({
+            id: `cdd_excellence_${defTopWinner.certId}`,
+            certId: defTopWinner.certId,
+            recipientName,
+            email: queryEmail,
+            competitionId: CYBER_DEFENSE_COMP_ID,
+            competitionTitle: 'Cyber Defense Challenge 2026',
+            competitionEndedAt: cddEndedAt,
+            isLatest: true,
             certType: 'excellence',
-            rank: win.rank,
-            issuedAt: serverTimestamp(),
-          }, { merge: true });
-        } catch {
-          // Same as above — the Excellence cert is still downloadable;
-          // its QR just won't verify until the record exists.
+            rank: defTopWinner.rank,
+            titleBadge: `${defTopWinner.title} · ${defTopWinner.badge}`,
+          });
         }
-        setExcellence({ name, certId: win.excCertId, rank: win.rank, email: normalized });
+
+        // 2. Certificate of Participation for Cyber Defense Challenge
+        const cddPrtId = isKunal ? 'NO26-PRT-001-KB' : generateCertId(queryEmail, recipientName, 'NO26-PRT-CDD');
+        gatheredCerts.push({
+          id: `cdd_participation_${cddPrtId}`,
+          certId: cddPrtId,
+          recipientName,
+          email: queryEmail,
+          competitionId: CYBER_DEFENSE_COMP_ID,
+          competitionTitle: 'Cyber Defense Challenge 2026',
+          competitionEndedAt: cddEndedAt,
+          isLatest: true,
+          certType: 'participation',
+        });
       }
 
-      const found: FoundParticipant = {
-        name,
-        certId,
-        email: normalized,
-        source: displayName ? 'firestore' : 'registry',
-      };
-      setParticipant(found);
+      // =========================================================================
+      // COMPETITION 2: Cyber Security Quiz 2026 (PREVIOUS ENDED: Nov 8, 2026)
+      // =========================================================================
+      const quizEndedAt = '2026-11-08T11:30:00.000Z';
+
+      // Check Top Winners of Cyber Security Quiz 2026
+      const quizTopWinner = CYBER_QUIZ_TOP_WINNERS.find(
+        (w) =>
+          w.name.toLowerCase() === recipientName.toLowerCase() ||
+          w.username.toLowerCase() === queryEmail.split('@')[0] ||
+          (queryEmail === 'itzichigo4u@gmail.com' && w.rank === '1st Place')
+      );
+
+      const hasQuizParticipation = Boolean(
+        reg ||
+        quizTopWinner ||
+        ADMIN_EMAILS.includes(queryEmail) ||
+        leaderboardSeed.some((s) => s.displayName.toLowerCase() === recipientName.toLowerCase())
+      );
+
+      if (hasQuizParticipation) {
+        if (quizTopWinner) {
+          // 1. Certificate of Excellence for Cyber Security Quiz 2026
+          gatheredCerts.push({
+            id: `quiz_excellence_${quizTopWinner.certId}`,
+            certId: quizTopWinner.certId,
+            recipientName,
+            email: queryEmail,
+            competitionId: CYBER_QUIZ_COMP_ID,
+            competitionTitle: 'Cyber Security Quiz 2026',
+            competitionEndedAt: quizEndedAt,
+            isLatest: false,
+            certType: 'excellence',
+            rank: quizTopWinner.rank,
+            titleBadge: `${quizTopWinner.title} · ${quizTopWinner.badge}`,
+          });
+        }
+
+        // 2. Certificate of Participation for Cyber Security Quiz 2026
+        const quizPrtId = reg
+          ? reg.id
+          : (isKunal ? 'NO26-PRT-000-KB' : generateCertId(queryEmail, recipientName, 'NO26-PRT'));
+
+        gatheredCerts.push({
+          id: `quiz_participation_${quizPrtId}`,
+          certId: quizPrtId,
+          recipientName,
+          email: queryEmail,
+          competitionId: CYBER_QUIZ_COMP_ID,
+          competitionTitle: 'Cyber Security Quiz 2026',
+          competitionEndedAt: quizEndedAt,
+          isLatest: false,
+          certType: 'participation',
+        });
+      }
+
+      if (gatheredCerts.length === 0) {
+        setError('This email did not participate in any concluded competitions, so no certificate is available.');
+        setCertificates([]);
+        return;
+      }
+
+      // =========================================================================
+      // MANDATORY REQUIREMENT:
+      // "the first certificate must always be the latest ended competition
+      //  then the previous ended competition cert below and so on"
+      // =========================================================================
+      gatheredCerts.sort((a, b) => {
+        // 1. Primary Sort: Competition Ended Timestamp (descending: newest first!)
+        const dateDiff = new Date(b.competitionEndedAt).getTime() - new Date(a.competitionEndedAt).getTime();
+        if (dateDiff !== 0) return dateDiff;
+
+        // 2. Secondary Sort: Within same competition, Certificate of Excellence precedes Participation
+        if (a.certType !== b.certType) {
+          return a.certType === 'excellence' ? -1 : 1;
+        }
+
+        return 0;
+      });
+
+      // Synchronize issuance records in Firestore for verification
+      for (const c of gatheredCerts) {
+        try {
+          await setDoc(
+            doc(db, 'certificates', c.certId),
+            {
+              name: c.recipientName,
+              event: c.competitionTitle,
+              certType: c.certType,
+              rank: c.rank || '',
+              issuedAt: serverTimestamp(),
+            },
+            { merge: true }
+          );
+        } catch {
+          // Non-blocking write
+        }
+      }
+
+      setCertificates(gatheredCerts);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lookup failed. Please try again.');
+      setError(err instanceof Error ? err.message : 'Lookup failed. Please verify the email and try again.');
+      setCertificates([]);
     } finally {
       setIsSearching(false);
     }
   };
 
-  const fileBase = participant
-    ? `NullOrigin-Certificate-${participant.name.replace(/\s+/g, '-')}`
-    : 'NullOrigin-Certificate';
-
-  const excFileBase = excellence
-    ? `NullOrigin-Certificate-of-Excellence-${excellence.name.replace(/\s+/g, '-')}`
-    : 'NullOrigin-Certificate-of-Excellence';
-
-  // Render a certificate node to a high-resolution canvas (scale 2 =>
-  // 2400x1800). IMPORTANT: capture from the hidden off-screen container
-  // (captureRef / excCaptureRef), NOT from the scaled preview. html2canvas
-  // mis-measures text when the target sits inside a transformed (scaled)
-  // ancestor, which produced overlapping/garbled text in the downloaded
-  // PNG/PDF. We also wait for the certificate fonts to be fully loaded
-  // before capturing, so html2canvas measures text with the real fonts.
+  // High-Resolution Node Capture
   const captureNode = async (node: HTMLElement | null): Promise<HTMLCanvasElement | null> => {
     if (!node) return null;
     setRenderError(null);
@@ -339,9 +552,7 @@ export const CertificationPage: React.FC = () => {
             document.fonts.load('700 72px "Playfair Display"'),
           ]);
           await document.fonts.ready;
-        } catch {
-          // Font loading is best-effort; proceed with the capture anyway.
-        }
+        } catch {}
       }
       const canvas = await html2canvas(node, {
         scale: 2,
@@ -357,67 +568,36 @@ export const CertificationPage: React.FC = () => {
     }
   };
 
-  const captureCertificate = async (): Promise<HTMLCanvasElement | null> => {
-    if (!participant) return null;
-    return captureNode(captureRef.current ?? certRef.current);
-  };
-
-  const captureExcellence = async (): Promise<HTMLCanvasElement | null> => {
-    if (!excellence) return null;
-    return captureNode(excCaptureRef.current ?? excCertRef.current);
-  };
-
-  const downloadPNG = async () => {
-    const canvas = await captureCertificate();
-    if (!canvas || !participant) return;
+  const handleDownloadPNG = async (cert: AttachedCertificate, node: HTMLElement | null) => {
+    const canvas = await captureNode(node);
+    if (!canvas) return;
+    const cleanEvent = cert.competitionTitle.replace(/\s+/g, '-');
+    const cleanName = cert.recipientName.replace(/\s+/g, '-');
+    const filename = `NullOrigin-${cleanEvent}-${cert.certType}-${cleanName}.png`;
     canvas.toBlob((blob) => {
       if (!blob) return;
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${fileBase}.png`;
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
     }, 'image/png');
   };
 
-  const downloadPDF = async () => {
-    const canvas = await captureCertificate();
-    if (!canvas || !participant) return;
-    const dataUrl = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    // Certificate is 1200x900 (4:3) — fit it inside A4 landscape without stretching.
-    const w = 280;
-    const h = 210;
-    const x = (297 - w) / 2;
-    pdf.addImage(dataUrl, 'PNG', x, 0, w, h);
-    pdf.save(`${fileBase}.pdf`);
-  };
-
-  const downloadExcPNG = async () => {
-    const canvas = await captureExcellence();
-    if (!canvas || !excellence) return;
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${excFileBase}.png`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }, 'image/png');
-  };
-
-  const downloadExcPDF = async () => {
-    const canvas = await captureExcellence();
-    if (!canvas || !excellence) return;
+  const handleDownloadPDF = async (cert: AttachedCertificate, node: HTMLElement | null) => {
+    const canvas = await captureNode(node);
+    if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const w = 280;
     const h = 210;
     const x = (297 - w) / 2;
     pdf.addImage(dataUrl, 'PNG', x, 0, w, h);
-    pdf.save(`${excFileBase}.pdf`);
+    const cleanEvent = cert.competitionTitle.replace(/\s+/g, '-');
+    const cleanName = cert.recipientName.replace(/\s+/g, '-');
+    const filename = `NullOrigin-${cleanEvent}-${cert.certType}-${cleanName}.pdf`;
+    pdf.save(filename);
   };
 
   return (
@@ -428,23 +608,30 @@ export const CertificationPage: React.FC = () => {
           Null Origin 2026 · Official Credentials
         </p>
         <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#f5f5f2]">
-          Certification
+          Certification Portal
         </h1>
         <p className="text-sm text-[#a8a8a2] leading-relaxed">
-          Enter your registered email to download your Certificate of Participation (PNG or PDF).
-          Only students who entered Cyber Security Quiz 2026 can get one — top 3 winners also
-          get their Certificate of Excellence here. {isAdmin ? 'As an admin you can look up any registered email.' : 'You are signed in, so this looks up your own certificate.'}
+          Type your registered email address to fetch and download all certificates attached to your account.
+          All credentials for the <strong className="text-[#f5f5f2]">latest ended competition</strong> are presented first, followed by previous tournament honors below.
         </p>
       </div>
 
-      {/* Email lookup */}
-      <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-5 sm:p-6 space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#8dc63f]" />
-          <h2 className="font-mono text-xs font-semibold tracking-wider text-[#f5f5f2] uppercase">
-            Official Certificate Verification
-          </h2>
+      {/* Email lookup form */}
+      <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-5 sm:p-6 space-y-4 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[#8dc63f]" />
+            <h2 className="font-mono text-xs font-semibold tracking-wider text-[#f5f5f2] uppercase">
+              Retrieve Certificates by Registered Email
+            </h2>
+          </div>
+          {currentUser && (
+            <span className="font-mono text-[11px] text-[#8dc63f]">
+              Signed in as {currentUser.email}
+            </span>
+          )}
         </div>
+
         <form onSubmit={handleFind} className="space-y-3">
           <label htmlFor="cert-email" className="sr-only">
             Registered email address
@@ -454,23 +641,24 @@ export const CertificationPage: React.FC = () => {
             <input
               id="cert-email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your registered email..."
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              placeholder="Enter your registered competition email (e.g. kunalbankhele07@gmail.com)..."
               autoComplete="email"
-              disabled={!isAdmin}
-              className="w-full rounded-lg border border-[#33332f] bg-[#151513] py-3 pl-10 pr-4 text-sm text-[#f5f5f2] placeholder:text-[#6f7d8c] focus:border-[#7ab32e] focus:outline-none focus:ring-2 focus:ring-[#8dc63f]/20 disabled:opacity-70"
+              className="w-full rounded-lg border border-[#33332f] bg-[#151513] py-3 pl-10 pr-4 text-sm text-[#f5f5f2] placeholder:text-[#6f7d8c] focus:border-[#7ab32e] focus:outline-none focus:ring-2 focus:ring-[#8dc63f]/20"
             />
           </div>
+
           <button
             type="submit"
             disabled={isSearching || isRendering}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-3 text-sm font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-6 py-3 text-sm font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md"
           >
             <Search className="h-4 w-4" />
-            <span>{isSearching ? 'Verifying...' : 'Find My Certificate'}</span>
+            <span>{isSearching ? 'Verifying & Fetching Credentials...' : 'Fetch All My Certificates'}</span>
           </button>
         </form>
+
         {error && (
           <div className="flex items-start gap-2 rounded-lg border border-[#FF365B]/40 bg-[#FF365B]/10 p-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#FF365B]" />
@@ -485,170 +673,46 @@ export const CertificationPage: React.FC = () => {
         )}
       </div>
 
-      {/* Certificate preview + downloads */}
-      {participant && (
-        <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-5 sm:p-6 space-y-4">
-          <div className="flex items-start gap-2">
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#8dc63f]" />
-            <div>
-              <p className="text-sm font-semibold text-[#f5f5f2]">
-                Registration confirmed — {participant.name}
-              </p>
-              <p className="text-xs text-[#a8a8a2] leading-relaxed">
-                Certificate ID {participant.certId} · {participant.email}
-              </p>
+      {/* Found Certificates List (Chronological: Latest Ended Competition First) */}
+      {certificates.length > 0 && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-[#2e2e2a] pb-2">
+            <div className="flex items-center gap-2">
+              <Award className="h-4 w-4 text-[#8dc63f]" />
+              <h2 className="font-display text-lg font-bold text-[#f5f5f2]">
+                Your Verified Certificates ({certificates.length})
+              </h2>
             </div>
+            <span className="font-mono text-xs text-[#a8a8a2]">
+              LATEST ENDED COMPETITION DISPLAYED FIRST
+            </span>
           </div>
-          <div className="overflow-hidden rounded-lg border border-[#2e2e2a] bg-[#151513]">
-            <div
-              ref={previewOuterRef}
-              style={{ position: 'relative', width: '100%', height: CERT_H * previewScale, overflow: 'hidden' }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: CERT_W,
-                  height: CERT_H,
-                  transform: `scale(${previewScale})`,
-                  transformOrigin: 'top left',
-                }}
-              >
-                <div ref={certRef} style={{ width: CERT_W, height: CERT_H }}>
-                  <CertificateTemplate name={participant.name} certId={participant.certId} brandTop={118} />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={downloadPNG}
-              disabled={isRendering}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#8dc63f] px-5 py-3 text-sm font-bold text-[#141a09] hover:bg-[#a4d65e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <ImageIcon className="h-4 w-4" />
-              <span>Download PNG</span>
-            </button>
-            <button
-              type="button"
-              onClick={downloadPDF}
-              disabled={isRendering}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#7ab32e]/60 bg-[#1b1b19] px-5 py-3 text-sm font-bold text-[#8dc63f] hover:bg-[#8dc63f]/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <FileText className="h-4 w-4" />
-              <span>Download PDF</span>
-            </button>
+
+          <div className="space-y-6">
+            {certificates.map((cert) => (
+              <CertificateItemCard
+                key={cert.id}
+                cert={cert}
+                isRendering={isRendering}
+                onDownloadPNG={handleDownloadPNG}
+                onDownloadPDF={handleDownloadPDF}
+              />
+            ))}
           </div>
         </div>
       )}
 
-      {/* Certificate of Excellence — only for the top 3 winners. Shown
-          below the participation certificate, with its own downloads. */}
-      {participant && excellence && (
-        <div className="rounded-xl border border-[#b38d3a]/60 bg-[#1b1b19] p-5 sm:p-6 space-y-4">
-          <div className="flex items-start gap-2">
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#e85a14]" />
-            <div>
-              <p className="text-sm font-semibold text-[#f5f5f2]">
-                Certificate of Excellence — {excellence.rank}
-              </p>
-              <p className="text-xs text-[#a8a8a2] leading-relaxed">
-                Certificate ID {excellence.certId} · {excellence.email}
-              </p>
-            </div>
-          </div>
-          <div className="overflow-hidden rounded-lg border border-[#2e2e2a] bg-[#151513]">
-            <div
-              ref={excPreviewOuterRef}
-              style={{ position: 'relative', width: '100%', height: CERT_H * excPreviewScale, overflow: 'hidden' }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: CERT_W,
-                  height: CERT_H,
-                  transform: `scale(${excPreviewScale})`,
-                  transformOrigin: 'top left',
-                }}
-              >
-                <div ref={excCertRef} style={{ width: CERT_W, height: CERT_H }}>
-                  <ExcellenceCertificateTemplate name={excellence.name} certId={excellence.certId} rank={excellence.rank} brandTop={118} />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={downloadExcPNG}
-              disabled={isRendering}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#e85a14] px-5 py-3 text-sm font-bold text-[#fff7f0] hover:bg-[#f06a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <ImageIcon className="h-4 w-4" />
-              <span>Download Excellence PNG</span>
-            </button>
-            <button
-              type="button"
-              onClick={downloadExcPDF}
-              disabled={isRendering}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#e85a14]/60 bg-[#1b1b19] px-5 py-3 text-sm font-bold text-[#e85a14] hover:bg-[#e85a14]/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <FileText className="h-4 w-4" />
-              <span>Download Excellence PDF</span>
-            </button>
-          </div>
+      {hasSearched && !isSearching && certificates.length === 0 && !error && (
+        <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-8 text-center space-y-3">
+          <ShieldAlert className="mx-auto h-8 w-8 text-[#a8a8a2]" />
+          <h3 className="font-display text-base font-bold text-[#f5f5f2]">No Certificates Found</h3>
+          <p className="text-xs text-[#a8a8a2] max-w-md mx-auto">
+            We could not find verified competition entries under this email address. Please make sure to enter the exact email used during registration.
+          </p>
         </div>
       )}
 
-      {/* Hidden off-screen render target for downloads. This is a second,
-          full-size (1200x900, unscaled, no transformed ancestors) copy of
-          the certificate used ONLY by html2canvas. Capturing the scaled
-          preview produced overlapping/garbled text. */}
-      {participant && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'fixed',
-            left: -10000,
-            top: 0,
-            width: CERT_W,
-            height: CERT_H,
-            overflow: 'hidden',
-            pointerEvents: 'none',
-          }}
-        >
-          <div ref={captureRef} style={{ width: CERT_W, height: CERT_H }}>
-            <CertificateTemplate name={participant.name} certId={participant.certId} brandTop={96} />
-          </div>
-        </div>
-      )}
-
-      {/* Hidden off-screen render target for the Excellence certificate downloads. */}
-      {participant && excellence && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'fixed',
-            left: -10000,
-            top: 0,
-            width: CERT_W,
-            height: CERT_H,
-            overflow: 'hidden',
-            pointerEvents: 'none',
-          }}
-        >
-          <div ref={excCaptureRef} style={{ width: CERT_W, height: CERT_H }}>
-            <ExcellenceCertificateTemplate name={excellence.name} certId={excellence.certId} rank={excellence.rank} brandTop={96} />
-          </div>
-        </div>
-      )}
-
-      {/* Referral / participant gift — visible to everyone, including
-          non-participants. */}
+      {/* Referral / participant gift */}
       <div className="rounded-xl border border-[#7ab32e]/60 bg-[#1b1b19] p-5 sm:p-6 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-md border border-[#7ab32e] px-2 py-1 font-mono text-[11px] font-semibold tracking-wider text-[#a4d65e] uppercase">
@@ -663,8 +727,7 @@ export const CertificationPage: React.FC = () => {
         </h2>
         <p className="text-sm text-[#a8a8a2] leading-relaxed">
           Every Null Origin 2026 participant receives <strong className="text-[#f5f5f2]">$50 in AI credits</strong>.
-          Click the button to open the registration page and <strong className="text-[#f5f5f2]">sign in with GitHub</strong> to
-          claim your credits.
+          Click the button to open the registration page and <strong className="text-[#f5f5f2]">sign in with GitHub</strong> to claim your credits.
         </p>
         <a
           href={REFERRAL_URL}
@@ -677,7 +740,7 @@ export const CertificationPage: React.FC = () => {
         </a>
       </div>
 
-      <p className="text-xs text-[#a8a8a2]">© 2026 Null Origin</p>
+      <p className="text-xs text-[#a8a8a2]">© 2026 Null Origin · Official Cyber Defense Credentials</p>
     </div>
   );
 };

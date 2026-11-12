@@ -51,9 +51,11 @@ import {
 import { applyCalibration, isExcludedLeaderboardEntry, filterLeaderboardEntries } from '../utils/leaderboardCalibration';
 import { validateWhatsAppNumber } from '../utils/phoneValidation';
 import leaderboardSeed from '../constants/leaderboardSeed.json';
+import cyberDefenseSeed from '../constants/cyberDefenseSeed.json';
 import {
   ARCHIVED_CYBER_QUIZ,
   CYBER_QUIZ_COMP_ID,
+  CYBER_DEFENSE_CHALLENGE,
   LIVE_CYBER_DEFENSE_CHALLENGE,
   CYBER_DEFENSE_COMP_ID,
 } from '../constants/tournaments';
@@ -208,14 +210,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 
   const [competitions, setCompetitions] = useState<Competition[]>([
-    LIVE_CYBER_DEFENSE_CHALLENGE,
+    CYBER_DEFENSE_CHALLENGE,
     ARCHIVED_CYBER_QUIZ,
   ]);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() =>
-    filterLeaderboardEntries(leaderboardSeed as LeaderboardEntry[])
-  );
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => {
+    const cyber = filterLeaderboardEntries(cyberDefenseSeed as LeaderboardEntry[]);
+    const quiz = filterLeaderboardEntries(leaderboardSeed as LeaderboardEntry[]);
+    return [...cyber, ...quiz];
+  });
   // Do NOT initialise results from the shared localStorage key
   // ('nullorigin_user_results'). That key is global to the browser, not
   // per-user, so a fresh signup on the same device would inherit the
@@ -365,23 +369,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               typeof data.perQuestionTimerSeconds === 'number' ? data.perQuestionTimerSeconds : 30,
           };
         });
-        // Ensure Cyber Security Quiz 2026 is always safely present as an archived (completed) tournament
-        const mappedItems = items.map((c) =>
-          c.id === CYBER_QUIZ_COMP_ID || c.title.toLowerCase().includes('cyber quiz 2026')
-            ? { ...c, status: 'completed' as const }
-            : c
-        );
+        // Ensure both Cyber Security Quiz 2026 and Cyber Defense Challenge 2026 are safely marked as completed tournaments
+        const mappedItems = items.map((c) => {
+          if (c.id === CYBER_QUIZ_COMP_ID || c.title.toLowerCase().includes('cyber quiz 2026')) {
+            return { ...c, status: 'completed' as const };
+          }
+          if (c.id === CYBER_DEFENSE_COMP_ID || c.title.toLowerCase().includes('cyber defense')) {
+            return {
+              ...c,
+              status: 'completed' as const,
+              endTime: '2026-11-12T12:00:00.000Z',
+              participantCount: 121,
+            };
+          }
+          return c;
+        });
 
-        // Ensure both ARCHIVED_CYBER_QUIZ and LIVE_CYBER_DEFENSE_CHALLENGE are present
-        const hasLiveComp = mappedItems.some((c) => c.id === CYBER_DEFENSE_COMP_ID);
+        // Ensure both ARCHIVED_CYBER_QUIZ and CYBER_DEFENSE_CHALLENGE are present
+        const hasDefenseComp = mappedItems.some((c) => c.id === CYBER_DEFENSE_COMP_ID);
         const hasArchivedCyber = mappedItems.some((c) => c.id === CYBER_QUIZ_COMP_ID);
 
         let finalComps = [...mappedItems];
         if (!hasArchivedCyber) {
           finalComps.push(ARCHIVED_CYBER_QUIZ);
         }
-        if (!hasLiveComp) {
-          finalComps.unshift(LIVE_CYBER_DEFENSE_CHALLENGE);
+        if (!hasDefenseComp) {
+          finalComps.unshift(CYBER_DEFENSE_CHALLENGE);
         }
         setCompetitions(finalComps);
       },
@@ -504,12 +517,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return applyCalibration(entry);
         }).filter((entry) => !isExcludedLeaderboardEntry(entry));
 
-        // Ensure Cyber Security Quiz 2026 historical records are safeguarded by merging
-        // with the offline seed entries if any are missing from the Firestore snapshot
+        // Ensure Cyber Security Quiz 2026 and Cyber Defense Challenge 2026 records are safeguarded by merging
+        // with offline seed entries if any are missing from the Firestore snapshot
         const existingParticipantIds = new Set(rawEntries.map((e) => e.participantId));
         const missingCyberSeedEntries = (leaderboardSeed as LeaderboardEntry[])
           .filter((s) => !existingParticipantIds.has(s.participantId) && !isExcludedLeaderboardEntry(s))
           .map((s) => applyCalibration(s));
+        const missingCyberDefenseEntries = (cyberDefenseSeed as LeaderboardEntry[])
+          .filter((s) => !existingParticipantIds.has(s.participantId) && !isExcludedLeaderboardEntry(s));
 
         // Read real locally persisted live submissions (for resilience when offline or Firestore sync is pending)
         let localLiveEntries: LeaderboardEntry[] = [];
@@ -528,7 +543,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         } catch {}
 
-        const combinedEntries = [...rawEntries, ...missingCyberSeedEntries, ...localLiveEntries].filter(
+        const combinedEntries = [...rawEntries, ...missingCyberSeedEntries, ...missingCyberDefenseEntries, ...localLiveEntries].filter(
           (e) => !e.participantId.startsWith('live_op_') && !e.participantId.startsWith('sim_')
         );
 
@@ -537,11 +552,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
 
         // Fast deterministic client-side sorting:
+        // Top Winner constraint: In Cyber Defense Challenge, Kunal Bankhele must ALWAYS be #1
         // 1. Score (descending - highest score first)
-        // 2. Tie-breaker (Requirement): completionTimeSeconds (ascending - faster completion time ranks higher!)
-        // 3. Tie-breaker 2 (Requirement): createdAt (ascending - earlier submission timestamp first / who submit first must be winner)
+        // 2. Tie-breaker: completionTimeSeconds (ascending - faster completion time ranks higher!)
+        // 3. Tie-breaker 2: createdAt (ascending - earlier submission timestamp first)
         // 4. Fallback: accuracyPercent (descending)
         combinedEntries.sort((a, b) => {
+          const compA = a.competitionId || (a.participantId.includes('_') ? a.participantId.split('_').slice(1).join('_') : '');
+          const compB = b.competitionId || (b.participantId.includes('_') ? b.participantId.split('_').slice(1).join('_') : '');
+          if (compA === CYBER_DEFENSE_COMP_ID && compB === CYBER_DEFENSE_COMP_ID) {
+            const isKunalA = a.displayName === 'Kunal Bankhele' || (a.email && a.email.toLowerCase().includes('kunalbankhele'));
+            const isKunalB = b.displayName === 'Kunal Bankhele' || (b.email && b.email.toLowerCase().includes('kunalbankhele'));
+            if (isKunalA && !isKunalB) return -1;
+            if (!isKunalA && isKunalB) return 1;
+          }
+
           const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
           if (scoreDiff !== 0) return scoreDiff;
 
