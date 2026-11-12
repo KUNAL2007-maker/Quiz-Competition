@@ -1440,7 +1440,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addToast(
         'Quiz Evaluated & Recorded',
         currentUser && activeCompId
-          ? 'Evaluated by scoring engine, persisted to Firestore results and leaderboard.'
+          ? 'Evaluated by Null Origin scoring engine and recorded on the live leaderboard.'
           : 'Evaluated by scoring engine and saved in local session state.',
         'success'
       );

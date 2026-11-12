@@ -98,8 +98,9 @@ export const LeaderboardPage: React.FC = () => {
         if (entry.createdAt) {
           const entryTime = new Date(entry.createdAt).getTime();
           if (!Number.isNaN(entryTime)) {
-            if (startMs > 0 && entryTime < startMs) return false;
-            if (Number.isFinite(endMs) && entryTime > endMs) return false;
+            // Include a 60-second grace window to absorb any client/server clock skew
+            if (startMs > 0 && entryTime < (startMs - 60000)) return false;
+            if (Number.isFinite(endMs) && entryTime > (endMs + 60000)) return false;
           }
         }
 
@@ -115,7 +116,7 @@ export const LeaderboardPage: React.FC = () => {
 
     if (userResult && !hasUser && currentUser) {
       const resultTime = userResult.completedAt ? new Date(userResult.completedAt).getTime() : Date.now();
-      const isValidWindow = (startMs === 0 || resultTime >= startMs) && (endMs === Infinity || resultTime <= endMs);
+      const isValidWindow = (startMs === 0 || resultTime >= (startMs - 60000)) && (endMs === Infinity || resultTime <= (endMs + 60000));
 
       if (isValidWindow) {
         filtered.push({
