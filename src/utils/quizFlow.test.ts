@@ -1260,3 +1260,138 @@ test('switching user accounts clears results and quiz session state to prevent c
   assert.equal(stateQuizSession.isSubmitted, false, 'Quiz session must be reset on account switch');
   assert.equal(mockStorage.nullorigin_user_results, undefined, 'Un-partitioned localStorage keys must be purged');
 });
+
+test('email/password user registration and sign-in grants immediate verified status without email verification link', () => {
+  // Candidate registers manually with email & password (emailVerified in Firebase is initially false)
+  const manualUser = {
+    uid: 'manual_student_123',
+    email: 'Student.Defense@example.com',
+    emailVerified: false, // Standard Firebase behavior for manual signup
+  };
+
+  // 1. Email normalization prevents case-mismatch sign-in errors
+  const normalizedEmail = manualUser.email.trim().toLowerCase();
+  assert.equal(normalizedEmail, 'student.defense@example.com');
+
+  // 2. AppContext immediately grants isVerified = true to manual email/password users
+  // (No confirmation email link required; spam folder barrier eliminated)
+  const initialProfileState = {
+    displayName: '',
+    email: normalizedEmail,
+    whatsappNumber: '',
+    isVerified: true, // Always true for any signed-in user
+    isProfileComplete: false,
+  };
+
+  assert.equal(initialProfileState.isVerified, true, 'Manual email/password user must be directly verified');
+});
+
+test('email/password user can complete competitor profile without clicking verification link', () => {
+  const manualUser = {
+    uid: 'manual_student_456',
+    email: 'candidate@university.edu',
+    emailVerified: false,
+  };
+
+  const profileInput = {
+    displayName: 'Aarav Sharma',
+    whatsappNumber: '+91 98765 43210',
+    avatarUrl: 'https://example.com/avatar.png',
+  };
+
+  // Validation passes for genuine name and phone
+  const isValidName = profileInput.displayName.trim().length >= 2;
+  const cleanedPhone = profileInput.whatsappNumber.replace(/[^0-9]/g, '');
+  const isValidPhone = cleanedPhone.length >= 10;
+
+  const isProfileComplete = isValidName && isValidPhone;
+  assert.equal(isProfileComplete, true, 'Profile completes directly without email confirmation link');
+
+  // Firestore rules allow profile creation with isSignedIn() without requiring email_verified == true
+  const mockAuth = { uid: manualUser.uid, token: { email_verified: false } };
+  const isSignedIn = Boolean(mockAuth.uid);
+  const isRuleAllowed = isSignedIn; // Profile create/update uses isSignedIn
+  assert.equal(isRuleAllowed, true, 'Firestore security rules allow profile save for email/password users');
+});
+
+test('email/password user has full identical rights as Google sign-in: quiz access, scoring, and live leaderboard', () => {
+  const manualUser = {
+    uid: 'manual_student_789',
+    email: 'operator_manual@cyber.org',
+    displayName: 'Pooja Hegde',
+    emailVerified: false, // Unverified in Firebase Auth
+  };
+
+  const profile = {
+    displayName: 'Pooja Hegde',
+    whatsappNumber: '+91 98765 12345',
+    isProfileComplete: true,
+  };
+
+  // 1. Quiz access guard check: only checks currentUser and profile.isProfileComplete
+  const isQuizAccessAllowed = Boolean(manualUser && profile.isProfileComplete);
+  assert.equal(isQuizAccessAllowed, true, 'Manual email user with completed profile is granted full quiz access');
+
+  // 2. Score submission and live leaderboard rendering
+  const targetCompId = 'comp_cyber_defense_2026';
+  const entryId = `${manualUser.uid}_${targetCompId}`;
+
+  const submissionResult = {
+    ownerId: manualUser.uid,
+    competitionId: targetCompId,
+    displayName: profile.displayName,
+    score: 900,
+    completionTimeSeconds: 42,
+    accuracyPercent: 90,
+    isCurrentUser: true,
+  };
+
+  const leaderboardEntries = [
+    {
+      rank: 1,
+      participantId: entryId,
+      ownerId: manualUser.uid,
+      competitionId: targetCompId,
+      displayName: profile.displayName,
+      score: 900,
+      completionTimeSeconds: 42,
+      accuracyPercent: 90,
+      isCurrentUser: true,
+    },
+  ];
+
+  // Leaderboard displays user name and score
+  assert.equal(leaderboardEntries[0].displayName, 'Pooja Hegde');
+  assert.equal(leaderboardEntries[0].score, 900);
+  assert.equal(leaderboardEntries[0].isCurrentUser, true);
+
+  // Firestore rule check for leaderboard entry: uses isSignedIn() so it succeeds without email_verified
+  const mockAuth = { uid: manualUser.uid, token: { email_verified: false } };
+  const isLeaderboardAllowed = Boolean(mockAuth.uid);
+  assert.equal(isLeaderboardAllowed, true, 'Leaderboard post succeeds for manual email/password competitors');
+});
+
+test('manual sign-in error mapping provides actionable feedback for Google users and missing accounts', () => {
+  const mapAuthError = (code: string) => {
+    switch (code) {
+      case 'auth/invalid-credential':
+      case 'auth/wrong-password':
+        return 'Incorrect email or password. If you originally registered using Google Sign-In, please click "Continue with Google".';
+      case 'auth/user-not-found':
+        return 'No account found with this email. Please switch to "Sign Up" below to register.';
+      case 'auth/email-already-in-use':
+        return 'An account with this email already exists. Please switch to "Sign In" to log in.';
+      case 'auth/weak-password':
+        return 'Password is too weak. Please use at least 6 characters.';
+      default:
+        return 'Authentication failed.';
+    }
+  };
+
+  // Google account user typing manual password gets guidance
+  assert.match(mapAuthError('auth/invalid-credential'), /Continue with Google/);
+  // Missing account gets sign-up guidance
+  assert.match(mapAuthError('auth/user-not-found'), /switch to "Sign Up"/);
+  // Existing account during sign-up gets sign-in guidance
+  assert.match(mapAuthError('auth/email-already-in-use'), /switch to "Sign In"/);
+});

@@ -27,6 +27,7 @@ export const LoginPage: React.FC = () => {
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
+    sendPasswordReset,
     signOutOperator,
   } = useAppContext();
 
@@ -35,13 +36,18 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [errorCode, setErrorCode] = useState<string | undefined>(undefined);
+  const [resetSentMessage, setResetSentMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
+    setErrorCode(undefined);
+    setResetSentMessage('');
 
-    if (!email.trim() || !password) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !password) {
       setErrorMessage('Please fill in both email and password.');
       return;
     }
@@ -59,22 +65,40 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       if (mode === 'signin') {
-        const res = await signInWithEmail(email, password);
+        const res = await signInWithEmail(cleanEmail, password);
         if (res.success) {
           navigate(effectiveTarget);
         } else {
           setErrorMessage(res.error || 'Failed to sign in. Please verify your credentials.');
+          setErrorCode(res.code);
         }
       } else {
-        const res = await signUpWithEmail(email, password);
+        const res = await signUpWithEmail(cleanEmail, password);
         if (res.success) {
-          navigate(effectiveTarget);
+          // Immediately send to profile completion so they can enter their name and whatsapp
+          navigate('/profile?required=1');
         } else {
           setErrorMessage(res.error || 'Failed to create account. Please try again.');
+          setErrorCode(res.code);
         }
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      setErrorMessage('Please enter your email address above to receive a password reset link.');
+      return;
+    }
+    setErrorMessage('');
+    const res = await sendPasswordReset(cleanEmail);
+    if (res.success) {
+      setResetSentMessage(`Password reset link sent to ${cleanEmail}. Check your inbox or spam folder.`);
+    } else {
+      setErrorMessage(res.error || 'Unable to send password reset email.');
     }
   };
 
@@ -195,10 +219,62 @@ export const LoginPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Error Message if any */}
+          {/* Success / Info Message */}
+          {resetSentMessage && (
+            <div className="rounded-md border border-[#8dc63f]/60 bg-[#8dc63f]/10 px-3.5 py-2.5 text-xs text-[#a4d65e] flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-[#8dc63f]" />
+              <span>{resetSentMessage}</span>
+            </div>
+          )}
+
+          {/* Error Message with Smart Recovery Actions */}
           {errorMessage && (
-            <div className="rounded-md border border-[#FF365B]/60 bg-[#FF365B]/10 px-3.5 py-2.5 text-xs text-[#FF365B]">
-              {errorMessage}
+            <div className="rounded-md border border-[#FF365B]/60 bg-[#FF365B]/10 px-3.5 py-2.5 text-xs text-[#FF365B] space-y-2">
+              <p>{errorMessage}</p>
+              {errorCode === 'auth/user-not-found' && mode === 'signin' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('signup');
+                    setErrorMessage('');
+                    setErrorCode(undefined);
+                  }}
+                  className="inline-flex items-center gap-1 font-semibold text-[#8dc63f] underline hover:text-[#a4d65e] cursor-pointer"
+                >
+                  <span>→ Switch to "Create Account" with this email</span>
+                </button>
+              )}
+              {errorCode === 'auth/email-already-in-use' && mode === 'signup' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('signin');
+                    setErrorMessage('');
+                    setErrorCode(undefined);
+                  }}
+                  className="inline-flex items-center gap-1 font-semibold text-[#8dc63f] underline hover:text-[#a4d65e] cursor-pointer"
+                >
+                  <span>→ Switch to "Sign In" with this email</span>
+                </button>
+              )}
+              {(errorCode === 'auth/invalid-credential' || errorCode === 'auth/wrong-password') && (
+                <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-[#FF365B]/20">
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-[11px] font-medium text-[#f5f5f2] underline hover:text-[#8dc63f] cursor-pointer"
+                  >
+                    Forgot password? Send reset link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    className="text-[11px] font-semibold text-[#8dc63f] underline hover:text-[#a4d65e] cursor-pointer"
+                  >
+                    Sign in with Google instead
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -221,18 +297,32 @@ export const LoginPage: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                   autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   className="w-full rounded-lg border border-[#2e2e2a] bg-[#111110] py-2.5 pl-9 pr-3 text-xs text-[#f5f5f2] placeholder-[#a8a8a2]/50 focus:border-[#7ab32e] focus:outline-none transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label
-                htmlFor="login-password"
-                className="block font-mono text-[11px] font-medium text-[#a8a8a2] mb-1.5"
-              >
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label
+                  htmlFor="login-password"
+                  className="block font-mono text-[11px] font-medium text-[#a8a8a2]"
+                >
+                  Password
+                </label>
+                {mode === 'signin' && (
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="font-mono text-[10px] text-[#8dc63f] hover:underline cursor-pointer"
+                  >
+                    Forgot Password?
+                  </button>
+                )}
+              </div>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8a8a2]" />
                 <input

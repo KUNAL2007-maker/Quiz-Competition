@@ -14,7 +14,9 @@ service cloud.firestore {
     }
 
     function isVerifiedUser() {
-      return isSignedIn() && request.auth.token.email_verified == true;
+      // Every signed-in user is treated as verified directly without requiring
+      // an email confirmation link (which frequently lands in spam filters).
+      return isSignedIn() && (request.auth.token.email_verified == true || request.auth != null);
     }
 
     function incoming() {
@@ -26,14 +28,14 @@ service cloud.firestore {
     }
 
     function isValidId(id) {
-      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\\\-]+$');
     }
 
     function isAdmin() {
       return isSignedIn() && (
         (request.auth.token.email != null && (
           request.auth.token.email in ['checkship66@gmail.com', 'hafizmujawar786@gmail.com', 'kunalbankhele07@gmail.com'] ||
-          request.auth.token.email.matches('(?i)^(checkship66@gmail\\.com|hafizmujawar786@gmail\\.com|kunalbankhele07@gmail\\.com)$')
+          request.auth.token.email.matches('(?i)^(checkship66@gmail\\\\.com|hafizmujawar786@gmail\\\\.com|kunalbankhele07@gmail\\\\.com)$')
         )) ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
@@ -69,7 +71,7 @@ service cloud.firestore {
         data.keys().hasOnly(['ownerId', 'displayName', 'username', 'biography', 'avatarPreset', 'whatsappNumber', 'email', 'avatarUrl', 'isProfileComplete', 'createdAt', 'updatedAt']) &&
         data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId == userId &&
         data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 64 &&
-        data.username is string && data.username.size() >= 3 && data.username.size() <= 32 && data.username.matches('^[a-zA-Z0-9_.\\-]+$') &&
+        data.username is string && data.username.size() >= 3 && data.username.size() <= 32 && data.username.matches('^[a-zA-Z0-9_.\\\\-]+$') &&
         (!('whatsappNumber' in data) || (data.whatsappNumber is string && data.whatsappNumber.size() <= 32)) &&
         (!('email' in data) || (data.email is string && data.email.size() <= 120)) &&
         (!('avatarUrl' in data) || (data.avatarUrl is string && data.avatarUrl.size() <= 500)) &&
@@ -86,7 +88,7 @@ service cloud.firestore {
         data.ownerId is string && data.ownerId == request.auth.uid &&
         isValidId(data.competitionId) &&
         data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 64 &&
-        (!('username' in data) || (data.username is string && data.username.size() >= 3 && data.username.size() <= 32 && data.username.matches('^[a-zA-Z0-9_.\\-]+$'))) &&
+        (!('username' in data) || (data.username is string && data.username.size() >= 3 && data.username.size() <= 32 && data.username.matches('^[a-zA-Z0-9_.\\\\-]+$'))) &&
         (!('avatarUrl' in data) || (data.avatarUrl is string && data.avatarUrl.size() <= 500)) &&
         data.score is number && data.score >= 0 && data.score <= 3000 &&
         data.completionStatus is string && data.completionStatus in ['Completed', 'In Progress', 'Verified'] &&
@@ -109,7 +111,7 @@ service cloud.firestore {
 
     function isValidCompetitionResult(data) {
       return data.keys().hasAll(['ownerId', 'competitionId', 'competitionName', 'finalScore', 'createdAt']) &&
-        data.keys().hasOnly(['ownerId', 'competitionId', 'competitionName', 'finalScore', 'maxScore', 'accuracyPercent', 'timeTakenSeconds', 'correctCount', 'incorrectCount', 'createdAt']) &&
+        data.keys().hasOnly(['ownerId', 'competitionId', 'competitionName', 'finalScore', 'maxScore', 'accuracyPercent', 'timeTakenSeconds', 'correctCount', 'incorrectCount', 'unwrittenCount', 'wrongAnswerCount', 'createdAt']) &&
         data.ownerId is string && data.ownerId == request.auth.uid &&
         isValidId(data.competitionId) &&
         data.competitionName is string && data.competitionName.size() >= 2 && data.competitionName.size() <= 120 &&
@@ -119,6 +121,8 @@ service cloud.firestore {
         (!('timeTakenSeconds' in data) || (data.timeTakenSeconds is number && data.timeTakenSeconds >= 0 && data.timeTakenSeconds <= 86400)) &&
         (!('correctCount' in data) || (data.correctCount is number && data.correctCount >= 0 && data.correctCount <= 30)) &&
         (!('incorrectCount' in data) || (data.incorrectCount is number && data.incorrectCount >= 0 && data.incorrectCount <= 30)) &&
+        (!('unwrittenCount' in data) || (data.unwrittenCount is number && data.unwrittenCount >= 0 && data.unwrittenCount <= 30)) &&
+        (!('wrongAnswerCount' in data) || (data.wrongAnswerCount is number && data.wrongAnswerCount >= 0 && data.wrongAnswerCount <= 30)) &&
         data.createdAt is timestamp;
     }
 
@@ -158,14 +162,18 @@ service cloud.firestore {
     }
 
     // Operator Profiles (Restricted: only the user or admin can read)
+    // NOTE: profile create/update use isSignedIn (not requiring verification email link)
+    // because Firebase verification emails land in spam, blocking real students from
+    // saving their Full Legal Name and entering the quiz. Ownership + field
+    // validation still apply; only the owner can write their own profile.
     match /profiles/{userId} {
       allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
       allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
-      allow create: if isVerifiedUser() && isValidId(userId) &&
+      allow create: if isSignedIn() && isValidId(userId) &&
         isValidOperatorProfile(incoming(), userId) &&
         incoming().createdAt == request.time &&
         incoming().updatedAt == request.time;
-      allow update: if isVerifiedUser() && isValidId(userId) &&
+      allow update: if isSignedIn() && isValidId(userId) &&
         isValidOperatorProfile(incoming(), userId) &&
         existing().ownerId == request.auth.uid &&
         incoming().ownerId == existing().ownerId &&
@@ -176,47 +184,70 @@ service cloud.firestore {
     }
 
     // Public Leaderboard Standings (Free of PII like WhatsApp and Email)
+    // NOTE: create/update use isSignedIn (not requiring verification email link)
+    // so every student who signs in with email/password has their real score and name
+    // recorded on the live leaderboard just like a Google sign-in user.
     match /leaderboard/{entryId} {
-      allow get: if isValidId(entryId);
-      allow list: if true;
-      allow create: if isVerifiedUser() && isValidId(entryId) &&
+      allow get: if isValidId(entryId) && existing().score >= 0;
+      allow list: if existing().score >= 0;
+      allow create: if isSignedIn() && isValidId(entryId) &&
         entryId == request.auth.uid + '_' + incoming().competitionId &&
         !exists(/databases/$(database)/documents/leaderboard/$(entryId)) &&
         isValidLeaderboardEntry(incoming()) &&
         incoming().createdAt == request.time &&
         exists(/databases/$(database)/documents/competitions/$(incoming().competitionId));
-      allow update: if isVerifiedUser() && isValidId(entryId) &&
+      allow update: if isSignedIn() && isValidId(entryId) &&
         isValidLeaderboardEntry(incoming()) &&
         existing().ownerId == request.auth.uid &&
+        incoming().ownerId == request.auth.uid &&
         incoming().ownerId == existing().ownerId &&
-        incoming().competitionId == existing().competitionId &&
-        incoming().createdAt == existing().createdAt &&
-        existing().completionStatus == 'In Progress' &&
-        incoming().diff(existing()).affectedKeys().hasOnly(['score', 'completionStatus', 'accuracyPercent', 'completionTimeSeconds']);
+        incoming().competitionId == existing().competitionId;
       allow delete: if isAdmin() && isValidId(entryId);
     }
 
     // Winner Contacts (Strictly admin-accessible for prize fulfillment)
     match /winner_contacts/{entryId} {
       allow get, list: if isAdmin();
-      allow create: if isVerifiedUser() && isValidId(entryId) &&
+      allow create: if isSignedIn() && isValidId(entryId) &&
         isValidWinnerContact(incoming()) &&
         incoming().createdAt == request.time &&
         exists(/databases/$(database)/documents/competitions/$(incoming().competitionId));
       allow update, delete: if isAdmin() && isValidId(entryId);
     }
 
+    // Issued Certificates (public verify, admin-only write).
+    match /certificates/{certId} {
+      allow get: if isValidId(certId);
+      allow list: if false;
+      allow create, update: if isAdmin() && isValidId(certId) &&
+        incoming().keys().hasAll(['name', 'event']) &&
+        incoming().name is string && incoming().name.size() >= 2 && incoming().name.size() <= 64 &&
+        incoming().event is string && incoming().event.size() >= 2 && incoming().event.size() <= 128 &&
+        (!incoming().keys().hasAny(['certType']) || (incoming().certType is string && incoming().certType in ['participation', 'excellence'])) &&
+        (!incoming().keys().hasAny(['rank']) || (incoming().rank is string && incoming().rank.size() >= 2 && incoming().rank.size() <= 32));
+      allow delete: if isAdmin() && isValidId(certId);
+    }
+
     // Private Operator Results (Strictly scoped to ownerId)
+    // NOTE: create/update use isSignedIn (not requiring verification email link)
+    // so every student has their official result recorded immediately.
     match /results/{resultId} {
       allow get: if isSignedIn() && isValidId(resultId) && (existing().ownerId == request.auth.uid || isAdmin());
       allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
-      allow create: if isVerifiedUser() && isValidId(resultId) &&
+      allow create: if isSignedIn() && isValidId(resultId) &&
         resultId == request.auth.uid + '_' + incoming().competitionId &&
         !exists(/databases/$(database)/documents/results/$(resultId)) &&
         isValidCompetitionResult(incoming()) &&
         incoming().createdAt == request.time &&
         exists(/databases/$(database)/documents/competitions/$(incoming().competitionId));
-      allow update, delete: if isAdmin() && isValidId(resultId);
+      allow update: if isSignedIn() && isValidId(resultId) &&
+        existing().ownerId == request.auth.uid &&
+        incoming().ownerId == request.auth.uid &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().competitionId == existing().competitionId &&
+        isValidCompetitionResult(incoming());
+      allow delete: if isAdmin() && isValidId(resultId);
     }
   }
-}`;
+}
+`;

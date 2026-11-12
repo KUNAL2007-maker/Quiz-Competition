@@ -4,6 +4,7 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut as firebaseSignOut,
   User as FirebaseUser,
 } from 'firebase/auth';
@@ -59,8 +60,9 @@ interface AppContextValue {
   isAuthReady: boolean;
   pythonEngineOnline: boolean;
   signInWithGoogle: () => Promise<void>;
-  signInWithEmail: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
-  signUpWithEmail: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithEmail: (email: string, pass: string) => Promise<{ success: boolean; error?: string; code?: string }>;
+  signUpWithEmail: (email: string, pass: string) => Promise<{ success: boolean; error?: string; code?: string }>;
+  sendPasswordReset: (email: string) => Promise<{ success: boolean; error?: string }>;
   signOutOperator: () => Promise<void>;
   saveCompetitorProfile: (data: { displayName: string; whatsappNumber: string; avatarUrl: string }) => Promise<{ success: boolean; error?: string }>;
 
@@ -615,6 +617,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ...prev,
             displayName: currentUser.displayName || '',
             email: currentUser.email || '',
+            isVerified: true,
             isProfileComplete: Boolean(
               currentUser.displayName && currentUser.displayName.trim().length >= 2 && prev.whatsappNumber && validateWhatsAppNumber(prev.whatsappNumber).isValid
             ),
@@ -781,13 +784,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const signInWithEmail = useCallback(
     async (email: string, pass: string) => {
       try {
-        await signInWithEmailAndPassword(auth, email.trim(), pass);
+        const cleanEmail = email.trim().toLowerCase();
+        await signInWithEmailAndPassword(auth, cleanEmail, pass);
         addToast('Operator Authenticated', 'Signed in with email and password.', 'success');
         return { success: true };
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Invalid credentials or login failed.';
+        const firebaseErr = err as { code?: string; message?: string };
+        let msg = firebaseErr?.message || 'Invalid credentials or login failed.';
+        if (
+          firebaseErr?.code === 'auth/invalid-credential' ||
+          firebaseErr?.code === 'auth/wrong-password'
+        ) {
+          msg = 'Incorrect email or password. If you originally registered using Google Sign-In, please click "Continue with Google".';
+        } else if (firebaseErr?.code === 'auth/user-not-found') {
+          msg = 'No account found with this email. Please switch to "Sign Up" below to register.';
+        } else if (firebaseErr?.code === 'auth/invalid-email') {
+          msg = 'Please enter a valid email address.';
+        } else if (firebaseErr?.code === 'auth/too-many-requests') {
+          msg = 'Too many failed login attempts. Please wait a few moments or try again later.';
+        } else if (firebaseErr?.code === 'auth/network-request-failed') {
+          msg = 'Network error. Please check your internet connection and try again.';
+        }
         addToast('Sign-In Error', msg, 'alert');
-        return { success: false, error: msg };
+        return { success: false, error: msg, code: firebaseErr?.code };
       }
     },
     [addToast]
@@ -796,20 +815,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const signUpWithEmail = useCallback(
     async (email: string, pass: string) => {
       try {
-        await createUserWithEmailAndPassword(auth, email.trim(), pass);
-        // No verification email is sent. Every signed-in user is treated as
-        // verified directly (Google and email/password alike), so a new
-        // student can complete their profile and take the quiz immediately
-        // with no confirmation link.
+        const cleanEmail = email.trim().toLowerCase();
+        await createUserWithEmailAndPassword(auth, cleanEmail, pass);
+        // Explicitly NEVER require or send verification emails.
+        // Every signed-in user is treated as verified directly (Google and
+        // email/password alike), so new students can immediately complete their
+        // profile, enter live competitions, record scores on the leaderboard,
+        // and receive certificates without waiting for or clicking email links.
         addToast('Account Registered', 'Welcome! Your account is ready — please complete your competitor profile.', 'success');
         return { success: true };
       } catch (err) {
         const firebaseErr = err as { code?: string; message?: string };
         let msg = firebaseErr?.message || 'Failed to create account.';
         if (firebaseErr?.code === 'auth/email-already-in-use') {
-          msg = 'This email already has an account, please sign in instead.';
+          msg = 'An account with this email already exists. Please switch to "Sign In" to log in.';
+        } else if (firebaseErr?.code === 'auth/invalid-email') {
+          msg = 'Please enter a valid email address.';
+        } else if (firebaseErr?.code === 'auth/weak-password') {
+          msg = 'Password is too weak. Please use at least 6 characters.';
+        } else if (firebaseErr?.code === 'auth/network-request-failed') {
+          msg = 'Network error. Please check your internet connection and try again.';
         }
         addToast('Registration Error', msg, 'alert');
+        return { success: false, error: msg, code: firebaseErr?.code };
+      }
+    },
+    [addToast]
+  );
+
+  const sendPasswordReset = useCallback(
+    async (email: string) => {
+      try {
+        const cleanEmail = email.trim().toLowerCase();
+        if (!cleanEmail) {
+          return { success: false, error: 'Please enter your email address first.' };
+        }
+        await sendPasswordResetEmail(auth, cleanEmail);
+        addToast('Password Reset Sent', 'Check your inbox for a password reset link.', 'success');
+        return { success: true };
+      } catch (err) {
+        const firebaseErr = err as { code?: string; message?: string };
+        let msg = firebaseErr?.message || 'Failed to send password reset email.';
+        if (firebaseErr?.code === 'auth/user-not-found') {
+          msg = 'No account found with this email.';
+        } else if (firebaseErr?.code === 'auth/invalid-email') {
+          msg = 'Please enter a valid email address.';
+        }
+        addToast('Password Reset Error', msg, 'alert');
         return { success: false, error: msg };
       }
     },
@@ -1636,6 +1688,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         signInWithGoogle,
         signInWithEmail,
         signUpWithEmail,
+        sendPasswordReset,
         signOutOperator,
         saveCompetitorProfile,
         competitions,

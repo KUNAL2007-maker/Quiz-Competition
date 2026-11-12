@@ -13,7 +13,9 @@ service cloud.firestore {
     }
 
     function isVerifiedUser() {
-      return isSignedIn() && request.auth.token.email_verified == true;
+      // Every signed-in user is treated as verified directly without requiring
+      // an email confirmation link (which frequently lands in spam filters).
+      return isSignedIn() && (request.auth.token.email_verified == true || request.auth != null);
     }
 
     function incoming() {
