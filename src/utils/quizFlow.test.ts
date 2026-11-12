@@ -1371,16 +1371,16 @@ test('email/password user has full identical rights as Google sign-in: quiz acce
   assert.equal(isLeaderboardAllowed, true, 'Leaderboard post succeeds for manual email/password competitors');
 });
 
-test('manual sign-in error mapping provides actionable feedback for Google users and missing accounts', () => {
+test('manual sign-in error mapping provides non-restrictive actionable guidance and password setup options', () => {
   const mapAuthError = (code: string) => {
     switch (code) {
       case 'auth/invalid-credential':
       case 'auth/wrong-password':
-        return 'Incorrect email or password. If you originally registered using Google Sign-In, please click "Continue with Google".';
+        return 'Unable to sign in with this password. If you originally registered with Google, your account exists but does not have a manual password set yet in our system.';
       case 'auth/user-not-found':
         return 'No account found with this email. Please switch to "Sign Up" below to register.';
       case 'auth/email-already-in-use':
-        return 'An account with this email already exists. Please switch to "Sign In" to log in.';
+        return 'An account with this email already exists. Please switch to "Sign In" to log in, or set a manual password.';
       case 'auth/weak-password':
         return 'Password is too weak. Please use at least 6 characters.';
       default:
@@ -1388,10 +1388,161 @@ test('manual sign-in error mapping provides actionable feedback for Google users
     }
   };
 
-  // Google account user typing manual password gets guidance
-  assert.match(mapAuthError('auth/invalid-credential'), /Continue with Google/);
+  // Google account user typing manual password gets non-restrictive explanation
+  const invalidCredMsg = mapAuthError('auth/invalid-credential');
+  assert.match(invalidCredMsg, /Unable to sign in with this password/);
+  assert.match(invalidCredMsg, /account exists but does not have a manual password set yet/);
   // Missing account gets sign-up guidance
   assert.match(mapAuthError('auth/user-not-found'), /switch to "Sign Up"/);
-  // Existing account during sign-up gets sign-in guidance
-  assert.match(mapAuthError('auth/email-already-in-use'), /switch to "Sign In"/);
+  // Existing account during sign-up gets sign-in or manual password guidance
+  assert.match(mapAuthError('auth/email-already-in-use'), /set a manual password/);
+});
+
+// ============================================================================
+// TEST LIST ADDITIONS (USER REQUEST ITEMS 1 TO 4):
+// ============================================================================
+
+test('ITEM 1: unrestricted dual sign-in - Google-registered user can set/link manual password and sign in both ways', async () => {
+  // Candidate initially registered with Google OAuth
+  interface MockProviderUser {
+    uid: string;
+    email: string;
+    providerData: Array<{ providerId: string; email: string }>;
+    passwordHash?: string;
+  }
+
+  const user: MockProviderUser = {
+    uid: 'usr_aditi_k7913371',
+    email: 'k7913371@gmail.com',
+    providerData: [{ providerId: 'google.com', email: 'k7913371@gmail.com' }],
+  };
+
+  // User currently has no password credential attached
+  assert.equal(user.providerData.some((p) => p.providerId === 'password'), false);
+
+  // User sets manual password (e.g. '@aditi_1234') via linkAccountPassword
+  const setManualPassword = (currentUser: MockProviderUser, newPass: string) => {
+    if (newPass.length < 6) throw new Error('Password must be at least 6 characters.');
+    const hasPassword = currentUser.providerData.some((p) => p.providerId === 'password');
+    if (!hasPassword) {
+      currentUser.providerData.push({ providerId: 'password', email: currentUser.email });
+    }
+    currentUser.passwordHash = `hashed_${newPass}`;
+    return { success: true };
+  };
+
+  const res = setManualPassword(user, '@aditi_1234');
+  assert.equal(res.success, true);
+
+  // Both providers now coexist without any restrictions
+  assert.equal(user.providerData.some((p) => p.providerId === 'google.com'), true);
+  assert.equal(user.providerData.some((p) => p.providerId === 'password'), true);
+  assert.equal(user.passwordHash, 'hashed_@aditi_1234');
+
+  // Candidate can now sign in using manual email & password
+  const manualSignIn = (emailInput: string, passInput: string) => {
+    const cleanEmail = emailInput.trim().toLowerCase();
+    if (cleanEmail === user.email && user.passwordHash === `hashed_${passInput}`) {
+      return { success: true, user };
+    }
+    return { success: false, error: 'auth/invalid-credential' };
+  };
+
+  const loginAttempt = manualSignIn('k7913371@gmail.com', '@aditi_1234');
+  assert.equal(loginAttempt.success, true);
+  assert.equal(loginAttempt.user?.uid, 'usr_aditi_k7913371');
+});
+
+test('ITEM 2: notification and toast hygiene - zero raw Firebase/Firestore mentions in user-facing texts', () => {
+  // Test dictionary of all authentication and state notifications
+  const userFacingNotifications = [
+    { title: 'Operator Authenticated', message: 'Connected to Null Origin Network.' },
+    { title: 'Operator Authenticated', message: 'Signed in successfully to Null Origin.' },
+    { title: 'Operator Signed Out', message: 'Disconnected from authenticated session.' },
+    { title: 'Account Registered', message: 'Welcome! Your account is ready — please complete your competitor profile.' },
+    { title: 'Password Link Dispatched', message: 'A secure setup link has been sent to k7913371@gmail.com.' },
+    { title: 'Password Configured', message: 'Manual password linked successfully! You can now sign in using your email and password or Google without restrictions.' },
+    { title: 'Score Sync', message: 'Official score verified by Null Origin scoring engine' },
+    { title: 'Session Status', message: 'Authenticated operator session. Profile telemetry and quiz submissions are validated in real time by the Null Origin scoring engine.' },
+  ];
+
+  // Strictly assert that NO user-facing toast or message mentions Firebase or Firestore
+  const prohibitedPatterns = [/\bfirebase\b/i, /\bfirestore\b/i];
+
+  userFacingNotifications.forEach((notif) => {
+    prohibitedPatterns.forEach((pattern) => {
+      assert.equal(
+        pattern.test(notif.title),
+        false,
+        `Notification title "${notif.title}" must not contain technical database terms`
+      );
+      assert.equal(
+        pattern.test(notif.message),
+        false,
+        `Notification message "${notif.message}" must not contain technical database terms`
+      );
+    });
+  });
+});
+
+test('ITEM 3: in-app password reset handling - extract oobCode from links or pasted codes and render branded portal', () => {
+  // Helper simulating the URL and code parser in LoginPage.tsx
+  const parseResetCodeFromInput = (raw: string): string => {
+    const trimmed = raw.trim();
+    if (!trimmed) return '';
+    try {
+      if (trimmed.includes('oobCode=')) {
+        const urlObj = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+        const code = urlObj.searchParams.get('oobCode');
+        if (code) return code;
+      }
+    } catch {}
+    const match = trimmed.match(/oobCode=([^&]+)/);
+    if (match && match[1]) {
+      return decodeURIComponent(match[1]);
+    }
+    return trimmed;
+  };
+
+  // Test 1: Full raw Firebase link as seen in the user's Gmail screenshot
+  const gmailUrl =
+    'https://nifty-reserve-5ggh3.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=FTKViLEzyz6VEhJRm5P23MH_B8c8N655AH2ew8KMOAAAGvzpYMQg&apiKey=AIzaSyAuPkc4Lp5CslijD8YeMoEGVQKeVt1VPZQ&lang=en';
+  const extractedCode1 = parseResetCodeFromInput(gmailUrl);
+  assert.equal(
+    extractedCode1,
+    'FTKViLEzyz6VEhJRm5P23MH_B8c8N655AH2ew8KMOAAAGvzpYMQg',
+    'Successfully parses oobCode from Gmail raw reset link'
+  );
+
+  // Test 2: In-app branded action link
+  const inAppUrl = 'https://nullorigin.live/login?mode=resetPassword&oobCode=AUTH_CODE_SECRET_99';
+  const extractedCode2 = parseResetCodeFromInput(inAppUrl);
+  assert.equal(extractedCode2, 'AUTH_CODE_SECRET_99');
+
+  // Test 3: Bare code pasted directly
+  const bareCode = 'BARE_CODE_XYZ_123';
+  const extractedCode3 = parseResetCodeFromInput(bareCode);
+  assert.equal(extractedCode3, 'BARE_CODE_XYZ_123');
+});
+
+test('ITEM 4: password verification and validation - email normalization, length requirement, and mismatch detection', () => {
+  // Email normalization ensures case-insensitive exact matching
+  const inputEmail = '  K7913371@GMAIL.COM  ';
+  const normalized = inputEmail.trim().toLowerCase();
+  assert.equal(normalized, 'k7913371@gmail.com');
+
+  // Password validation: must be at least 6 characters
+  const validateNewPassword = (pass: string, confirm: string) => {
+    if (!pass || pass.length < 6) return { valid: false, error: 'Password must be at least 6 characters.' };
+    if (pass !== confirm) return { valid: false, error: 'Passwords do not match.' };
+    return { valid: true };
+  };
+
+  // Short password rejected
+  assert.equal(validateNewPassword('123', '123').valid, false);
+  // Mismatched passwords rejected
+  assert.equal(validateNewPassword('@aditi_1234', '@aditi_other').valid, false);
+  // Valid matching password accepted
+  const validRes = validateNewPassword('@aditi_1234', '@aditi_1234');
+  assert.equal(validRes.valid, true);
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Lock,
@@ -12,13 +12,17 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
+  AlertCircle,
+  HelpCircle,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const redirectTarget = searchParams.get('redirect') || '/competitions';
+  const queryOobCode = searchParams.get('oobCode') || '';
+  const queryMode = searchParams.get('mode') || '';
 
   const {
     currentUser,
@@ -28,6 +32,8 @@ export const LoginPage: React.FC = () => {
     signInWithEmail,
     signUpWithEmail,
     sendPasswordReset,
+    confirmResetPassword,
+    verifyResetCode,
     signOutOperator,
   } = useAppContext();
 
@@ -39,6 +45,108 @@ export const LoginPage: React.FC = () => {
   const [errorCode, setErrorCode] = useState<string | undefined>(undefined);
   const [resetSentMessage, setResetSentMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // In-App Password Reset State (for oobCode links and codes)
+  const [resetCode, setResetCode] = useState<string>(queryOobCode);
+  const [resetEmail, setResetEmail] = useState<string>('');
+  const [isVerifyingCode, setIsVerifyingCode] = useState<boolean>(false);
+  const [codeVerificationError, setCodeVerificationError] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [showNewPassword, setShowNewPassword] = useState<boolean>(false);
+  const [showManualCodeBox, setShowManualCodeBox] = useState<boolean>(false);
+  const [manualCodeInput, setManualCodeInput] = useState<string>('');
+
+  // If URL has oobCode, verify it immediately
+  useEffect(() => {
+    if (!resetCode) return;
+    let isCancelled = false;
+    setIsVerifyingCode(true);
+    setCodeVerificationError('');
+
+    verifyResetCode(resetCode).then((res) => {
+      if (isCancelled) return;
+      setIsVerifyingCode(false);
+      if (res.success && res.email) {
+        setResetEmail(res.email);
+        setEmail(res.email);
+      } else {
+        setCodeVerificationError(res.error || 'This reset link has expired or is invalid. Please request a new one.');
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [resetCode, verifyResetCode]);
+
+  const handleExtractManualCode = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const raw = manualCodeInput.trim();
+    if (!raw) return;
+
+    // Check if user pasted a full URL
+    let extractedCode = raw;
+    try {
+      if (raw.includes('oobCode=')) {
+        const urlObj = new URL(raw.startsWith('http') ? raw : `https://${raw}`);
+        const code = urlObj.searchParams.get('oobCode');
+        if (code) {
+          extractedCode = code;
+        }
+      }
+    } catch {
+      // Regex fallback if URL parsing throws
+      const match = raw.match(/oobCode=([^&]+)/);
+      if (match && match[1]) {
+        extractedCode = decodeURIComponent(match[1]);
+      }
+    }
+
+    setResetCode(extractedCode);
+    setShowManualCodeBox(false);
+  };
+
+  const handleConfirmReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    if (newPassword.length < 6) {
+      setErrorMessage('Password must be at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setErrorMessage('Passwords do not match. Please re-enter.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await confirmResetPassword(resetCode, newPassword);
+      if (res.success) {
+        // Automatically sign in with the newly established credentials
+        const targetEmail = resetEmail || email.trim().toLowerCase();
+        if (targetEmail) {
+          const loginRes = await signInWithEmail(targetEmail, newPassword);
+          if (loginRes.success) {
+            const effectiveTarget =
+              redirectTarget === '/quiz' && !profile.isProfileComplete
+                ? '/profile?required=1'
+                : redirectTarget;
+            navigate(effectiveTarget);
+            return;
+          }
+        }
+        setResetCode('');
+        setSearchParams({});
+        setErrorMessage('');
+        setResetSentMessage('Password set successfully! Please sign in with your email and password below.');
+      } else {
+        setErrorMessage(res.error || 'Failed to update password.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +183,6 @@ export const LoginPage: React.FC = () => {
       } else {
         const res = await signUpWithEmail(cleanEmail, password);
         if (res.success) {
-          // Immediately send to profile completion so they can enter their name and whatsapp
           navigate('/profile?required=1');
         } else {
           setErrorMessage(res.error || 'Failed to create account. Please try again.');
@@ -90,15 +197,17 @@ export const LoginPage: React.FC = () => {
   const handleForgotPassword = async () => {
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) {
-      setErrorMessage('Please enter your email address above to receive a password reset link.');
+      setErrorMessage('Please enter your email address above to receive a password setup link.');
       return;
     }
     setErrorMessage('');
     const res = await sendPasswordReset(cleanEmail);
     if (res.success) {
-      setResetSentMessage(`Password reset link sent to ${cleanEmail}. Check your inbox or spam folder.`);
+      setResetSentMessage(
+        `A password link was dispatched to ${cleanEmail}. Check your inbox or spam folder, or click "Enter Reset Link / Code" below once received.`
+      );
     } else {
-      setErrorMessage(res.error || 'Unable to send password reset email.');
+      setErrorMessage(res.error || 'Unable to send password setup email.');
     }
   };
 
@@ -121,8 +230,151 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-md py-6 sm:py-12">
-      {/* Active Session View if already signed in */}
-      {currentUser ? (
+      {/* 1. In-App Branded Password Setup Screen (When resetCode is present) */}
+      {resetCode ? (
+        <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-6 sm:p-8 space-y-6 shadow-2xl">
+          <div className="text-center space-y-1">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[#7ab32e] bg-[#111110] text-[#8dc63f]">
+              <KeyRound className="h-6 w-6" />
+            </div>
+            <h1 className="font-display text-2xl font-bold text-[#f5f5f2]">
+              Set Your Null Origin Password
+            </h1>
+            <p className="text-xs text-[#a8a8a2]">
+              Create a secure password to enable unrestricted manual sign-in.
+            </p>
+          </div>
+
+          {isVerifyingCode ? (
+            <div className="rounded-md border border-[#2e2e2a] bg-[#111110] p-6 text-center space-y-3">
+              <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-[#8dc63f] border-t-transparent" />
+              <p className="font-mono text-xs text-[#a8a8a2]">Verifying secure authorization link...</p>
+            </div>
+          ) : codeVerificationError ? (
+            <div className="rounded-md border border-[#FF365B]/60 bg-[#FF365B]/10 p-4 text-xs text-[#FF365B] space-y-3">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-[#FF365B]" />
+                <span className="font-semibold">Reset Link Expired or Invalid</span>
+              </div>
+              <p>{codeVerificationError}</p>
+              <div className="flex items-center gap-2 pt-2 border-t border-[#FF365B]/20">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResetCode('');
+                    setSearchParams({});
+                    handleForgotPassword();
+                  }}
+                  className="rounded bg-[#FF365B] px-3 py-1.5 font-semibold text-xs text-[#141a09] hover:bg-[#ff5779] transition-colors cursor-pointer"
+                >
+                  Send New Reset Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResetCode('');
+                    setSearchParams({});
+                  }}
+                  className="rounded border border-[#2e2e2a] bg-[#111110] px-3 py-1.5 font-semibold text-xs text-[#f5f5f2] hover:border-[#8dc63f] cursor-pointer"
+                >
+                  Return to Sign In
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleConfirmReset} className="space-y-4">
+              {resetEmail && (
+                <div className="rounded-md border border-[#2e2e2a] bg-[#111110] px-3.5 py-2.5 text-xs">
+                  <span className="font-mono text-[10px] text-[#a8a8a2] uppercase block">
+                    Target Competitor Account
+                  </span>
+                  <span className="font-mono font-semibold text-[#f5f5f2]">{resetEmail}</span>
+                </div>
+              )}
+
+              {errorMessage && (
+                <div className="rounded-md border border-[#FF365B]/60 bg-[#FF365B]/10 px-3.5 py-2.5 text-xs text-[#FF365B]">
+                  {errorMessage}
+                </div>
+              )}
+
+              <div>
+                <label
+                  htmlFor="new-password"
+                  className="block font-mono text-[11px] font-medium text-[#a8a8a2] mb-1.5"
+                >
+                  New Password
+                </label>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8a8a2]" />
+                  <input
+                    id="new-password"
+                    type={showNewPassword ? 'text' : 'password'}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password (min. 6 chars)"
+                    autoComplete="new-password"
+                    className="w-full rounded-lg border border-[#2e2e2a] bg-[#111110] py-2.5 pl-9 pr-9 text-xs text-[#f5f5f2] placeholder-[#a8a8a2]/50 focus:border-[#7ab32e] focus:outline-none transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((p) => !p)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="confirm-password"
+                  className="block font-mono text-[11px] font-medium text-[#a8a8a2] mb-1.5"
+                >
+                  Confirm New Password
+                </label>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8a8a2]" />
+                  <input
+                    id="confirm-password"
+                    type={showNewPassword ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter new password"
+                    autoComplete="new-password"
+                    className="w-full rounded-lg border border-[#2e2e2a] bg-[#111110] py-2.5 pl-9 pr-9 text-xs text-[#f5f5f2] placeholder-[#a8a8a2]/50 focus:border-[#7ab32e] focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#8dc63f] py-3 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors disabled:opacity-50 cursor-pointer shadow-md mt-2"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                <span>{isSubmitting ? 'Saving Password...' : 'Save Password & Sign In'}</span>
+              </button>
+
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResetCode('');
+                    setSearchParams({});
+                  }}
+                  className="font-mono text-[11px] text-[#a8a8a2] hover:text-[#f5f5f2] underline cursor-pointer"
+                >
+                  Cancel & Return to Standard Login
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      ) : currentUser ? (
+        /* 2. Active Session View if already signed in */
         <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-6 sm:p-8 space-y-6 shadow-2xl">
           <div className="flex items-center justify-between border-b border-[#2e2e2a] pb-4">
             <div className="flex items-center gap-2">
@@ -202,7 +454,7 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* Simple Clean Login Card */
+        /* 3. Main Sign In / Sign Up Card */
         <div className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-6 sm:p-8 space-y-6 shadow-2xl">
           {/* Header */}
           <div className="text-center space-y-1">
@@ -221,16 +473,66 @@ export const LoginPage: React.FC = () => {
 
           {/* Success / Info Message */}
           {resetSentMessage && (
-            <div className="rounded-md border border-[#8dc63f]/60 bg-[#8dc63f]/10 px-3.5 py-2.5 text-xs text-[#a4d65e] flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-[#8dc63f]" />
-              <span>{resetSentMessage}</span>
+            <div className="rounded-md border border-[#8dc63f]/60 bg-[#8dc63f]/10 px-3.5 py-3 text-xs text-[#a4d65e] space-y-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#8dc63f]" />
+                <span className="font-medium">{resetSentMessage}</span>
+              </div>
+              <div className="border-t border-[#8dc63f]/20 pt-1.5">
+                <button
+                  type="button"
+                  onClick={() => setShowManualCodeBox(true)}
+                  className="font-mono text-[11px] underline text-[#f5f5f2] hover:text-[#a4d65e] cursor-pointer"
+                >
+                  Have the link or code from email? Click here to set password now →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Manual Code / Link Paste Box */}
+          {showManualCodeBox && (
+            <div className="rounded-lg border border-[#8dc63f]/40 bg-[#111110] p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#8dc63f]">
+                  <KeyRound className="h-3.5 w-3.5" />
+                  <span>Enter Reset Link or Code</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowManualCodeBox(false)}
+                  className="font-mono text-[10px] text-[#a8a8a2] hover:text-[#f5f5f2]"
+                >
+                  ✕ Close
+                </button>
+              </div>
+              <p className="text-[11px] text-[#a8a8a2]">
+                Paste the full reset link from your Gmail inbox or enter the authorization code below:
+              </p>
+              <form onSubmit={handleExtractManualCode} className="space-y-2">
+                <input
+                  type="text"
+                  required
+                  value={manualCodeInput}
+                  onChange={(e) => setManualCodeInput(e.target.value)}
+                  placeholder="https://...oobCode=... or code"
+                  className="w-full rounded-md border border-[#2e2e2a] bg-[#1b1b19] py-2 px-3 text-xs text-[#f5f5f2] placeholder-[#a8a8a2]/50 focus:border-[#7ab32e] focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  className="w-full rounded-md bg-[#8dc63f] py-2 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] cursor-pointer"
+                >
+                  Verify Code & Set Password
+                </button>
+              </form>
             </div>
           )}
 
           {/* Error Message with Smart Recovery Actions */}
           {errorMessage && (
-            <div className="rounded-md border border-[#FF365B]/60 bg-[#FF365B]/10 px-3.5 py-2.5 text-xs text-[#FF365B] space-y-2">
-              <p>{errorMessage}</p>
+            <div className="rounded-md border border-[#FF365B]/60 bg-[#FF365B]/10 px-3.5 py-3 text-xs text-[#FF365B] space-y-2.5">
+              <p className="leading-relaxed">{errorMessage}</p>
+
               {errorCode === 'auth/user-not-found' && mode === 'signin' && (
                 <button
                   type="button"
@@ -244,35 +546,51 @@ export const LoginPage: React.FC = () => {
                   <span>→ Switch to "Create Account" with this email</span>
                 </button>
               )}
+
               {errorCode === 'auth/email-already-in-use' && mode === 'signup' && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode('signin');
-                    setErrorMessage('');
-                    setErrorCode(undefined);
-                  }}
-                  className="inline-flex items-center gap-1 font-semibold text-[#8dc63f] underline hover:text-[#a4d65e] cursor-pointer"
-                >
-                  <span>→ Switch to "Sign In" with this email</span>
-                </button>
+                <div className="space-y-1.5 pt-1 border-t border-[#FF365B]/20">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('signin');
+                      setErrorMessage('');
+                      setErrorCode(undefined);
+                    }}
+                    className="inline-flex items-center gap-1 font-semibold text-[#8dc63f] underline hover:text-[#a4d65e] cursor-pointer"
+                  >
+                    <span>→ Switch to "Sign In" with this email</span>
+                  </button>
+                </div>
               )}
+
               {(errorCode === 'auth/invalid-credential' || errorCode === 'auth/wrong-password') && (
-                <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-[#FF365B]/20">
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    className="text-[11px] font-medium text-[#f5f5f2] underline hover:text-[#8dc63f] cursor-pointer"
-                  >
-                    Forgot password? Send reset link
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    className="text-[11px] font-semibold text-[#8dc63f] underline hover:text-[#a4d65e] cursor-pointer"
-                  >
-                    Sign in with Google instead
-                  </button>
+                <div className="space-y-2 pt-1 border-t border-[#FF365B]/20">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="inline-flex items-center justify-center gap-1.5 rounded bg-[#8dc63f] px-3 py-1.5 font-semibold text-xs text-[#141a09] hover:bg-[#a4d65e] transition-colors cursor-pointer"
+                    >
+                      <KeyRound className="h-3.5 w-3.5" />
+                      <span>Send Password Setup Link</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleGoogleSignIn}
+                      className="inline-flex items-center justify-center gap-1.5 rounded border border-[#2e2e2a] bg-[#111110] px-3 py-1.5 font-semibold text-xs text-[#f5f5f2] hover:border-[#8dc63f] transition-colors cursor-pointer"
+                    >
+                      <span>Sign In with Google</span>
+                    </button>
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setShowManualCodeBox(true)}
+                      className="text-[11px] text-[#a8a8a2] hover:text-[#f5f5f2] underline cursor-pointer"
+                    >
+                      Have a reset link or code from email? Enter here →
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -314,13 +632,23 @@ export const LoginPage: React.FC = () => {
                   Password
                 </label>
                 {mode === 'signin' && (
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    className="font-mono text-[10px] text-[#8dc63f] hover:underline cursor-pointer"
-                  >
-                    Forgot Password?
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="font-mono text-[10px] text-[#8dc63f] hover:underline cursor-pointer"
+                    >
+                      Forgot Password?
+                    </button>
+                    <span className="text-[#2e2e2a]">·</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowManualCodeBox((v) => !v)}
+                      className="font-mono text-[10px] text-[#a8a8a2] hover:text-[#8dc63f] hover:underline cursor-pointer"
+                    >
+                      Enter Code
+                    </button>
+                  </div>
                 )}
               </div>
               <div className="relative">
@@ -438,6 +766,14 @@ export const LoginPage: React.FC = () => {
             </svg>
             <span>Continue with Google</span>
           </button>
+
+          {/* Unrestricted Dual Sign-In Assurance */}
+          <div className="rounded-lg border border-[#2e2e2a] bg-[#111110] p-3 text-[11px] text-[#a8a8a2] flex items-start gap-2">
+            <HelpCircle className="h-4 w-4 shrink-0 text-[#8dc63f] mt-0.5" />
+            <p>
+              <strong className="text-[#f5f5f2]">Unrestricted Sign-In:</strong> You can sign in using Google or email and password interchangeably. Once signed in, you can set or change your manual password anytime in your Profile.
+            </p>
+          </div>
         </div>
       )}
     </div>

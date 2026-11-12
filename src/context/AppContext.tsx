@@ -7,6 +7,11 @@ import {
   sendPasswordResetEmail,
   signOut as firebaseSignOut,
   User as FirebaseUser,
+  linkWithCredential,
+  updatePassword,
+  EmailAuthProvider,
+  confirmPasswordReset,
+  verifyPasswordResetCode,
 } from 'firebase/auth';
 import {
   collection,
@@ -63,6 +68,9 @@ interface AppContextValue {
   signInWithEmail: (email: string, pass: string) => Promise<{ success: boolean; error?: string; code?: string }>;
   signUpWithEmail: (email: string, pass: string) => Promise<{ success: boolean; error?: string; code?: string }>;
   sendPasswordReset: (email: string) => Promise<{ success: boolean; error?: string }>;
+  linkAccountPassword: (newPassword: string) => Promise<{ success: boolean; error?: string; code?: string }>;
+  confirmResetPassword: (oobCode: string, newPassword: string) => Promise<{ success: boolean; error?: string; code?: string }>;
+  verifyResetCode: (oobCode: string) => Promise<{ success: boolean; email?: string; error?: string; code?: string }>;
   signOutOperator: () => Promise<void>;
   saveCompetitorProfile: (data: { displayName: string; whatsappNumber: string; avatarUrl: string }) => Promise<{ success: boolean; error?: string }>;
 
@@ -745,7 +753,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await signInWithPopup(auth, googleProvider);
       addToast(
         'Operator Authenticated',
-        'Connected to Firebase Authentication & Firestore session.',
+        'Connected to Null Origin Network.',
         'success'
       );
     } catch (err) {
@@ -786,7 +794,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         const cleanEmail = email.trim().toLowerCase();
         await signInWithEmailAndPassword(auth, cleanEmail, pass);
-        addToast('Operator Authenticated', 'Signed in with email and password.', 'success');
+        addToast('Operator Authenticated', 'Signed in successfully to Null Origin.', 'success');
         return { success: true };
       } catch (err) {
         const firebaseErr = err as { code?: string; message?: string };
@@ -795,7 +803,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           firebaseErr?.code === 'auth/invalid-credential' ||
           firebaseErr?.code === 'auth/wrong-password'
         ) {
-          msg = 'Incorrect email or password. If you originally registered using Google Sign-In, please click "Continue with Google".';
+          msg = 'Unable to sign in with this password. If you originally registered with Google, your account exists but does not have a manual password set yet in our system.';
         } else if (firebaseErr?.code === 'auth/user-not-found') {
           msg = 'No account found with this email. Please switch to "Sign Up" below to register.';
         } else if (firebaseErr?.code === 'auth/invalid-email') {
@@ -828,7 +836,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const firebaseErr = err as { code?: string; message?: string };
         let msg = firebaseErr?.message || 'Failed to create account.';
         if (firebaseErr?.code === 'auth/email-already-in-use') {
-          msg = 'An account with this email already exists. Please switch to "Sign In" to log in.';
+          msg = 'An account with this email already exists. Please switch to "Sign In" to log in, or set a manual password.';
         } else if (firebaseErr?.code === 'auth/invalid-email') {
           msg = 'Please enter a valid email address.';
         } else if (firebaseErr?.code === 'auth/weak-password') {
@@ -850,14 +858,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (!cleanEmail) {
           return { success: false, error: 'Please enter your email address first.' };
         }
-        await sendPasswordResetEmail(auth, cleanEmail);
-        addToast('Password Reset Sent', 'Check your inbox for a password reset link.', 'success');
+        const actionCodeSettings = {
+          url: `${typeof window !== 'undefined' ? window.location.origin : ''}/login?mode=resetPassword`,
+          handleCodeInApp: true,
+        };
+        try {
+          await sendPasswordResetEmail(auth, cleanEmail, actionCodeSettings);
+        } catch {
+          await sendPasswordResetEmail(auth, cleanEmail);
+        }
+        addToast(
+          'Password Link Dispatched',
+          `A secure setup link has been sent to ${cleanEmail}. Check your inbox or spam folder.`,
+          'success'
+        );
         return { success: true };
       } catch (err) {
         const firebaseErr = err as { code?: string; message?: string };
         let msg = firebaseErr?.message || 'Failed to send password reset email.';
         if (firebaseErr?.code === 'auth/user-not-found') {
-          msg = 'No account found with this email.';
+          msg = 'No account found with this email. Please switch to "Sign Up" below to register.';
         } else if (firebaseErr?.code === 'auth/invalid-email') {
           msg = 'Please enter a valid email address.';
         }
@@ -867,6 +887,93 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     },
     [addToast]
   );
+
+  const linkAccountPassword = useCallback(
+    async (newPassword: string) => {
+      if (!currentUser || !currentUser.email) {
+        return { success: false, error: 'No active authenticated session found.' };
+      }
+      if (newPassword.length < 6) {
+        return { success: false, error: 'Password must be at least 6 characters.' };
+      }
+      try {
+        const hasPassword = (currentUser.providerData || []).some(
+          (p) => p.providerId === 'password'
+        );
+        if (hasPassword) {
+          await updatePassword(currentUser, newPassword);
+        } else {
+          const cred = EmailAuthProvider.credential(currentUser.email, newPassword);
+          await linkWithCredential(currentUser, cred);
+        }
+        addToast(
+          'Password Configured',
+          'Manual password linked successfully! You can now sign in using your email and password or Google without restrictions.',
+          'success'
+        );
+        return { success: true };
+      } catch (err) {
+        const firebaseErr = err as { code?: string; message?: string };
+        let msg = firebaseErr?.message || 'Failed to update manual password.';
+        if (firebaseErr?.code === 'auth/requires-recent-login') {
+          msg = 'For security, please sign in with Google again before updating your password.';
+        } else if (firebaseErr?.code === 'auth/weak-password') {
+          msg = 'Password is too weak. Please use at least 6 characters.';
+        } else if (firebaseErr?.code === 'auth/credential-already-in-use') {
+          msg = 'This credential is already linked to another account.';
+        }
+        addToast('Password Error', msg, 'alert');
+        return { success: false, error: msg, code: firebaseErr?.code };
+      }
+    },
+    [currentUser, addToast]
+  );
+
+  const confirmResetPassword = useCallback(
+    async (oobCode: string, newPassword: string) => {
+      if (newPassword.length < 6) {
+        return { success: false, error: 'Password must be at least 6 characters.' };
+      }
+      try {
+        await confirmPasswordReset(auth, oobCode, newPassword);
+        addToast(
+          'Password Created',
+          'Your manual sign-in password has been created and verified.',
+          'success'
+        );
+        return { success: true };
+      } catch (err) {
+        const firebaseErr = err as { code?: string; message?: string };
+        let msg = firebaseErr?.message || 'Failed to set password.';
+        if (firebaseErr?.code === 'auth/expired-action-code') {
+          msg = 'This reset link has expired. Please request a new one.';
+        } else if (firebaseErr?.code === 'auth/invalid-action-code') {
+          msg = 'This reset link has already been used or is invalid. Please request a new link.';
+        } else if (firebaseErr?.code === 'auth/weak-password') {
+          msg = 'Password is too weak. Please use at least 6 characters.';
+        }
+        addToast('Reset Error', msg, 'alert');
+        return { success: false, error: msg, code: firebaseErr?.code };
+      }
+    },
+    [addToast]
+  );
+
+  const verifyResetCode = useCallback(async (oobCode: string) => {
+    try {
+      const email = await verifyPasswordResetCode(auth, oobCode);
+      return { success: true, email };
+    } catch (err) {
+      const firebaseErr = err as { code?: string; message?: string };
+      let msg = 'Invalid or expired password reset link.';
+      if (firebaseErr?.code === 'auth/expired-action-code') {
+        msg = 'This reset link has expired. Please request a new one.';
+      } else if (firebaseErr?.code === 'auth/invalid-action-code') {
+        msg = 'This reset link has already been used or is invalid.';
+      }
+      return { success: false, error: msg, code: firebaseErr?.code };
+    }
+  }, []);
 
   const saveCompetitorProfile = useCallback(
     async (data: { displayName: string; whatsappNumber: string; avatarUrl: string }) => {
@@ -1689,6 +1796,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         signInWithEmail,
         signUpWithEmail,
         sendPasswordReset,
+        linkAccountPassword,
+        confirmResetPassword,
+        verifyResetCode,
         signOutOperator,
         saveCompetitorProfile,
         competitions,

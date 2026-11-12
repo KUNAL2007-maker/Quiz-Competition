@@ -15,6 +15,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Sparkles,
+  KeyRound,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { validateOperatorProfileInput, formatDurationSeconds } from '../utils/timerLogic';
@@ -30,6 +31,7 @@ export const ProfilePage: React.FC = () => {
     currentUser,
     profile,
     updateProfile,
+    linkAccountPassword,
     results,
     competitions,
     leaderboard,
@@ -37,6 +39,49 @@ export const ProfilePage: React.FC = () => {
     selectCompetition,
     resetQuizSession,
   } = useAppContext();
+
+  // Manual Password Linking State
+  const [manualPassword, setManualPassword] = useState('');
+  const [confirmManualPassword, setConfirmManualPassword] = useState('');
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [passwordFeedback, setPasswordFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const hasPasswordProvider = Boolean(
+    currentUser?.providerData?.some((p) => p.providerId === 'password')
+  );
+  const hasGoogleProvider = Boolean(
+    currentUser?.providerData?.some((p) => p.providerId === 'google.com')
+  );
+
+  const handleSaveManualPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordFeedback(null);
+    if (manualPassword.length < 6) {
+      setPasswordFeedback({ type: 'error', message: 'Password must be at least 6 characters.' });
+      return;
+    }
+    if (manualPassword !== confirmManualPassword) {
+      setPasswordFeedback({ type: 'error', message: 'Passwords do not match.' });
+      return;
+    }
+    setIsSavingPassword(true);
+    try {
+      const res = await linkAccountPassword(manualPassword);
+      if (res.success) {
+        setPasswordFeedback({
+          type: 'success',
+          message: 'Manual password configured! You can now sign in using your email and this password or Google without restrictions.',
+        });
+        setManualPassword('');
+        setConfirmManualPassword('');
+      } else {
+        setPasswordFeedback({ type: 'error', message: res.error || 'Failed to link password.' });
+      }
+    } finally {
+      setIsSavingPassword(false);
+    }
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(profile.displayName || currentUser?.displayName || '');
@@ -528,6 +573,127 @@ export const ProfilePage: React.FC = () => {
         )}
       </section>
 
+      {/* Sign-In Credentials & Unrestricted Access Card */}
+      <section className="rounded-xl border border-[#2e2e2a] bg-[#1b1b19] p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2e2e2a] pb-3">
+          <div className="flex items-center gap-2.5">
+            <KeyRound className="h-4 w-4 text-[#8dc63f]" />
+            <h2 className="font-display text-base font-bold text-[#f5f5f2]">
+              Sign-In Credentials &amp; Manual Access
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
+            {hasGoogleProvider && (
+              <span className="rounded bg-[#4285F4]/10 border border-[#4285F4]/30 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-[#4285F4]">
+                Google Connected
+              </span>
+            )}
+            <span
+              className={`rounded px-2.5 py-0.5 font-mono text-[10px] font-semibold ${
+                hasPasswordProvider
+                  ? 'bg-[#8dc63f]/10 border border-[#8dc63f]/30 text-[#8dc63f]'
+                  : 'bg-[#FFB800]/10 border border-[#FFB800]/30 text-[#FFB800]'
+              }`}
+            >
+              {hasPasswordProvider ? 'Manual Password Active' : 'Manual Password Not Set'}
+            </span>
+          </div>
+        </div>
+
+        <p className="text-xs text-[#a8a8a2] leading-relaxed">
+          You can access your Null Origin account using both Google Sign-In and manual email &amp; password.
+          {!hasPasswordProvider &&
+            ' Set a manual password below so you can sign in directly with your email and password anytime without restrictions.'}
+        </p>
+
+        {passwordFeedback && (
+          <div
+            className={`rounded-md p-3 text-xs flex items-center gap-2 ${
+              passwordFeedback.type === 'success'
+                ? 'border border-[#8dc63f]/60 bg-[#8dc63f]/10 text-[#a4d65e]'
+                : 'border border-[#FF365B]/60 bg-[#FF365B]/10 text-[#FF365B]'
+            }`}
+          >
+            {passwordFeedback.type === 'success' ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-[#8dc63f]" />
+            ) : (
+              <AlertCircle className="h-4 w-4 shrink-0 text-[#FF365B]" />
+            )}
+            <span>{passwordFeedback.message}</span>
+          </div>
+        )}
+
+        {showPasswordSection ? (
+          <form onSubmit={handleSaveManualPassword} className="space-y-3 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label
+                  htmlFor="set-manual-password"
+                  className="block font-mono text-[11px] text-[#a8a8a2] mb-1"
+                >
+                  NEW MANUAL PASSWORD
+                </label>
+                <input
+                  id="set-manual-password"
+                  type="password"
+                  required
+                  value={manualPassword}
+                  onChange={(e) => setManualPassword(e.target.value)}
+                  placeholder="Min. 6 characters"
+                  className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] px-3.5 py-2 text-xs text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="confirm-manual-password"
+                  className="block font-mono text-[11px] text-[#a8a8a2] mb-1"
+                >
+                  CONFIRM PASSWORD
+                </label>
+                <input
+                  id="confirm-manual-password"
+                  type="password"
+                  required
+                  value={confirmManualPassword}
+                  onChange={(e) => setConfirmManualPassword(e.target.value)}
+                  placeholder="Re-enter password"
+                  className="w-full rounded-md border border-[#2e2e2a] bg-[#111110] px-3.5 py-2 text-xs text-[#f5f5f2] focus:border-[#7ab32e] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="submit"
+                disabled={isSavingPassword}
+                className="rounded-md bg-[#8dc63f] px-4 py-2 text-xs font-semibold text-[#141a09] hover:bg-[#a4d65e] transition-colors disabled:opacity-50 cursor-pointer shadow-md"
+              >
+                {isSavingPassword ? 'Saving Password...' : 'Save Manual Password'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPasswordSection(false)}
+                className="rounded-md border border-[#2e2e2a] bg-[#1b1b19] px-3.5 py-2 text-xs font-medium text-[#a8a8a2] hover:text-[#f5f5f2] cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => setShowPasswordSection(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#2e2e2a] bg-[#111110] px-3.5 py-2 text-xs font-semibold text-[#f5f5f2] hover:border-[#8dc63f] hover:text-[#8dc63f] transition-colors cursor-pointer"
+            >
+              <KeyRound className="h-3.5 w-3.5 text-[#8dc63f]" />
+              <span>{hasPasswordProvider ? 'Update Manual Password' : 'Set Manual Password for Sign-In'}</span>
+            </button>
+          </div>
+        )}
+      </section>
+
       {/* Tournaments & Participation History Section */}
       <section className="space-y-6" aria-labelledby="tournaments-heading">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2e2e2a] pb-3">
@@ -656,7 +822,7 @@ export const ProfilePage: React.FC = () => {
 
                   <div className="flex items-center justify-between pt-1">
                     <span className="font-mono text-[11px] text-[#a8a8a2]">
-                      Official score synced with Firestore & Python scoring engine
+                      Official score verified by Null Origin scoring engine
                     </span>
                     {!(
                       (item.competitionTitle || '').toLowerCase().includes('practice') ||

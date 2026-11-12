@@ -247,14 +247,14 @@ export const SettingsPage: React.FC = () => {
           />
         </section>
 
-        {/* 6. Session & Account UI (Firebase Auth & Python Backend) */}
+        {/* 6. Session & Account UI (Null Origin Engine) */}
         <section className="rounded-lg border border-[#2e2e2a] bg-[#1b1b19] p-6 flex flex-col justify-between">
           <div>
             <div className="mb-4 flex items-center justify-between gap-2.5 border-b border-[#2e2e2a] pb-3">
               <div className="flex items-center gap-2.5">
                 <Terminal className="h-4 w-4 text-[#8dc63f]" aria-hidden="true" />
                 <h2 className="font-display text-base font-semibold text-[#f5f5f2]">
-                  Session, Firebase Auth & Python Engine
+                  Session &amp; Null Origin Scoring Engine
                 </h2>
               </div>
               <span className="font-mono text-[11px] text-[#a4d65e]">
@@ -264,8 +264,8 @@ export const SettingsPage: React.FC = () => {
 
             <p className="text-xs text-[#a8a8a2] leading-relaxed">
               {currentUser
-                ? 'Authenticated via Google account. Profile updates and quiz results are validated by the Python engine and persisted to Firestore.'
-                : 'Connected to Firebase Authentication, Firestore Database, and the Python API validation gateway. All data collections start empty with zero demo data.'}
+                ? 'Authenticated operator session. Profile telemetry and quiz submissions are validated in real time by the Null Origin scoring engine.'
+                : 'Connected to Null Origin Network and real-time scoring engine. All data collections start empty with zero demo data.'}
             </p>
           </div>
 
@@ -276,7 +276,7 @@ export const SettingsPage: React.FC = () => {
                 onClick={signOutOperator}
                 className="rounded-md border border-[#FF365B]/60 bg-[#1b1b19] px-3.5 py-2 text-xs font-medium text-[#FF365B] hover:bg-[#FF365B]/10 transition-colors cursor-pointer"
               >
-                Sign Out of Firebase
+                Sign Out of Session
               </button>
             ) : (
               <button

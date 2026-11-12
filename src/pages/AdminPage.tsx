@@ -535,10 +535,10 @@ export const AdminPage: React.FC = () => {
     try {
       await navigator.clipboard.writeText(FIRESTORE_RULES_SOURCE);
       setRulesCopied(true);
-      addToast('Rules Copied', 'Production firestore.rules copied to clipboard.', 'success');
+      addToast('Rules Copied', 'Production security rules copied to clipboard.', 'success');
       setTimeout(() => setRulesCopied(false), 3000);
     } catch {
-      addToast('Copy Failed', 'Unable to copy to clipboard automatically. Please copy from firestore.rules in repository.', 'alert');
+      addToast('Copy Failed', 'Unable to copy to clipboard automatically. Please copy from security rules in repository.', 'alert');
     }
   };
 
