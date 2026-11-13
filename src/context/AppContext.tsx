@@ -379,7 +379,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               ...c,
               status: 'completed' as const,
               endTime: '2026-11-12T12:00:00.000Z',
-              participantCount: 121,
+              participantCount: 321,
             };
           }
           return c;

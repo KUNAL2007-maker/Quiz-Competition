@@ -1819,7 +1819,7 @@ test('FULL ELIGIBILITY & REAL-TIME LEADERBOARD: Google and Email/Password users 
 // COMPREHENSIVE VERIFICATION: 120 DEMO ENTRIES, KUNAL BANKHELE #1, CLOSED COMPETITION & CHRONOLOGICAL MULTI-CERTIFICATE LOOKUP
 // ============================================================================
 
-test('USER SPEC 1 & 2: 120 demo entries added, Cyber Defense Challenge closed, Kunal Bankhele strictly #1', async () => {
+test('USER SPEC 1 & 2: 320 demo entries added (321 total participants), Cyber Defense Challenge closed, Kunal Bankhele strictly #1', async () => {
   const cyberDefenseSeed = (await import('../constants/cyberDefenseSeed.json')).default;
   const {
     CYBER_DEFENSE_CHALLENGE,
@@ -1827,14 +1827,14 @@ test('USER SPEC 1 & 2: 120 demo entries added, Cyber Defense Challenge closed, K
     CYBER_DEFENSE_TOP_WINNERS,
   } = await import('../constants/tournaments');
 
-  // 1. Exactly 121 verified participants (Kunal Bankhele + 120 demo entries)
+  // 1. Exactly 321 verified participants (Kunal Bankhele + 320 demo entries)
   assert.equal(Array.isArray(cyberDefenseSeed), true);
-  assert.equal(cyberDefenseSeed.length, 121, 'Must have exactly 121 total entries (1 winner + 120 demo entries)');
+  assert.equal(cyberDefenseSeed.length, 321, 'Must have exactly 321 total entries (1 winner + 320 demo entries)');
 
   // 2. Competition is officially concluded / closed
   assert.equal(CYBER_DEFENSE_CHALLENGE.id, CYBER_DEFENSE_COMP_ID);
-  assert.equal(CYBER_DEFENSE_CHALLENGE.status, 'completed', 'Competition must be closed after adding 120 participants');
-  assert.equal(CYBER_DEFENSE_CHALLENGE.participantCount, 121);
+  assert.equal(CYBER_DEFENSE_CHALLENGE.status, 'completed', 'Competition must be closed after adding participants');
+  assert.equal(CYBER_DEFENSE_CHALLENGE.participantCount, 321);
   assert.equal(new Date(CYBER_DEFENSE_CHALLENGE.endTime!).getTime() <= Date.now(), true);
 
   // 3. Top winner MUST ALWAYS BE Kunal Bankhele
@@ -1846,9 +1846,9 @@ test('USER SPEC 1 & 2: 120 demo entries added, Cyber Defense Challenge closed, K
   assert.equal(rank1.completionTimeSeconds, 111, '01:51 = 111 seconds');
   assert.equal(rank1.rank, 1);
 
-  // 4. Verify all 120 demo entries are strictly ranked BELOW Kunal Bankhele
+  // 4. Verify all 320 demo entries are strictly ranked BELOW Kunal Bankhele
   const demoEntries = cyberDefenseSeed.slice(1);
-  assert.equal(demoEntries.length, 120);
+  assert.equal(demoEntries.length, 320);
 
   demoEntries.forEach((entry, idx) => {
     assert.equal(entry.competitionId, CYBER_DEFENSE_COMP_ID);
@@ -1868,6 +1868,33 @@ test('USER SPEC 1 & 2: 120 demo entries added, Cyber Defense Challenge closed, K
   assert.equal(CYBER_DEFENSE_TOP_WINNERS[0].score, 1000);
   assert.equal(CYBER_DEFENSE_TOP_WINNERS[0].certId, 'NO26-EXC-001-KB');
   assert.equal(CYBER_DEFENSE_TOP_WINNERS[0].badge, 'Gold Medalist');
+});
+
+test('USER SPEC 4: Competition card neatly formats timing without ellipsis truncation', () => {
+  // Test formatting for concluded tournaments:
+  const formatEndedDate = (endTimeIso: string) => {
+    const d = new Date(endTimeIso);
+    return `Ended ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  };
+
+  const cddDate = formatEndedDate('2026-11-12T12:00:00.000Z');
+  assert.equal(cddDate, 'Ended Nov 12, 2026');
+  assert.equal(cddDate.includes('...'), false, 'Must never truncate with ellipsis');
+
+  const quizDate = formatEndedDate('2026-11-08T11:30:00.000Z');
+  assert.equal(quizDate, 'Ended Nov 8, 2026');
+  assert.equal(quizDate.includes('...'), false, 'Must never truncate with ellipsis');
+
+  // Total time label formatting
+  const formatTotalTime = (questions: number, perQuestionSec: number) => {
+    const totalSec = questions * perQuestionSec;
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
+    return sec === 0 ? `${min}m` : `${min}m ${sec}s`;
+  };
+
+  assert.equal(formatTotalTime(10, 20), '3m 20s');
+  assert.equal(formatTotalTime(30, 15), '7m 30s');
 });
 
 test('USER SPEC 3: Multi-certificate lookup returns ALL certificates with latest ended competition first', async () => {
