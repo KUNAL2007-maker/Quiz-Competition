@@ -1998,3 +1998,33 @@ test('USER SPEC 3: Multi-certificate lookup returns ALL certificates with latest
   assert.equal(resultsAlias[0].certId, 'NO26-EXC-001-KB');
   assert.equal(resultsAlias[0].competitionTitle, 'Cyber Defense Challenge 2026');
 });
+
+test('USER SPEC: Cyber Quiz 2026 static standings has total 83 participants and displays verified participant count on competition card', async () => {
+  const leaderboardSeed = (await import('../constants/leaderboardSeed.json')).default;
+  const { ARCHIVED_CYBER_QUIZ, CYBER_QUIZ_COMP_ID, CYBER_DEFENSE_CHALLENGE } = await import('../constants/tournaments');
+  const { isExcludedLeaderboardEntry } = await import('./leaderboardCalibration');
+
+  // 1. Verify leaderboardSeed.json contains exactly 83 verified entries
+  assert.equal(Array.isArray(leaderboardSeed), true);
+  assert.equal(leaderboardSeed.length, 83, 'Cyber Quiz 2026 static seed must have exactly 83 participants');
+
+  // 2. Filtered static standings must contain all 83 valid non-excluded entries
+  const finalized = leaderboardSeed.filter((e: any) => !isExcludedLeaderboardEntry(e));
+  assert.equal(finalized.length, 83);
+
+  // 3. Official tournament record participantCount must be 83
+  assert.equal(ARCHIVED_CYBER_QUIZ.id, CYBER_QUIZ_COMP_ID);
+  assert.equal(ARCHIVED_CYBER_QUIZ.participantCount, 83);
+  assert.equal(ARCHIVED_CYBER_QUIZ.status, 'completed');
+
+  // 4. Verify competition card badge criteria:
+  // Both Cyber Defense Challenge (321) and Cyber Security Quiz (83) must have participantCount > 0
+  assert.equal(typeof ARCHIVED_CYBER_QUIZ.participantCount, 'number');
+  assert.equal(ARCHIVED_CYBER_QUIZ.participantCount! > 0, true);
+  assert.equal(ARCHIVED_CYBER_QUIZ.participantCount, 83);
+
+  assert.equal(typeof CYBER_DEFENSE_CHALLENGE.participantCount, 'number');
+  assert.equal(CYBER_DEFENSE_CHALLENGE.participantCount! > 0, true);
+  assert.equal(CYBER_DEFENSE_CHALLENGE.participantCount, 321);
+});
+

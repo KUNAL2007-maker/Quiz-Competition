@@ -365,6 +365,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               typeof data.durationMinutes === 'number' ? data.durationMinutes : undefined,
             difficulty: data.difficulty,
             accessType: data.accessType,
+            participantCount:
+              typeof data.participantCount === 'number' ? data.participantCount : undefined,
             perQuestionTimerSeconds:
               typeof data.perQuestionTimerSeconds === 'number' ? data.perQuestionTimerSeconds : 30,
           };
@@ -372,7 +374,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Ensure both Cyber Security Quiz 2026 and Cyber Defense Challenge 2026 are safely marked as completed tournaments
         const mappedItems = items.map((c) => {
           if (c.id === CYBER_QUIZ_COMP_ID || c.title.toLowerCase().includes('cyber quiz 2026')) {
-            return { ...c, status: 'completed' as const };
+            return {
+              ...c,
+              status: 'completed' as const,
+              endTime: c.endTime || '2026-11-08T11:30:00.000Z',
+              participantCount: c.participantCount || ARCHIVED_CYBER_QUIZ.participantCount || 83,
+            };
           }
           if (c.id === CYBER_DEFENSE_COMP_ID || c.title.toLowerCase().includes('cyber defense')) {
             return {

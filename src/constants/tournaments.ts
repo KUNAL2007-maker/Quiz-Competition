@@ -79,7 +79,7 @@ export const ARCHIVED_CYBER_QUIZ: Competition = {
   durationMinutes: 7.5,
   difficulty: 'Senior Analyst',
   accessType: 'Open Clearance',
-  participantCount: 62,
+  participantCount: 83,
   perQuestionTimerSeconds: 15,
   rules: [
     'Strict forward progression without back navigation',

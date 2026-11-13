@@ -350,6 +350,14 @@ export const CertificationPage: React.FC = () => {
         }
       }
 
+      // Check Cyber Security Quiz seed fallback
+      if (!displayName) {
+        const quizSeedMatch = (leaderboardSeed as any[]).find((s) => s.email && s.email.toLowerCase() === queryEmail);
+        if (quizSeedMatch) {
+          displayName = quizSeedMatch.displayName;
+        }
+      }
+
       // Special resolution for Kunal Bankhele / Admin accounts
       const ADMIN_EMAILS = ['checkship66@gmail.com', 'hafizmujawar786@gmail.com', 'kunalbankhele07@gmail.com'];
       if (!displayName && (queryEmail === 'kunalbankhele07@gmail.com' || queryEmail === 'checkship66@gmail.com')) {
