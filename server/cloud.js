@@ -1,11 +1,35 @@
 import {GoogleAuth,OAuth2Client} from 'google-auth-library';
+import {createPrivateKey} from 'node:crypto';
 import {Fault,requireThat} from './domain.js';
 export const project=()=>process.env.FIREBASE_PROJECT_ID;
 let auth,certs,certsUntil=0;
 const verifier=new OAuth2Client();
+export function readSigningKey(raw) {
+  // The dashboard may receive a PEM, a JSON string, or the copied private_key property.
+  let source = raw.trim();
+  try {
+    if (source.startsWith('{')) source = JSON.parse(source).private_key;
+  } catch {
+    source = '';
+  }
+  const pem = typeof source === 'string' && source.match(/-----BEGIN PRIVATE KEY-----([\s\S]+?)-----END PRIVATE KEY-----/);
+  if (pem) {
+    const body = pem[1].replace(/\\+[rn]|\s/g, '');
+    if (/^[A-Za-z0-9+/]+={0,2}$/.test(body)) {
+      try {
+        const key = createPrivateKey({key: Buffer.from(body, 'base64'), format: 'der', type: 'pkcs8'});
+        if (key.asymmetricKeyType === 'rsa') return key.export({format: 'pem', type: 'pkcs8'});
+      } catch {
+        // Report only the configuration field. Parser exceptions can contain input details.
+      }
+    }
+  }
+  console.error('Firebase configuration: FIREBASE_PRIVATE_KEY needs a complete RSA PKCS8 PEM.');
+  throw new Fault(503, 'The competition service is awaiting Firebase configuration.');
+}
 export async function token(){
   requireThat(project()&&process.env.FIREBASE_CLIENT_EMAIL&&process.env.FIREBASE_PRIVATE_KEY,503,'The competition service is awaiting Firebase configuration.');
-  auth??=new GoogleAuth({credentials:{client_email:process.env.FIREBASE_CLIENT_EMAIL,private_key:process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g,'\n')},scopes:['https://www.googleapis.com/auth/cloud-platform','https://www.googleapis.com/auth/identitytoolkit']});
+  auth??=new GoogleAuth({credentials:{client_email:process.env.FIREBASE_CLIENT_EMAIL.trim().replace(/^"|"[,]?$/g,''),private_key:readSigningKey(process.env.FIREBASE_PRIVATE_KEY)},scopes:['https://www.googleapis.com/auth/cloud-platform','https://www.googleapis.com/auth/identitytoolkit']});
   return auth.getAccessToken();
 }
 export async function identify(req){
