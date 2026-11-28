@@ -40,15 +40,29 @@ export async function mailRoute(kind,b,user,ip){
     await mutate('passwordCodes/'+digest(user.uid),()=>({salt,hash:otpHash(user.uid,code,salt),tries:0,used:false,until:Date.now()+600000}));
     await sendEmail(email,'Password linking code','Your code is '+code+'. It expires in 10 minutes.');return;
   }
-  const res=await identity('sendOobCode',{requestType:kind==='reset'?'PASSWORD_RESET':'VERIFY_EMAIL',email,returnOobLink:true});
-  const data=await res.json();
-  if(kind==='reset'&&data.error?.message==='EMAIL_NOT_FOUND')return;
-  requireThat(res.ok&&data.oobLink,503,'Unable to prepare your email at the moment.');
-  const original=new URL(data.oobLink);
-  const href=new URL('/auth/action',process.env.SITE_ORIGIN);
-  href.searchParams.set('oobCode',original.searchParams.get('oobCode'));href.searchParams.set('mode',kind==='reset'?'resetPassword':'verifyEmail');
-  const label=kind==='reset'?'Reset your password':'Verify your email';
-  await sendEmail(email,label,label+' for your Null Origin account:\n\n'+href+'\n\nIf you did not request this message, you can ignore it.');
+  await sendFirebaseAction(kind,email,user?.raw);
+}
+export async function sendFirebaseAction(kind, email, idToken) {
+  const apiKey = process.env.VITE_FIREBASE_API_KEY;
+  requireThat(apiKey, 503, 'Email delivery is awaiting Firebase configuration.');
+  const reset = kind === 'reset';
+  requireThat(reset || (kind === 'verify' && idToken), 401, 'Sign in to verify your email.');
+  const payload = reset ? {requestType: 'PASSWORD_RESET', email} : {requestType: 'VERIFY_EMAIL', idToken};
+  const url = new URL('https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode');
+  url.searchParams.set('key', apiKey);
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(10000),
+  });
+  if (response.ok) return;
+  const {error} = await response.json();
+  if (reset && error?.message === 'EMAIL_NOT_FOUND') return;
+  if (error?.message?.startsWith('TOO_MANY_ATTEMPTS_TRY_LATER')) {
+    requireThat(false, 429, 'Please wait before requesting another email.');
+  }
+  requireThat(false, 503, 'Unable to send your email at the moment. Please try again.');
 }
 function identity(method,payload){
   return token().then(bearer=>fetch('https://identitytoolkit.googleapis.com/v1/projects/'+project()+'/accounts:'+method,{method:'POST',headers:{Authorization:'Bearer '+bearer,'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(9000)}));
