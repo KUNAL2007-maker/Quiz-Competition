@@ -19,10 +19,15 @@ export async function play(e,u,b,now=Date.now()){
   const id=attemptId(e.id,u.uid),path='attempts/'+id;
   if(b.action==='start'){
     const existing=await db.get(path);
-    if(existing && !(e.mode==='practice'&&b.retry===true&&existing.data.status!=='active'))return view(existing.data,e);
+    if(existing && !(e.mode==='practice'&&b.retry===true&&existing.data.status!=='active')){
+      if(existing.data.status!=='active'||now<existing.data.started)return view(existing.data,e);
+      return play(e,u,{action:'sync',nonce:existing.data.nonce},now);
+    }
     const profile=(await db.get('profiles/'+digest(u.uid)))?.data;
     const a=startAttempt(e,u,profile,now,randomUUID());
     a.started+=3000;a.opened+=3000;a.deadline+=3000;
+    // Starting returns the countdown. The first sync delivers question zero.
+    a.lastSeenIndex=-1;
     const writes=[{path,data:a,version:existing?.version}];
     if(!existing&&!a.practice)writes.push({path:'entries/'+digest(e.id,emailKey(u.email)),data:{uid:u.uid}});
     try{await db.write(writes)}catch(error){
@@ -61,10 +66,11 @@ export async function stage(e,now=Date.now()){
 }
 export async function board(e){
   if(e.mode==='practice')return {rows:[],final:false};
-  const final=await stage(e);
   const path='boards/'+e.id;
   const saved=await db.get(path);
-  if(saved?.data.final || (saved&&!final&&Date.now()-saved.data.checked<30000))return saved.data;
+  if(saved?.data.final)return saved.data;
+  const final=await stage(e);
+  if(saved&&!final&&Date.now()-saved.data.checked<30000)return saved.data;
   const records={...(saved?.data.records||{})};
   // Firestore commit timestamps advance when completed attempts are first persisted.
   const filters=[['eventId','EQUAL',e.id],['status','EQUAL','completed']];

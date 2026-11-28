@@ -46,6 +46,27 @@ test('score dominates elapsed time and exact ties share rank',()=>{
  const r=ranked([{username:'c',score:1,elapsed:2},{username:'d',score:2,elapsed:4},{username:'b',score:2,elapsed:3},{username:'a',score:2,elapsed:3}]);
  assert.deepEqual(r.map(v=>[v.username,v.rank]),[['a',1],['b',1],['d',3],['c',4]]);
 });
+test('leaving a one-question countdown earns no entry in the standings',async t=>{
+ const event={...e,questions:[qs[0]],id:'single'};
+ const docs=new Map();
+ t.mock.method(db,'get',async path=>structuredClone(docs.get(path)||null));
+ t.mock.method(db,'write',async changes=>{
+   for(const {path,data} of changes)docs.set(path,{data:structuredClone(data),version:'1'});
+ });
+ docs.set('profiles/'+digest(u.uid),{data:profile});
+ const startTime=Date.now();
+ event.opens=startTime-1;event.closes=startTime+60000;
+ const countdown=await play(event,u,{action:'start'},startTime);
+ assert.equal(countdown.status,'countdown');
+ const expired=await play(event,u,{action:'start'},startTime+33000);
+ assert.equal(expired.status,'abandoned');
+ const nextEvent={...event,id:'single-present'};
+ const second=await play(nextEvent,u,{action:'start'},startTime);
+ await play(nextEvent,u,{action:'sync',nonce:second.nonce},startTime+3000);
+ const present=await play(nextEvent,u,{action:'sync',nonce:second.nonce},startTime+33000);
+ assert.equal(present.status,'completed');
+ assert.equal(present.score,0);
+});
 test('200 concurrent entrants, replay-safe starts and 4,000 answers, independent rankings and certificates',async()=>{
  const docs=new Map();let version=0,reads=0,writes=0,boardOffline=false;
  db.get=async key=>{reads++;return structuredClone(docs.get(key)||null)};
