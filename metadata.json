@@ -1,6 +1,0 @@
-{
-  "name": "Null Origin — Online Quiz Competition Platform",
-  "description": "Multi-category quiz competition command center, live ranking ledger, tournament arena, and skill certification environment.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

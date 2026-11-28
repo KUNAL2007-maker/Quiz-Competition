@@ -1,0 +1,279 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="pillarShadow" x="-10%" y="-5%" width="150%" height="110%">
+            <feDropShadow dx="6" dy="2" stdDeviation="7" flood-color="#051026" flood-opacity="0.30"></feDropShadow>
+          </filter>
+          <filter id="ribbonShadow" x="-15%" y="-15%" width="150%" height="150%">
+            <feDropShadow dx="5" dy="7" stdDeviation="7" flood-color="#040d21" flood-opacity="0.38"></feDropShadow>
+          </filter>
+          <filter id="sealShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#091938" flood-opacity="0.28"></feDropShadow>
+          </filter>
+
+          <linearGradient id="sealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#e6c878"></stop>
+            <stop offset="100%" stop-color="#9b7322"></stop>
+          </linearGradient>
+
+          <linearGradient id="navyPillarGrad" x1="0" y1="0" x2="90" y2="900" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#0d234a"></stop>
+            <stop offset="50%" stop-color="#091a3a"></stop>
+            <stop offset="100%" stop-color="#06142e"></stop>
+          </linearGradient>
+
+          <linearGradient id="goldLinear" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#c39a45"></stop>
+            <stop offset="28%" stop-color="#ebd28c"></stop>
+            <stop offset="55%" stop-color="#c59c46"></stop>
+            <stop offset="82%" stop-color="#e6c97a"></stop>
+            <stop offset="100%" stop-color="#966e1e"></stop>
+          </linearGradient>
+
+          <linearGradient id="goldLeafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#efd895"></stop>
+            <stop offset="50%" stop-color="#cba34d"></stop>
+            <stop offset="100%" stop-color="#997020"></stop>
+          </linearGradient>
+
+          <linearGradient id="goldDiag1" x1="0" y1="205" x2="115" y2="335" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#b58a34"></stop>
+            <stop offset="48%" stop-color="#ead086"></stop>
+            <stop offset="100%" stop-color="#9e7422"></stop>
+          </linearGradient>
+
+          <linearGradient id="cobaltRibbonUpper" x1="0" y1="290" x2="188" y2="545" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#0e3780"></stop>
+            <stop offset="48%" stop-color="#1c57b8"></stop>
+            <stop offset="82%" stop-color="#16479c"></stop>
+            <stop offset="100%" stop-color="#0a2761"></stop>
+          </linearGradient>
+
+          <linearGradient id="cobaltRibbonLower" x1="0" y1="530" x2="280" y2="900" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#0d3478"></stop>
+            <stop offset="42%" stop-color="#1c58bc"></stop>
+            <stop offset="80%" stop-color="#174ca6"></stop>
+            <stop offset="100%" stop-color="#0e347a"></stop>
+          </linearGradient>
+
+          <linearGradient id="darkFoldBack" x1="40" y1="490" x2="188" y2="750" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#071838"></stop>
+            <stop offset="55%" stop-color="#10326b"></stop>
+            <stop offset="100%" stop-color="#05132b"></stop>
+          </linearGradient>
+
+          <radialGradient id="sealBlueDisc" cx="50%" cy="42%" r="60%">
+            <stop offset="0%" stop-color="#2563eb"></stop>
+            <stop offset="58%" stop-color="#144196"></stop>
+            <stop offset="100%" stop-color="#081b42"></stop>
+          </radialGradient>
+        </defs>
+
+        <!-- ================= TOP-LEFT MINIMALIST CIRCUIT TRACES ================= -->
+        <g opacity="0.88">
+          <path d="M82 60 L132 10 L215 10" stroke="#c8a456" stroke-width="1.4" fill="none"></path>
+          <path d="M82 115 L146 51 L202 51 L253 0" stroke="#162f59" stroke-width="1.7" fill="none"></path>
+          <circle cx="229" cy="51" r="4" stroke="#162f59" stroke-width="1.7" fill="#f6f4ec"></circle>
+          <path d="M82 135 L154 63 L210 63 L273 0" stroke="#c8a456" stroke-width="1.4" fill="none"></path>
+          <circle cx="154" cy="39" r="3.2" fill="#c8a456"></circle>
+          <path d="M82 95 L138 39 L151 39" stroke="#c8a456" stroke-width="1.3" fill="none"></path>
+          <path d="M82 165 L122 125 L122 92 L195 19 L270 19" stroke="#162f59" stroke-width="1.5" fill="none"></path>
+          <circle cx="110" cy="184" r="4" stroke="#162f59" stroke-width="1.7" fill="#f6f4ec"></circle>
+          <path d="M82 212 L110 184" stroke="#162f59" stroke-width="1.7" fill="none"></path>
+          <path d="M312 0 L242 70" stroke="#162f59" stroke-width="1.6" fill="none"></path>
+          <circle cx="239" cy="73" r="4.2" stroke="#162f59" stroke-width="1.7" fill="#f6f4ec"></circle>
+          <path d="M332 0 L265 67" stroke="#c8a456" stroke-width="1.5" fill="none"></path>
+          <circle cx="262" cy="70" r="4.2" fill="#c8a456"></circle>
+          <path d="M358 0 L292 66" stroke="#8a96a8" stroke-width="1.2" fill="none"></path>
+          <circle cx="289" cy="69" r="3.5" fill="#c8a456"></circle>
+
+          <!-- Lower circuit lines below the hexagon logo -->
+          <path d="M128 212 L128 335" stroke="#c8a456" stroke-width="1.4" fill="none"></path>
+          <path d="M140 232 L140 355" stroke="#162f59" stroke-width="1.5" fill="none"></path>
+          <circle cx="140" cy="229" r="3.8" stroke="#162f59" stroke-width="1.6" fill="#f6f4ec"></circle>
+
+          <path d="M128 315 L162 281 L162 248" stroke="#162f59" stroke-width="1.7" fill="none"></path>
+          <circle cx="162" cy="244" r="4.2" stroke="#162f59" stroke-width="1.7" fill="#f6f4ec"></circle>
+
+          <path d="M128 368 L224 272 L224 226" stroke="#162f59" stroke-width="1.8" fill="none"></path>
+          <circle cx="224" cy="222" r="4.2" stroke="#162f59" stroke-width="1.8" fill="#f6f4ec"></circle>
+
+          <path d="M128 402 L198 332 L198 282 L241 239" stroke="#c8a456" stroke-width="1.5" fill="none"></path>
+          <circle cx="244" cy="236" r="4" stroke="#c8a456" stroke-width="1.6" fill="#f6f4ec"></circle>
+        </g>
+
+        <!-- ================= LEFT ASYMMETRIC RIBBON ARCHITECTURE ================= -->
+        <!-- 1. Base Left Vertical Navy Pillar -->
+        <g filter="url(#pillarShadow)">
+          <polygon points="0,0 82,0 82,360 116,460 116,900 0,900" fill="url(#navyPillarGrad)"></polygon>
+          <rect x="79" y="0" width="4.5" height="250" fill="url(#goldLinear)"></rect>
+          <rect x="113" y="670" width="4.5" height="230" fill="url(#goldLinear)"></rect>
+        </g>
+
+        <!-- 2. Upper Angled Dark-Navy Fold & Lower-Left Gold Stripe (No top gold line) -->
+        <g filter="url(#ribbonShadow)">
+          <polygon points="0,115 128,248 128,312 0,440" fill="#091f45"></polygon>
+          <polygon points="0,218 102,322 75,350 0,273" fill="url(#goldDiag1)"></polygon>
+        </g>
+
+        <!-- 3. Under-fold Return Ribbon (Mid-Lower Back Fold) -->
+        <g filter="url(#ribbonShadow)">
+          <polygon points="186,492 186,618 42,765 0,722 140,578" fill="url(#darkFoldBack)"></polygon>
+          <polygon points="148,554 176,584 26,738 0,710" fill="url(#goldLinear)"></polygon>
+        </g>
+
+        <!-- 4. Middle Cobalt-Blue & Gold Overlapping Ribbon -->
+        <g filter="url(#ribbonShadow)">
+          <polygon points="0,298 186,490 186,584 156,554 0,394" fill="url(#cobaltRibbonUpper)"></polygon>
+          <polygon points="0,390 158,553 131,581 0,446" fill="url(#goldLinear)"></polygon>
+        </g>
+
+        <!-- 5. Bottom Sweeping Cobalt-Blue & Gold Ribbon to Bottom Edge -->
+        <g filter="url(#ribbonShadow)">
+          <polygon points="0,520 294,900 284,900 0,532" fill="url(#goldLinear)"></polygon>
+          <polygon points="0,530 286,900 222,900 0,612" fill="url(#cobaltRibbonLower)"></polygon>
+          <polygon points="0,608 226,900 206,900 0,632" fill="url(#goldLinear)"></polygon>
+        </g>
+
+        <!-- ================= TOP-LEFT BRAND LOGO (NULL ORIGIN HEXAGON) ================= -->
+        <g transform="translate(133, 94)">
+          <polygon points="40,0 0,23 0,69 40,92 40,74 15,60 15,32 40,18" fill="#1857b8"></polygon>
+          <polygon points="40,0 80,23 80,69 40,92 40,74 65,60 65,32 40,18" fill="#68778a"></polygon>
+          <polygon points="40,24 60,35.5 60,56.5 40,68 20,56.5 20,35.5" fill="#1857b8"></polygon>
+        </g>
+
+        <!-- ================= BOTTOM-CENTER 3D ROYAL BLUE & GOLD LAUREL SEAL ================= -->
+        <g transform="translate(600, 728)" filter="url(#sealShadow)">
+          <path d="M-20.4,71.1 L-33.9,65.8 L-46.0,57.9 L-56.4,47.9 L-64.7,36.0 L-70.4,22.7 L-73.5,8.5 L-73.8,-6.0 L-71.2,-20.2 L-65.9,-33.7 L-58.1,-45.9 L-48.0,-56.3 L-36.1,-64.6 L-22.9,-70.4" fill="none" stroke="url(#goldLinear)" stroke-width="1.6"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-21.6,75.2) rotate(-98.0)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-19.5,68.1) rotate(-56.0)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-35.8,69.5) rotate(-86.8)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-32.4,63.0) rotate(-44.8)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-48.6,61.2) rotate(-75.5)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-44.0,55.4) rotate(-33.5)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-59.6,50.6) rotate(-64.3)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-54.0,45.8) rotate(-22.3)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-68.3,38.0) rotate(-53.1)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-61.9,34.4) rotate(-11.1)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-74.4,24.0) rotate(-41.8)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-67.4,21.7) rotate(0.2)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-77.7,9.0) rotate(-30.6)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-70.3,8.2) rotate(11.4)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-77.9,-6.3) rotate(-19.4)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-70.6,-5.7) rotate(22.6)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-75.2,-21.4) rotate(-8.2)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-68.1,-19.3) rotate(33.8)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-69.6,-35.6) rotate(3.1)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-63.0,-32.2) rotate(45.1)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-61.4,-48.5) rotate(14.3)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-55.6,-43.9) rotate(56.3)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-50.7,-59.5) rotate(25.5)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-45.9,-53.9) rotate(67.5)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-38.2,-68.2) rotate(36.8)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(-34.6,-61.8) rotate(78.8)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(-24.2,-74.4) rotate(48.0)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M20.4,71.1 L33.9,65.8 L46.0,57.9 L56.4,47.9 L64.7,36.0 L70.4,22.7 L73.5,8.5 L73.8,-6.0 L71.2,-20.2 L65.9,-33.7 L58.1,-45.9 L48.0,-56.3 L36.1,-64.6 L22.9,-70.4" fill="none" stroke="url(#goldLinear)" stroke-width="1.6"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(21.6,75.2) rotate(98.0)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(19.5,68.1) rotate(56.0)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(35.8,69.5) rotate(86.8)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(32.4,63.0) rotate(44.8)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(48.6,61.2) rotate(75.5)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(44.0,55.4) rotate(33.5)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(59.6,50.6) rotate(64.3)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(54.0,45.8) rotate(22.3)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(68.3,38.0) rotate(53.1)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(61.9,34.4) rotate(11.1)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(74.4,24.0) rotate(41.8)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(67.4,21.7) rotate(-0.2)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(77.7,9.0) rotate(30.6)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(70.3,8.2) rotate(-11.4)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(77.9,-6.3) rotate(19.4)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(70.6,-5.7) rotate(-22.6)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(75.2,-21.4) rotate(8.2)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(68.1,-19.3) rotate(-33.8)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(69.6,-35.6) rotate(-3.1)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(63.0,-32.2) rotate(-45.1)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(61.4,-48.5) rotate(-14.3)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(55.6,-43.9) rotate(-56.3)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(50.7,-59.5) rotate(-25.5)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(45.9,-53.9) rotate(-67.5)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(38.2,-68.2) rotate(-36.8)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M0,-12.0 C3.6,-5.5 3.6,4.0 0,10.0 C-3.4,4.0 -3.4,-5.5 0,-12.0 Z" transform="translate(34.6,-61.8) rotate(-78.8)" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.5"></path>
+<path d="M0,-13.5 C4.2,-6.5 4.2,4.5 0,11.5 C-3.8,4.5 -3.8,-6.5 0,-13.5 Z" transform="translate(24.2,-74.4) rotate(-48.0)" fill="url(#goldLeafGrad)" stroke="#855e14" stroke-width="0.55"></path>
+<path d="M-24,83 C-12,75 -5,72 0,72 C5,72 12,75 24,83 C16,85 7,80 0,76 C-7,80 -16,85 -24,83 Z" fill="url(#goldLinear)" stroke="#855e14" stroke-width="0.7"></path>
+<path d="M0.00,-69.90 L2.73,-69.39 L5.35,-68.03 L7.85,-66.30 L10.26,-64.75 L12.70,-63.85 L15.30,-63.75 L18.12,-64.25 L21.09,-64.90 L24.03,-65.15 L26.75,-64.58 L29.07,-63.06 L30.98,-60.80 L32.62,-58.25 L34.25,-55.90 L36.17,-54.13 L38.53,-53.04 L41.33,-52.43 L44.32,-51.89 L47.14,-50.99 L49.43,-49.43 L50.99,-47.14 L51.89,-44.32 L52.43,-41.33 L53.04,-38.53 L54.13,-36.17 L55.90,-34.25 L58.25,-32.62 L60.80,-30.98 L63.06,-29.07 L64.58,-26.75 L65.15,-24.03 L64.90,-21.09 L64.25,-18.12 L63.75,-15.30 L63.85,-12.70 L64.75,-10.26 L66.30,-7.85 L68.03,-5.35 L69.39,-2.73 L69.90,-0.00 L69.39,2.73 L68.03,5.35 L66.30,7.85 L64.75,10.26 L63.85,12.70 L63.75,15.30 L64.25,18.12 L64.90,21.09 L65.15,24.03 L64.58,26.75 L63.06,29.07 L60.80,30.98 L58.25,32.62 L55.90,34.25 L54.13,36.17 L53.04,38.53 L52.43,41.33 L51.89,44.32 L50.99,47.14 L49.43,49.43 L47.14,50.99 L44.32,51.89 L41.33,52.43 L38.53,53.04 L36.17,54.13 L34.25,55.90 L32.62,58.25 L30.98,60.80 L29.07,63.06 L26.75,64.58 L24.03,65.15 L21.09,64.90 L18.12,64.25 L15.30,63.75 L12.70,63.85 L10.26,64.75 L7.85,66.30 L5.35,68.03 L2.73,69.39 L0.00,69.90 L-2.73,69.39 L-5.35,68.03 L-7.85,66.30 L-10.26,64.75 L-12.70,63.85 L-15.30,63.75 L-18.12,64.25 L-21.09,64.90 L-24.03,65.15 L-26.75,64.58 L-29.07,63.06 L-30.98,60.80 L-32.62,58.25 L-34.25,55.90 L-36.17,54.13 L-38.53,53.04 L-41.33,52.43 L-44.32,51.89 L-47.14,50.99 L-49.43,49.43 L-50.99,47.14 L-51.89,44.32 L-52.43,41.33 L-53.04,38.53 L-54.13,36.17 L-55.90,34.25 L-58.25,32.62 L-60.80,30.98 L-63.06,29.07 L-64.58,26.75 L-65.15,24.03 L-64.90,21.09 L-64.25,18.12 L-63.75,15.30 L-63.85,12.70 L-64.75,10.26 L-66.30,7.85 L-68.03,5.35 L-69.39,2.73 L-69.90,0.00 L-69.39,-2.73 L-68.03,-5.35 L-66.30,-7.85 L-64.75,-10.26 L-63.85,-12.70 L-63.75,-15.30 L-64.25,-18.12 L-64.90,-21.09 L-65.15,-24.03 L-64.58,-26.75 L-63.06,-29.07 L-60.80,-30.98 L-58.25,-32.62 L-55.90,-34.25 L-54.13,-36.17 L-53.04,-38.53 L-52.43,-41.33 L-51.89,-44.32 L-50.99,-47.14 L-49.43,-49.43 L-47.14,-50.99 L-44.32,-51.89 L-41.33,-52.43 L-38.53,-53.04 L-36.17,-54.13 L-34.25,-55.90 L-32.62,-58.25 L-30.98,-60.80 L-29.07,-63.06 L-26.75,-64.58 L-24.03,-65.15 L-21.09,-64.90 L-18.12,-64.25 L-15.30,-63.75 L-12.70,-63.85 L-10.26,-64.75 L-7.85,-66.30 L-5.35,-68.03 L-2.73,-69.39 Z" fill="#0d2658" stroke="url(#goldLinear)" stroke-width="2.2"></path>
+<path d="M0.00,-65.40 L2.56,-65.04 L5.04,-64.10 L7.44,-62.87 L9.78,-61.74 L12.13,-61.00 L14.59,-60.78 L17.18,-60.93 L19.87,-61.15 L22.53,-61.07 L25.03,-60.42 L27.25,-59.12 L29.19,-57.29 L30.93,-55.23 L32.66,-53.29 L34.56,-51.72 L36.74,-50.57 L39.19,-49.71 L41.76,-48.89 L44.19,-47.80 L46.24,-46.24 L47.80,-44.19 L48.89,-41.76 L49.71,-39.19 L50.57,-36.74 L51.72,-34.56 L53.29,-32.66 L55.23,-30.93 L57.29,-29.19 L59.12,-27.25 L60.42,-25.03 L61.07,-22.53 L61.15,-19.87 L60.93,-17.18 L60.78,-14.59 L61.00,-12.13 L61.74,-9.78 L62.87,-7.44 L64.10,-5.04 L65.04,-2.56 L65.40,-0.00 L65.04,2.56 L64.10,5.04 L62.87,7.44 L61.74,9.78 L61.00,12.13 L60.78,14.59 L60.93,17.18 L61.15,19.87 L61.07,22.53 L60.42,25.03 L59.12,27.25 L57.29,29.19 L55.23,30.93 L53.29,32.66 L51.72,34.56 L50.57,36.74 L49.71,39.19 L48.89,41.76 L47.80,44.19 L46.24,46.24 L44.19,47.80 L41.76,48.89 L39.19,49.71 L36.74,50.57 L34.56,51.72 L32.66,53.29 L30.93,55.23 L29.19,57.29 L27.25,59.12 L25.03,60.42 L22.53,61.07 L19.87,61.15 L17.18,60.93 L14.59,60.78 L12.13,61.00 L9.78,61.74 L7.44,62.87 L5.04,64.10 L2.56,65.04 L0.00,65.40 L-2.56,65.04 L-5.04,64.10 L-7.44,62.87 L-9.78,61.74 L-12.13,61.00 L-14.59,60.78 L-17.18,60.93 L-19.87,61.15 L-22.53,61.07 L-25.03,60.42 L-27.25,59.12 L-29.19,57.29 L-30.93,55.23 L-32.66,53.29 L-34.56,51.72 L-36.74,50.57 L-39.19,49.71 L-41.76,48.89 L-44.19,47.80 L-46.24,46.24 L-47.80,44.19 L-48.89,41.76 L-49.71,39.19 L-50.57,36.74 L-51.72,34.56 L-53.29,32.66 L-55.23,30.93 L-57.29,29.19 L-59.12,27.25 L-60.42,25.03 L-61.07,22.53 L-61.15,19.87 L-60.93,17.18 L-60.78,14.59 L-61.00,12.13 L-61.74,9.78 L-62.87,7.44 L-64.10,5.04 L-65.04,2.56 L-65.40,0.00 L-65.04,-2.56 L-64.10,-5.04 L-62.87,-7.44 L-61.74,-9.78 L-61.00,-12.13 L-60.78,-14.59 L-60.93,-17.18 L-61.15,-19.87 L-61.07,-22.53 L-60.42,-25.03 L-59.12,-27.25 L-57.29,-29.19 L-55.23,-30.93 L-53.29,-32.66 L-51.72,-34.56 L-50.57,-36.74 L-49.71,-39.19 L-48.89,-41.76 L-47.80,-44.19 L-46.24,-46.24 L-44.19,-47.80 L-41.76,-48.89 L-39.19,-49.71 L-36.74,-50.57 L-34.56,-51.72 L-32.66,-53.29 L-30.93,-55.23 L-29.19,-57.29 L-27.25,-59.12 L-25.03,-60.42 L-22.53,-61.07 L-19.87,-61.15 L-17.18,-60.93 L-14.59,-60.78 L-12.13,-61.00 L-9.78,-61.74 L-7.44,-62.87 L-5.04,-64.10 L-2.56,-65.04 Z" fill="url(#goldLinear)" stroke="#7c5711" stroke-width="0.8"></path>
+<circle cx="0" cy="0" r="60" fill="url(#sealBlueDisc)" stroke="url(#goldLinear)" stroke-width="2.2"></circle>
+<circle cx="0" cy="0" r="54.5" fill="none" stroke="url(#goldLinear)" stroke-width="0.9" stroke-opacity="0.9"></circle>
+<circle cx="0" cy="0" r="34" fill="#0c2659" stroke="url(#goldLinear)" stroke-width="1.4"></circle>
+<circle cx="0" cy="0" r="31" fill="none" stroke="url(#goldLinear)" stroke-width="0.7" stroke-opacity="0.75"></circle>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-12.0,44.8) rotate(-103.0)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-10.9,40.6) rotate(-49.0)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-19.9,41.9) rotate(-92.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-18.0,37.9) rotate(-38.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-27.2,37.6) rotate(-82.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-24.6,34.0) rotate(-28.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-33.5,32.1) rotate(-71.7)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-30.4,29.0) rotate(-17.7)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-38.8,25.5) rotate(-61.3)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-35.1,23.1) rotate(-7.3)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-42.8,18.0) rotate(-50.9)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-38.7,16.3) rotate(3.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-45.3,10.0) rotate(-40.4)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-41.0,9.0) rotate(13.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-46.4,1.6) rotate(-30.0)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-42.0,1.5) rotate(24.0)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-45.9,-6.8) rotate(-19.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-41.5,-6.2) rotate(34.4)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-43.9,-15.0) rotate(-9.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-39.7,-13.6) rotate(44.9)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-40.5,-22.7) rotate(1.3)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-36.6,-20.5) rotate(55.3)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-35.7,-29.6) rotate(11.7)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-32.3,-26.8) rotate(65.7)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-29.7,-35.6) rotate(22.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-26.9,-32.2) rotate(76.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-22.8,-40.4) rotate(32.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-20.6,-36.6) rotate(86.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(-15.1,-43.9) rotate(43.0)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(-13.7,-39.7) rotate(97.0)" fill="url(#goldLinear)"></path>
+<path d="M-11.4,42.7 L-19.0,39.9 L-25.9,35.8 L-31.9,30.5 L-36.9,24.3 L-40.7,17.2 L-43.2,9.5 L-44.2,1.5 L-43.7,-6.5 L-41.8,-14.3 L-38.6,-21.6 L-34.0,-28.2 L-28.3,-33.9 L-21.7,-38.5 L-14.4,-41.8" fill="none" stroke="url(#goldLinear)" stroke-width="0.9"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(12.0,44.8) rotate(103.0)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(10.9,40.6) rotate(49.0)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(19.9,41.9) rotate(92.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(18.0,37.9) rotate(38.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(27.2,37.6) rotate(82.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(24.6,34.0) rotate(28.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(33.5,32.1) rotate(71.7)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(30.4,29.0) rotate(17.7)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(38.8,25.5) rotate(61.3)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(35.1,23.1) rotate(7.3)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(42.8,18.0) rotate(50.9)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(38.7,16.3) rotate(-3.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(45.3,10.0) rotate(40.4)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(41.0,9.0) rotate(-13.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(46.4,1.6) rotate(30.0)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(42.0,1.5) rotate(-24.0)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(45.9,-6.8) rotate(19.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(41.5,-6.2) rotate(-34.4)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(43.9,-15.0) rotate(9.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(39.7,-13.6) rotate(-44.9)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(40.5,-22.7) rotate(-1.3)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(36.6,-20.5) rotate(-55.3)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(35.7,-29.6) rotate(-11.7)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(32.3,-26.8) rotate(-65.7)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(29.7,-35.6) rotate(-22.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(26.9,-32.2) rotate(-76.1)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(22.8,-40.4) rotate(-32.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(20.6,-36.6) rotate(-86.6)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.6 C1.5,-2 1.5,2 0,4.6 C-1.5,2 -1.5,-2 0,-4.6 Z" transform="translate(15.1,-43.9) rotate(-43.0)" fill="url(#goldLinear)"></path>
+<path d="M0,-4.2 C1.4,-1.8 1.4,1.8 0,4.2 C-1.4,1.8 -1.4,-1.8 0,-4.2 Z" transform="translate(13.7,-39.7) rotate(-97.0)" fill="url(#goldLinear)"></path>
+<path d="M11.4,42.7 L19.0,39.9 L25.9,35.8 L31.9,30.5 L36.9,24.3 L40.7,17.2 L43.2,9.5 L44.2,1.5 L43.7,-6.5 L41.8,-14.3 L38.6,-21.6 L34.0,-28.2 L28.3,-33.9 L21.7,-38.5 L14.4,-41.8" fill="none" stroke="url(#goldLinear)" stroke-width="0.9"></path>
+
+      <g transform="translate(-20, -23) scale(0.50)">
+        <polygon points="40,0 0,23 0,69 40,92 40,74 15,60 15,32 40,18" fill="url(#goldLinear)" stroke="#7a5610" stroke-width="1"></polygon>
+        <polygon points="40,0 80,23 80,69 40,92 40,74 65,60 65,32 40,18" fill="#8b9bb0" stroke="#5b6b80" stroke-width="1"></polygon>
+        <polygon points="40,24 60,35.5 60,56.5 40,68 20,56.5 20,35.5" fill="url(#goldLinear)" stroke="#7a5610" stroke-width="1"></polygon>
+      </g>
+    
+        </g>
+      </svg>
